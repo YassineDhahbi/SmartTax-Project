@@ -1,0 +1,17 @@
+.user-profile {
+  font-size: 1.5rem; /* Ajustez la taille de l'icône */
+  color : #0056A3;
+  cursor: pointer;
+}
+
+.user-profile:hover {
+  color: #F5A300; /* Couleur au survol, ajustez selon votre thème */
+}
+
+.logout-btn i.fa-sign-out-alt {
+  color: #0056A3; /* Mets la couleur que tu veux, par exemple rouge */
+}
+
+.logout-btn i.fa-sign-out-alt:hover {
+  color: #F5A300; /* Couleur au survol, ajustez selon votre thème */
+}

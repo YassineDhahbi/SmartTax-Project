@@ -1,0 +1,74 @@
+<main class="main">
+
+        <!-- breadcrumb -->
+        <div class="site-breadcrumb" style="background: url(assets/img/breadcrumb/01.jpg)">
+            <div class="container">
+                <h2 class="breadcrumb-title">Donation Form</h2>
+                <ul class="breadcrumb-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li class="active">Donation Form</li>
+                </ul>
+            </div>
+        </div>
+        <!-- breadcrumb end -->
+
+
+        <div class="verification-container">
+  <div class="widget">
+    <h3 class="title">Vérification de la Carte d'Identité Nationale</h3>
+
+    <div class="form-group">
+      <label for="cin-upload" class="form-label">
+        <i class="fas fa-upload me-2"></i>
+        Téléverser une image de votre CIN
+      </label>
+      <input type="file" id="cin-upload" class="form-control"
+             (change)="onFileSelected($event)" accept="image/jpeg, image/png">
+      <div class="form-text">Formats acceptés: JPEG, PNG (max 5MB)</div>
+    </div>
+
+    <div *ngIf="previewUrl" class="image-preview mt-3 mb-3">
+      <img [src]="previewUrl" alt="Aperçu de la CIN" class="preview-image img-thumbnail">
+    </div>
+
+    <div *ngIf="validationResult" class="validation-result alert"
+         [class.alert-success]="validationResult.status === 'valid'"
+         [class.alert-danger]="validationResult.status === 'invalid'">
+      <div class="d-flex justify-content-between align-items-center">
+        <span>
+          <strong>Résultat :</strong>
+          {{ validationResult.status === 'valid' ? 'CIN Valide' : 'CIN Invalide' }}
+          ({{ validationResult.confidence | number:'1.0-2' }}%)
+        </span>
+        <i class="fas"
+           [class.fa-check-circle]="validationResult.status === 'valid'"
+           [class.fa-times-circle]="validationResult.status === 'invalid'"></i>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+      <i class="fas fa-exclamation-circle me-2"></i>
+      {{ errorMessage }}
+    </div>
+
+    <div class="d-grid gap-2 mt-4">
+      <button type="button" class="btn btn-primary"
+              (click)="verifyCin()"
+              [disabled]="!selectedFile || isLoading">
+        <span *ngIf="!isLoading">
+          <i class="fas fa-check-circle me-2"></i>Vérifier la CIN
+        </span>
+        <span *ngIf="isLoading">
+          <i class="fas fa-spinner fa-spin me-2"></i>Vérification en cours...
+        </span>
+      </button>
+
+      <button *ngIf="validationResult" type="button" class="btn btn-outline-secondary"
+              (click)="retryValidation()">
+        <i class="fas fa-redo me-2"></i>Nouvelle vérification
+      </button>
+    </div>
+  </div>
+</div>
+
+    </main>

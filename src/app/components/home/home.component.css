@@ -1,0 +1,35 @@
+.hero-content h1 {
+    font-size: 3.5rem; /* Taille de police grande et moderne */
+    font-weight: 700; /* Poids gras pour une présence forte */
+    color: #ffffff; /* Couleur sombre pour un look professionnel */
+    line-height: 1.2; /* Ajustement de l'espacement des lignes */
+    margin-bottom: 1rem; /* Espacement en bas */
+    text-transform: uppercase; /* Texte en majuscules pour un style audacieux */
+    letter-spacing: 1.5px; /* Espacement des lettres pour une touche moderne */
+    position: relative; /* Pour permettre des effets avec ::after */
+}
+
+.hero-content h1 span {
+    color: #007bff; /* Couleur pour "IA" pour le mettre en évidence */
+    font-weight: 800; /* Poids encore plus fort pour "IA" */
+    background: linear-gradient(90deg, #007bff, #00c4cc); /* Dégradé moderne */
+    -webkit-background-clip: text; /* Applique le dégradé au texte */
+    background-clip: text;
+    color: transparent; /* Rend le texte transparent pour laisser le dégradé apparaître */
+    display: inline-block; /* Permet d'appliquer le dégradé uniquement au span */
+}
+
+.hero-content h1::after {
+    content: ""; /* Pseudo-élément pour un effet décoratif */
+    position: absolute;
+    width: 100px;
+    height: 4px;
+    background: #007bff; /* Ligne décorative sous le titre */
+    bottom: -10px;
+    left: 0;
+    transition: width 0.3s ease; /* Animation subtile */
+}
+
+.hero-content h1:hover::after {
+    width: 150px; /* Élargit la ligne au survol pour un effet interactif */
+}

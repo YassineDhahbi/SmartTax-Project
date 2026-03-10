@@ -1,0 +1,213 @@
+<!-- navbar -->
+<div class="main-navigation">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container position-relative">
+            <a class="navbar-brand" [routerLink]="['/']">
+                <img src="assets/img/logo/SmartTax.png" alt="logo">
+            </a>
+            <div class="mobile-menu-right">
+                <div class="mobile-menu-btn">
+                    <button type="button" class="nav-right-link user-profile" (click)="navigateToProfile()"><i
+                            class="far fa-user-circle"></i></button>
+                </div>
+                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar"
+                    aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar"
+                aria-labelledby="offcanvasNavbarLabel">
+                <div class="offcanvas-header">
+                    <a [routerLink]="['/']" class="offcanvas-brand" id="offcanvasNavbarLabel">
+                        <img src="assets/img/logo/logo arabsoft.png" alt="">
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"><i
+                            class="far fa-xmark"></i></button>
+                </div>
+                <div class="offcanvas-body gap-xl-4">
+                    <ul class="navbar-nav justify-content-end flex-grow-1">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown">Home</a>
+                            <ul class="dropdown-menu fade-down">
+                                <li><a class="dropdown-item" [routerLink]="['/']">Home Demo 01</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/home-2']">Home Demo 02</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/home-3']">Home Demo 03</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" [routerLink]="['/about']">About</a></li>
+                        <li class="nav-item dropdown">
+                            <li class="nav-item"><a class="nav-link" [routerLink]="['/service']">Service</a>
+
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Pages</a>
+                            <ul class="dropdown-menu fade-down">
+                                <li><a class="dropdown-item" [routerLink]="['/about']">About Us</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/team']">Our Team</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/pricing']">Pricing Plan</a></li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">Events</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" [routerLink]="['/events']">Events</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/event-single']">Event Single</a></li>
+                                    </ul>
+                                </li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">Donations</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" [routerLink]="['/donations']">Donations</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/donation-single']">Donation Single</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/donation-form']">Donation Form</a></li>
+                                    </ul>
+                                </li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">Volunteer</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" [routerLink]="['/volunteer']">Volunteer</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/volunteer-single']">Volunteer Single</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/become-volunteer']">Become A Volunteer</a></li>
+                                    </ul>
+                                </li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">Living Options</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" [routerLink]="['/living-options']">Living Options</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/living-option-single']">Living Options Single</a></li>
+                                    </ul>
+                                </li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">Stories</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" [routerLink]="['/stories']">Stories</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/stories-single']">Stories Single</a></li>
+                                    </ul>
+                                </li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">Authentication</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" [routerLink]="['/login']">Login</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/register']">Register</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/forgot-password']">Forgot Password</a></li>
+                                    </ul>
+                                </li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">Extra Pages</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" [routerLink]="['/coming-soon']">Coming Soon</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/terms']">Terms Of Service</a></li>
+                                        <li><a class="dropdown-item" [routerLink]="['/privacy']">Privacy Policy</a></li>
+                                    </ul>
+                                </li>
+                                <li><a class="dropdown-item" [routerLink]="['/gallery']">Gallery</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/faq']">Faq's</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/testimonials']">Testimonials</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/404']">404 Error</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Portfolio</a>
+                            <ul class="dropdown-menu fade-down">
+                                <li><a class="dropdown-item" [routerLink]="['/portfolio']">Portfolio One</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/portfolio-2']">Portfolio Two</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/portfolio-single']">Portfolio Single</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Blog</a>
+                            <ul class="dropdown-menu fade-down">
+                                <li><a class="dropdown-item" [routerLink]="['/blog']">Blog</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/blog-single']">Blog Single</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" [routerLink]="['/contact']">Contact</a></li>
+                    </ul>
+                    <!-- nav-right -->
+                    <div class="nav-right">
+                        <div class="user-btn">
+                            <button type="button" class="nav-right-link user-profile" (click)="navigateToProfile()"><i
+                                    class="far fa-user-circle"></i></button>
+                        </div>
+                        <div class="logout-btn" *ngIf="authService.isLoggedIn()">
+                            <button type="button" class="nav-right-link" (click)="logout()"><i class="fas fa-sign-out-alt"></i></button>
+                        </div>
+                        <div class="nav-btn">
+                            <a [routerLink]="['/contact']" class="theme-btn2">Let's Talk<i
+                                    class="fas fa-circle-arrow-right"></i></a>
+                        </div>
+                        <button type="button" class="sidebar-btn nav-right-link" data-bs-toggle="offcanvas"
+                            data-bs-target="#sidebarPopup">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>
+<!-- navbar end-->
+
+<!-- sidebar-popup -->
+<div class="sidebar-popup offcanvas offcanvas-end" tabindex="-1" id="sidebarPopup">
+    <div class="offcanvas-header">
+        <a [routerLink]="['/']" class="sidebar-popup-logo">
+            <img src="assets/img/logo/logo arabsoft.png" alt="">
+        </a>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close">
+            <i class="far fa-xmark"></i>
+        </button>
+    </div>
+    <div class="sidebar-popup-wrap offcanvas-body">
+        <div class="sidebar-popup-content">
+            <div class="sidebar-popup-about">
+                <h4>About Us</h4>
+                <p>There are many variations of passages available sure there majority have suffered alteration in
+                    some form by inject humour or randomised words which don't look even slightly believable.</p>
+            </div>
+            <div class="sidebar-popup-contact">
+                <h4>Contact Info</h4>
+                <ul>
+                    <li>
+                        <div class="icon">
+                            <i class="far fa-envelope"></i>
+                        </div>
+                        <div class="content">
+                            <h6>Email</h6>
+                            <a href="mailto:info@example.com">info.com</a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icon">
+                            <i class="far fa-phone"></i>
+                        </div>
+                        <div class="content">
+                            <h6>Phone</h6>
+                            <a href="tel:+21236547898">+2 123 654 7898</a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icon">
+                            <i class="far fa-location-dot"></i>
+                        </div>
+                        <div class="content">
+                            <h6>Address</h6>
+                            <a href="#">25/B Milford Road, New York</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="sidebar-popup-social">
+                <h4>Follow Us</h4>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-x-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- sidebar-popup end -->

@@ -1,0 +1,140 @@
+<div class="containeer">
+  <aside>
+    <div class="top">
+      <div class="logo">
+        <a [routerLink]="['/admin']"><img src="assets/img/logo/logo arabsoft.png" alt="Logo"></a>
+      </div>
+      <div class="close" id="close-btn">
+        <span class="material-icons-sharp">close</span>
+      </div>
+    </div>
+    <div class="sidebar">
+      <a [routerLink]="['/admin']" routerLinkActive="active">
+        <span class="material-icons-sharp">grid_view</span>
+        <h3>Accueil</h3>
+      </a>
+      <a [routerLink]="['/utilisateur']" routerLinkActive="active">
+        <span class="material-icons-sharp">person_outline</span>
+        <h3>Utilisateur</h3>
+      </a>
+      <a [routerLink]="['/parametre']" routerLinkActive="active">
+        <span class="material-icons-sharp">settings</span>
+        <h3>Paramètre</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">add</span>
+        <h3>Ajouter un Utilisateur</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">logout</span>
+        <h3>Déconnexion</h3>
+      </a>
+    </div>
+  </aside>
+
+  <main>
+    <h1>Gestion des Images d'Entraînement</h1>
+    <br>
+
+    <!-- Messages d'état -->
+    <div *ngIf="trainingMessage" class="alert" [class.error]="trainingMessage.includes('Erreur') || trainingMessage.includes('failed')">
+      {{ trainingMessage }}
+    </div>
+
+    <!-- Formulaire d'upload -->
+    <div class="upload-section">
+      <input type="file" (change)="onFileSelected($event)" #fileUpload multiple accept="image/*">
+      <select [(ngModel)]="selectedCategory">
+        <option value="valid">Valid</option>
+        <option value="invalid">Invalid</option>
+      </select>
+      <button (click)="uploadImages()" [disabled]="!selectedFiles.length">Upload Images</button>
+    </div>
+
+    <div class="recent-orders">
+      <h2><b>Liste des Images</b></h2>
+
+      <!-- Section pour les images valides -->
+      <div class="image-section valid-images">
+        <h3>Images Valides</h3>
+        <table *ngIf="validImages.length > 0">
+          <thead>
+            <tr>
+              <th>Nom de l'image</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let image of validImages">
+              <td>{{ image.name }}</td>
+              <td>
+                <button (click)="deleteImage(image)">Supprimer</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p *ngIf="validImages.length === 0" class="no-images">Aucune image valide disponible</p>
+      </div>
+
+      <!-- Section pour les images invalides -->
+      <div class="image-section invalid-images">
+        <h3>Images Invalides</h3>
+        <table *ngIf="invalidImages.length > 0">
+          <thead>
+            <tr>
+              <th>Nom de l'image</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let image of invalidImages">
+              <td>{{ image.name }}</td>
+              <td>
+                <button (click)="deleteImage(image)">Supprimer</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p *ngIf="invalidImages.length === 0" class="no-images">Aucune image invalide disponible</p>
+      </div>
+
+      <!-- Bouton pour lancer l'entraînement -->
+      <div class="train-section">
+        <button (click)="trainModel()" [disabled]="isTraining">Lancer l'Entraînement</button>
+        <div *ngIf="isTraining">
+          <p>Entraînement en cours... {{ trainingProgress }}%</p>
+          <progress [value]="trainingProgress" max="100"></progress>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-icons-sharp">menu</span>
+      </button>
+      <div class="theme-toggler">
+        <span class="material-icons-sharp active">light_mode</span>
+        <span class="material-icons-sharp">dark_mode</span>
+      </div>
+      <div class="profile">
+        <div class="info">
+          <p>Hey, <b>Daniel</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+        <div class="profile-photo">
+          <img src="assets/images/admin.png">
+        </div>
+      </div>
+    </div>
+    <div class="recent-updates">
+      <h2><b>Recent Updates</b></h2>
+      <div class="updates">
+        <div class="update">
+          <!-- Contenu des updates -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

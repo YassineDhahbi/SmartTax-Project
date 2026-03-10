@@ -1,0 +1,151 @@
+<div class="containeer">
+  <!-- Toast Container -->
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div *ngFor="let toast of toasts; let i = index" class="toast" [ngClass]="toast.type" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header">
+        <strong class="me-auto">{{ toast.title }}</strong>
+        <button type="button" class="btn-close" (click)="toasts.splice(i, 1)" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        {{ toast.message }}
+      </div>
+    </div>
+  </div>
+
+  <aside>
+    <div class="top">
+      <div class="logo">
+        <a [routerLink]="['/admin']"><img src="assets/img/logo/logo arabsoft.png" alt="Logo"></a>
+      </div>
+      <div class="close" id="close-btn">
+        <span class="material-icons-sharp">close</span>
+      </div>
+    </div>
+    <div class="sidebar">
+      <a [routerLink]="['/admin']" routerLinkActive="active">
+        <span class="material-icons-sharp">grid_view</span>
+        <h3>Accueil</h3>
+      </a>
+      <a [routerLink]="['/utilisateur']" routerLinkActive="active">
+        <span class="material-icons-sharp">person_outline</span>
+        <h3>Utilisateur</h3>
+      </a>
+
+      <a [routerLink]="['/parametre']" routerLinkActive="active">
+        <span class="material-icons-sharp">settings</span>
+        <h3>Paramètre</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">add</span>
+        <h3>Ajouter un Utilisateur</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">logout</span>
+        <h3>Déconnexion</h3>
+      </a>
+    </div>
+  </aside>
+  <!------------------ END OF ASIDE ------->
+  <main>
+    <h1>Gestion des Utilisateurs</h1>
+    <br>
+    <div class="insights">
+      <div class="sales">
+        <span class="material-icons-sharp">person</span>
+        <div class="middle">
+          <div class="left">
+            <h3>Nombre Total d'Utilisateurs</h3>
+            <h1>{{utilisateurs.length}}</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="recent-orders">
+      <h2><b>Liste des Utilisateurs</b></h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date d'Inscription</th>
+            <th>Nom et Prénom</th>
+            <th>Email</th>
+            <th>Rôle</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of utilisateurs">
+            <td>{{user.dateInscription}}</td>
+            <td>{{user.firstName}} {{user.lastName}}</td>
+            <td>{{user.email}}</td>
+            <td>
+              <select [(ngModel)]="user.role" (change)="updateRole(user.idUtilisateur, user.role)" class="form-select">
+                <option value="CONTRIBUABLE">Contribuable</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </td>
+            <td>{{user.status}}</td>
+            <td class="primary">
+              <span class="material-icons-sharp" (click)="deleteUtilisateur(user.idUtilisateur)" style="cursor: pointer; margin-left: 10px;">delete</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <!-- END OF MAIN -->
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-icons-sharp">menu</span>
+      </button>
+      <div class="theme-toggler">
+        <span class="material-icons-sharp active">light_mode</span>
+        <span class="material-icons-sharp">darkmode</span>
+      </div>
+      <div class="profile">
+        <div class="info">
+          <p>Hey, <b>Daniel</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+        <div class="profile-photo">
+          <img src="assets/images/admin.png">
+        </div>
+      </div>
+    </div>
+    <!--END OF TOP-->
+    <div class="recent-updates">
+      <h2><b>Recent Updates</b></h2>
+      <div class="updates">
+        <div class="update">
+          <div class="profile-photo">
+            <img src="assets/images/profile-1.jpg">
+          </div>
+          <div class="message">
+            <p><b>Mike Tyson</b> received his order of night lion tech gps drone.</p>
+            <small class="text-muted">2 minutes Ago</small>
+          </div>
+        </div>
+        <div class="update">
+          <div class="profile-photo">
+            <img src="assets/images/profile-2.jpg">
+          </div>
+          <div class="message">
+            <p><b>Mike Tyson</b> received his order of night lion tech gps drone.</p>
+            <small class="text-muted">2 minutes Ago</small>
+          </div>
+        </div>
+        <div class="update">
+          <div class="profile-photo">
+            <img src="assets/images/profile-3.jpg">
+          </div>
+          <div class="message">
+            <p><b>Mike Tyson</b> received his order of night lion tech gps drone.</p>
+            <small class="text-muted">2 minutes Ago</small>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--END OF RECENT UPDATES-->
+  </div>
+</div>

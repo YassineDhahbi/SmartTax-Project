@@ -1,0 +1,224 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <div *ngIf="user" class="card shadow-sm p-4 animate__animated animate__fadeIn">
+    <div class="row g-0">
+      <div class="col-md-4 text-center">
+        <img [src]="user.photo ? (user.photo + '?t=' + timestamp) : '/assets/img/team/icondefaut.webp'" alt="Photo de profil" class="profile-photo">
+      </div>
+      <div class="col-md-8">
+        <h2 class="mb-4 text-black">{{ user.firstName }} {{ user.lastName }}</h2>
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" *ngIf="isEditing">
+          <div class="row row-cols-2 g-3" [ngClass]="{'edit-mode': isEditing}">
+            <div class="col">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
+                  <h6 class="card-title text-muted">FirstName</h6>
+                  <input type="text" class="form-control" formControlName="firstName" [ngClass]="{'is-invalid': profileForm.get('firstName')?.invalid && (profileForm.get('firstName')?.touched || profileForm.get('firstName')?.dirty)}">
+                  <div *ngIf="profileForm.get('firstName')?.invalid && (profileForm.get('firstName')?.touched || profileForm.get('firstName')?.dirty)" class="invalid-feedback">
+                    <div *ngIf="profileForm.get('firstName')?.errors?.['required']">Le prénom est requis.</div>
+                    <div *ngIf="profileForm.get('firstName')?.errors?.['minlength']">Le prénom doit contenir au moins 2 caractères.</div>
+                    <div *ngIf="profileForm.get('firstName')?.errors?.['pattern']">Le prénom ne doit contenir que des lettres.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
+                  <h6 class="card-title text-muted">LastName</h6>
+                  <input type="text" class="form-control" formControlName="lastName" [ngClass]="{'is-invalid': profileForm.get('lastName')?.invalid && (profileForm.get('lastName')?.touched || profileForm.get('lastName')?.dirty)}">
+                  <div *ngIf="profileForm.get('lastName')?.invalid && (profileForm.get('lastName')?.touched || profileForm.get('lastName')?.dirty)" class="invalid-feedback">
+                    <div *ngIf="profileForm.get('lastName')?.errors?.['required']">Le nom de famille est requis.</div>
+                    <div *ngIf="profileForm.get('lastName')?.errors?.['minlength']">Le nom de famille doit contenir au moins 2 caractères.</div>
+                    <div *ngIf="profileForm.get('lastName')?.errors?.['pattern']">Le nom de famille ne doit contenir que des lettres.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
+                  <h6 class="card-title text-muted">Email</h6>
+                  <input type="email" class="form-control" formControlName="email" [ngClass]="{'is-invalid': profileForm.get('email')?.invalid && (profileForm.get('email')?.touched || profileForm.get('email')?.dirty)}">
+                  <div *ngIf="profileForm.get('email')?.invalid && (profileForm.get('email')?.touched || profileForm.get('email')?.dirty)" class="invalid-feedback">
+                    <div *ngIf="profileForm.get('email')?.errors?.['required']">L'email est requis.</div>
+                    <div *ngIf="profileForm.get('email')?.errors?.['email']">Veuillez entrer un email valide.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
+                  <h6 class="card-title text-muted">Date of Birth</h6>
+                  <input type="date" class="form-control" formControlName="dateNaissance" [ngClass]="{'is-invalid': profileForm.get('dateNaissance')?.invalid && (profileForm.get('dateNaissance')?.touched || profileForm.get('dateNaissance')?.dirty)}">
+                  <div *ngIf="profileForm.get('dateNaissance')?.invalid && (profileForm.get('dateNaissance')?.touched || profileForm.get('dateNaissance')?.dirty)" class="invalid-feedback">
+                    <div *ngIf="profileForm.get('dateNaissance')?.errors?.['required']">La date de naissance est requise.</div>
+                    <div *ngIf="profileForm.get('dateNaissance')?.errors?.['underage']">Vous devez avoir au moins 18 ans.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
+                  <h6 class="card-title text-muted">Date d'inscription</h6>
+                  <p class="card-text">{{ user.dateInscription }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
+                  <h6 class="card-title text-muted">Role</h6>
+                  <p class="card-text">{{ user.role }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
+                  <h6 class="card-title text-muted">Status</h6>
+                  <p class="card-text">{{ user.status }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
+                  <h6 class="card-title text-muted">Receive Email Notifications</h6>
+                  <div>
+                    <button class="btn btn-success btn-sm me-2">Yes</button>
+                    <button class="btn btn-outline-secondary btn-sm">No</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+        <div class="row row-cols-2 g-3" *ngIf="!isEditing">
+          <div class="col">
+            <div class="card h-100 bg-light border-0">
+              <div class="card-body">
+                <h6 class="card-title text-muted">FirstName</h6>
+                <p class="card-text">{{ user.firstName }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100 bg-light border-0">
+              <div class="card-body">
+                <h6 class="card-title text-muted">LastName</h6>
+                <p class="card-text">{{ user.lastName }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100 bg-light border-0">
+              <div class="card-body">
+                <h6 class="card-title text-muted">Email</h6>
+                <p class="card-text">{{ user.email }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100 bg-light border-0">
+              <div class="card-body">
+                <h6 class="card-title text-muted">Date of Birth</h6>
+                <p class="card-text">{{ user.dateNaissance }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100 bg-light border-0">
+              <div class="card-body">
+                <h6 class="card-title text-muted">Date d'inscription</h6>
+                <p class="card-text">{{ user.dateInscription }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100 bg-light border-0">
+              <div class="card-body">
+                <h6 class="card-title text-muted">Role</h6>
+                <p class="card-text">{{ user.role }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100 bg-light border-0">
+              <div class="card-body">
+                <h6 class="card-title text-muted">Status</h6>
+                <p class="card-text">{{ user.status }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mt-4 text-center">
+      <button *ngIf="!isEditing" class="btn btn-success me-2" (click)="editProfile()"><i class="fas fa-edit"></i> Edit</button>
+      <button *ngIf="isEditing" class="btn btn-success me-2" (click)="saveProfile()">Save</button>
+      <button *ngIf="isEditing" class="btn btn-secondary me-2" (click)="cancelEdit()">Cancel</button>
+      <button class="btn btn-primary me-2" (click)="openChangePasswordModal()" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-lock"></i> Change Password</button>
+      <button class="btn btn-warning me-2" (click)="changePhoto()"><i class="fas fa-camera"></i> Change Photo</button>
+      <button class="btn btn-danger" (click)="deleteAccount()"><i class="fas fa-trash"></i> Delete Account</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div *ngFor="let toast of toasts; let i = index" class="toast align-items-center text-white" [ngClass]="toast.type" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        <strong>{{ toast.title }}</strong>
+        <p class="mb-0">{{ toast.message }}</p>
+        <div *ngIf="toast.action" class="mt-2">
+          <button type="button" class="btn btn-sm btn-primary me-2" (click)="toast.action.callback(); $event.stopPropagation()">{{ toast.action.label }}</button>
+        </div>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="removeToast(i)" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changePasswordModalLabel">Changer le mot de passe</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="passwordForm" (ngSubmit)="changePasswordSubmit()">
+          <div class="mb-3">
+            <label for="newPassword" class="form-label">Nouveau mot de passe</label>
+            <input type="password" class="form-control" id="newPassword" formControlName="newPassword" [ngClass]="{'is-invalid': passwordForm.get('newPassword')?.invalid && (passwordForm.get('newPassword')?.touched || passwordForm.get('newPassword')?.dirty)}">
+            <div *ngIf="passwordForm.get('newPassword')?.invalid && (passwordForm.get('newPassword')?.touched || passwordForm.get('newPassword')?.dirty)" class="invalid-feedback">
+              <div *ngIf="passwordForm.get('newPassword')?.errors?.['required']">Le mot de passe est requis.</div>
+              <div *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères.</div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
+            <input type="password" class="form-control" id="confirmPassword" formControlName="confirmPassword" [ngClass]="{'is-invalid': passwordForm.get('confirmPassword')?.invalid && (passwordForm.get('confirmPassword')?.touched || passwordForm.get('confirmPassword')?.dirty)}">
+            <div *ngIf="passwordForm.get('confirmPassword')?.invalid && (passwordForm.get('confirmPassword')?.touched || passwordForm.get('confirmPassword')?.dirty)" class="invalid-feedback">
+              <div *ngIf="passwordForm.get('confirmPassword')?.errors?.['required']">La confirmation est requise.</div>
+              <div *ngIf="passwordForm.errors?.['mismatch']">Les mots de passe ne correspondent pas.</div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="passwordForm.invalid">Enregistrer</button>
+          <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Annuler</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

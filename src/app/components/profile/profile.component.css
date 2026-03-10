@@ -1,0 +1,278 @@
+/* Styles pour la photo de profil */
+.profile-photo {
+  max-width: 250px;
+  height: auto;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-photo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Placeholder si pas de photo */
+.profile-placeholder {
+  max-width: 250px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f2f5, #e9ecef);
+  border-radius: 50%;
+  border: 2px solid #dee2e6;
+  color: #6c757d;
+  font-size: 3rem;
+  transition: transform 0.3s ease;
+}
+
+.profile-placeholder:hover {
+  transform: scale(1.05);
+}
+
+/* Style général de la carte */
+.card {
+  border: none;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Style des cartes internes */
+.card-body {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.card-body:hover {
+  background-color: #e9ecef;
+}
+
+/* Titres et texte */
+h2 {
+  font-weight: 600;
+  color: #000000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+h6.card-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6c757d;
+  text-transform: uppercase;
+}
+
+p.card-text {
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* Styles pour le formulaire en mode édition */
+.edit-mode .card-body {
+  background-color: #f1f3f5;
+}
+
+.form-control {
+  border-radius: 8px;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.form-control.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  font-size: 0.875rem;
+  color: #dc3545;
+}
+
+/* Styles pour les toasts */
+.toast {
+  min-width: 300px;
+  margin-bottom: 10px;
+}
+
+.toast-success {
+  background-color: #28a745;
+}
+
+.toast-error {
+  background-color: #dc3545;
+}
+
+.toast-warning {
+  background-color: #ffc107;
+  color: #000000; /* Assure une lisibilité sur fond jaune */
+}
+
+.btn-close-white {
+  filter: brightness(10);
+}
+
+/* Boutons dans les toasts */
+.toast .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 5px;
+}
+
+.toast .btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: #ffffff;
+}
+
+.toast .btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.toast .btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: #ffffff;
+}
+
+.toast .btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #5a6268;
+}
+
+/* Boutons généraux */
+.btn {
+  border-radius: 8px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #218838;
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
+  border-color: #e0a800;
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+  border-color: #c82333;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Styles pour la barre de progression du mot de passe */
+.progress {
+  height: 10px;
+  border-radius: 5px;
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  transition: width 0.3s ease;
+}
+
+.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+.bg-warning {
+  background-color: #ffc107 !important;
+}
+
+.bg-success {
+  background-color: #28a745 !important;
+}
+
+/* Réactivité */
+@media (max-width: 767px) {
+  .profile-photo, .profile-placeholder {
+    max-width: 180px;
+    height: 180px;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .row-cols-2 > * {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .toast {
+    min-width: 250px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .profile-photo, .profile-placeholder {
+    max-width: 220px;
+    height: 220px;
+  }
+
+  .card-body {
+    padding: 1.2rem;
+  }
+}

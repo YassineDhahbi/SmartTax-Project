@@ -1,0 +1,18 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+app-navbar {
+  flex-shrink: 0;
+}
+
+app-home {
+  flex-grow: 1;
+  margin-top: 20px; /* Add spacing between navbar and home */
+}
+
+main.main {
+  display: block;
+}
