@@ -13,6 +13,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.initializeAnimations();
     this.initializeScrollEffects();
     this.initializeInteractiveElements();
+    this.initializeFeatureInteractions();
   }
 
   ngAfterViewInit(): void {
@@ -251,5 +252,229 @@ export class HomeComponent implements OnInit, AfterViewInit {
       const y = mouseY * speed * 30;
       particle.style.transform = `translate(${x}px, ${y}px)`;
     });
+  }
+
+  // Initialize feature section interactions
+  private initializeFeatureInteractions(): void {
+    const featureItems = this.el.nativeElement.querySelectorAll('.feature-item');
+    
+    // Add hover effects and click tracking
+    featureItems.forEach((item: HTMLElement) => {
+      const featureType = item.getAttribute('data-feature');
+      
+      // Enhanced hover effect
+      item.addEventListener('mouseenter', () => {
+        this.onFeatureHover(item, featureType, true);
+      });
+      
+      item.addEventListener('mouseleave', () => {
+        this.onFeatureHover(item, featureType, false);
+      });
+      
+      // Click interaction
+      item.addEventListener('click', () => {
+        this.onFeatureClick(item, featureType);
+      });
+      
+      // Feature link interactions
+      const featureLink = item.querySelector('.feature-link');
+      if (featureLink) {
+        featureLink.addEventListener('click', (e: Event) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.onFeatureLinkClick(featureLink as HTMLElement, featureType);
+        });
+      }
+    });
+
+    // Initialize scroll animations for features
+    this.initializeFeatureScrollAnimations();
+  }
+
+  // Handle feature hover effects
+  private onFeatureHover(item: HTMLElement, featureType: string | null, isEntering: boolean): void {
+    const icon = item.querySelector('.icon-wrapper i') as HTMLElement;
+    const numberBg = item.querySelector('.number-bg') as HTMLElement;
+    const iconBg = item.querySelector('.icon-bg') as HTMLElement;
+    
+    if (isEntering) {
+      // Add entrance effects
+      item.style.transform = 'translateY(-10px) scale(1.02)';
+      
+      if (icon) {
+        icon.classList.add('fa-bounce');
+      }
+      
+      if (numberBg) {
+        numberBg.style.transform = 'scale(1.2)';
+        numberBg.style.opacity = '0.3';
+      }
+      
+      if (iconBg) {
+        iconBg.style.transform = 'scale(1.1) rotate(5deg)';
+      }
+      
+      // Add particle effect around the feature
+      this.createFeatureParticles(item);
+    } else {
+      // Reset effects
+      item.style.transform = '';
+      
+      if (icon) {
+        icon.classList.remove('fa-bounce');
+      }
+      
+      if (numberBg) {
+        numberBg.style.transform = '';
+        numberBg.style.opacity = '';
+      }
+      
+      if (iconBg) {
+        iconBg.style.transform = '';
+      }
+    }
+  }
+
+  // Handle feature click
+  private onFeatureClick(item: HTMLElement, featureType: string | null): void {
+    // Add ripple effect
+    this.createFeatureRipple(item);
+    
+    // Track analytics (if needed)
+    console.log(`Feature clicked: ${featureType}`);
+    
+    // Add visual feedback
+    item.style.transform = 'translateY(-5px) scale(0.98)';
+    setTimeout(() => {
+      item.style.transform = '';
+    }, 150);
+  }
+
+  // Handle feature link click
+  private onFeatureLinkClick(link: HTMLElement, featureType: string | null): void {
+    // Add loading state to link
+    const originalContent = link.innerHTML;
+    link.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
+    link.style.pointerEvents = 'none';
+    
+    // Simulate loading (replace with actual navigation)
+    setTimeout(() => {
+      link.innerHTML = originalContent;
+      link.style.pointerEvents = '';
+      
+      // Navigate or show modal (implement as needed)
+      console.log(`Navigating to feature: ${featureType}`);
+    }, 1000);
+  }
+
+  // Create particle effects around feature
+  private createFeatureParticles(item: HTMLElement): void {
+    const rect = item.getBoundingClientRect();
+    const particleCount = 5;
+    
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'feature-particle';
+      particle.style.cssText = `
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-cyan));
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 1000;
+        left: ${rect.left + rect.width / 2}px;
+        top: ${rect.top + rect.height / 2}px;
+        transform: translate(-50%, -50%);
+        animation: featureParticleFloat 1s ease-out forwards;
+      `;
+      
+      document.body.appendChild(particle);
+      
+      // Animate particle outward
+      const angle = (Math.PI * 2 * i) / particleCount;
+      const distance = 50 + Math.random() * 50;
+      const x = Math.cos(angle) * distance;
+      const y = Math.sin(angle) * distance;
+      
+      setTimeout(() => {
+        particle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(0)`;
+        particle.style.opacity = '0';
+      }, 10);
+      
+      // Remove particle after animation
+      setTimeout(() => {
+        particle.remove();
+      }, 1000);
+    }
+  }
+
+  // Create ripple effect on feature click
+  private createFeatureRipple(item: HTMLElement): void {
+    const ripple = document.createElement('div');
+    ripple.className = 'feature-ripple';
+    
+    const rect = item.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    
+    ripple.style.cssText = `
+      position: absolute;
+      width: ${size}px;
+      height: ${size}px;
+      background: radial-gradient(circle, rgba(126, 217, 87, 0.3), transparent);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      left: 50%;
+      top: 50%;
+      pointer-events: none;
+      animation: featureRipple 0.6s ease-out forwards;
+    `;
+    
+    item.appendChild(ripple);
+    
+    setTimeout(() => {
+      ripple.remove();
+    }, 600);
+  }
+
+  // Initialize scroll animations for features
+  private initializeFeatureScrollAnimations(): void {
+    const observerOptions = {
+      threshold: 0.2,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const item = entry.target as HTMLElement;
+          const featureType = item.getAttribute('data-feature');
+          
+          // Add staggered animation
+          setTimeout(() => {
+            item.classList.add('feature-animate-in');
+          }, this.getFeatureAnimationDelay(featureType));
+          
+          // Stop observing once animated
+          observer.unobserve(item);
+        }
+      });
+    }, observerOptions);
+
+    // Observe all feature items
+    const featureItems = this.el.nativeElement.querySelectorAll('.feature-item');
+    featureItems.forEach((item: Element) => observer.observe(item));
+  }
+
+  // Get animation delay based on feature type
+  private getFeatureAnimationDelay(featureType: string | null): number {
+    const delays: { [key: string]: number } = {
+      'immatriculation': 0,
+      'reclamations': 100,
+      'consultation': 200,
+      'telechargement': 300
+    };
+    
+    return delays[featureType || ''] || 0;
   }
 }
