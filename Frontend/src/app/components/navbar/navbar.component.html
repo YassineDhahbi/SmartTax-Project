@@ -1,9 +1,9 @@
 <!-- navbar -->
 <div class="main-navigation">
     <nav class="navbar navbar-expand-lg">
-        <div class="container position-relative">
+        <div class="container-fluid">
             <a class="navbar-brand" [routerLink]="['/']">
-                <img src="assets/img/logo/SmartTax.png" alt="logo">
+                <img src="assets/img/logo/SmartTax-1.png" alt="logo">
             </a>
             <div class="mobile-menu-right">
                 <div class="mobile-menu-btn">
@@ -22,121 +22,62 @@
                 aria-labelledby="offcanvasNavbarLabel">
                 <div class="offcanvas-header">
                     <a [routerLink]="['/']" class="offcanvas-brand" id="offcanvasNavbarLabel">
-                        <img src="assets/img/logo/logo arabsoft.png" alt="">
+                        <img src="assets/img/logo/SmartTax-1.png" alt="">
                     </a>
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"><i
                             class="far fa-xmark"></i></button>
                 </div>
                 <div class="offcanvas-body gap-xl-4">
-                    <ul class="navbar-nav justify-content-end flex-grow-1">
+                    <ul class="navbar-nav me-auto">
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown">Home</a>
+                            <a class="nav-link active" href="#" data-bs-toggle="dropdown"><i class="fas fa-home me-2"></i>Accueil</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" [routerLink]="['/about']"><i class="fas fa-building me-2"></i>Direction Générale des Impôts</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" [routerLink]="['/service']"><i class="fas fa-laptop me-2"></i>Services en ligne</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link" href="#" data-bs-toggle="dropdown"><i class="fas fa-newspaper me-2"></i>Actualités</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="fas fa-file-alt me-2"></i>Documentation</a>
                             <ul class="dropdown-menu fade-down">
-                                <li><a class="dropdown-item" [routerLink]="['/']">Home Demo 01</a></li>
-                                <li><a class="dropdown-item" [routerLink]="['/home-2']">Home Demo 02</a></li>
-                                <li><a class="dropdown-item" [routerLink]="['/home-3']">Home Demo 03</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/blog']"><i class="fas fa-blog me-2"></i>Blog</a></li>
+                                <li><a class="dropdown-item" [routerLink]="['/blog-single']"><i class="fas fa-file me-2"></i>Blog Single</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item"><a class="nav-link" [routerLink]="['/about']">About</a></li>
-                        <li class="nav-item dropdown">
-                            <li class="nav-item"><a class="nav-link" [routerLink]="['/service']">Service</a>
-
+                        
+                        <li class="nav-item">
+                            <a class="nav-link" [routerLink]="['/contact']"><i class="fas fa-envelope me-2"></i>Contact</a>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Pages</a>
-                            <ul class="dropdown-menu fade-down">
-                                <li><a class="dropdown-item" [routerLink]="['/about']">About Us</a></li>
-                                <li><a class="dropdown-item" [routerLink]="['/team']">Our Team</a></li>
-                                <li><a class="dropdown-item" [routerLink]="['/pricing']">Pricing Plan</a></li>
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#">Events</a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" [routerLink]="['/events']">Events</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/event-single']">Event Single</a></li>
-                                    </ul>
-                                </li>
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#">Donations</a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" [routerLink]="['/donations']">Donations</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/donation-single']">Donation Single</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/donation-form']">Donation Form</a></li>
-                                    </ul>
-                                </li>
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#">Volunteer</a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" [routerLink]="['/volunteer']">Volunteer</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/volunteer-single']">Volunteer Single</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/become-volunteer']">Become A Volunteer</a></li>
-                                    </ul>
-                                </li>
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#">Living Options</a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" [routerLink]="['/living-options']">Living Options</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/living-option-single']">Living Options Single</a></li>
-                                    </ul>
-                                </li>
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#">Stories</a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" [routerLink]="['/stories']">Stories</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/stories-single']">Stories Single</a></li>
-                                    </ul>
-                                </li>
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#">Authentication</a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" [routerLink]="['/login']">Login</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/register']">Register</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/forgot-password']">Forgot Password</a></li>
-                                    </ul>
-                                </li>
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#">Extra Pages</a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" [routerLink]="['/coming-soon']">Coming Soon</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/terms']">Terms Of Service</a></li>
-                                        <li><a class="dropdown-item" [routerLink]="['/privacy']">Privacy Policy</a></li>
-                                    </ul>
-                                </li>
-                                <li><a class="dropdown-item" [routerLink]="['/gallery']">Gallery</a></li>
-                                <li><a class="dropdown-item" [routerLink]="['/faq']">Faq's</a></li>
-                                <li><a class="dropdown-item" [routerLink]="['/testimonials']">Testimonials</a></li>
-                                <li><a class="dropdown-item" [routerLink]="['/404']">404 Error</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Portfolio</a>
-                            <ul class="dropdown-menu fade-down">
-                                <li><a class="dropdown-item" [routerLink]="['/portfolio']">Portfolio One</a></li>
-                                <li><a class="dropdown-item" [routerLink]="['/portfolio-2']">Portfolio Two</a></li>
-                                <li><a class="dropdown-item" [routerLink]="['/portfolio-single']">Portfolio Single</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Blog</a>
-                            <ul class="dropdown-menu fade-down">
-                                <li><a class="dropdown-item" [routerLink]="['/blog']">Blog</a></li>
-                                <li><a class="dropdown-item" [routerLink]="['/blog-single']">Blog Single</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item"><a class="nav-link" [routerLink]="['/contact']">Contact</a></li>
                     </ul>
                     <!-- nav-right -->
                     <div class="nav-right">
-                        <div class="user-btn">
+                        <!-- <div class="user-btn">
                             <button type="button" class="nav-right-link user-profile" (click)="navigateToProfile()"><i
                                     class="far fa-user-circle"></i></button>
                         </div>
                         <div class="logout-btn" *ngIf="authService.isLoggedIn()">
                             <button type="button" class="nav-right-link" (click)="logout()"><i class="fas fa-sign-out-alt"></i></button>
-                        </div>
+                        </div> -->
                         <div class="nav-btn">
-                            <a [routerLink]="['/contact']" class="theme-btn2">Let's Talk<i
+                            <a [routerLink]="['/contact']" class="theme-btn2">Espace Contribuable<i
                                     class="fas fa-circle-arrow-right"></i></a>
                         </div>
+                        
+                        <!-- Barre de recherche moderne -->
+                        <div class="search-container">
+                            <div class="search-box">
+                                <input type="text" class="search-input" placeholder="Rechercher..." 
+                                       [(ngModel)]="searchQuery" (keyup.enter)="performSearch()">
+                                <button class="search-btn" (click)="performSearch()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
                         <button type="button" class="sidebar-btn nav-right-link" data-bs-toggle="offcanvas"
                             data-bs-target="#sidebarPopup">
                             <span></span>
@@ -155,7 +96,7 @@
 <div class="sidebar-popup offcanvas offcanvas-end" tabindex="-1" id="sidebarPopup">
     <div class="offcanvas-header">
         <a [routerLink]="['/']" class="sidebar-popup-logo">
-            <img src="assets/img/logo/logo arabsoft.png" alt="">
+            <img src="assets/img/logo/SmartTax-1.png" alt="">
         </a>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close">
             <i class="far fa-xmark"></i>
@@ -164,9 +105,9 @@
     <div class="sidebar-popup-wrap offcanvas-body">
         <div class="sidebar-popup-content">
             <div class="sidebar-popup-about">
-                <h4>About Us</h4>
-                <p>There are many variations of passages available sure there majority have suffered alteration in
-                    some form by inject humour or randomised words which don't look even slightly believable.</p>
+                <h4>À propos SmartTax</h4>
+                <p>SmartTax est une application Web intelligente conçue pour digitaliser et moderniser les services fiscaux de la Direction Générale des Impôts (DGI). Elle permet aux contribuables d’effectuer leurs démarches fiscales en ligne, telles que l’immatriculation, le dépôt de réclamations, la consultation de dossiers et le téléchargement de documents, 
+                    tout en garantissant un traitement sécurisé, rapide et efficace des informations.</p>
             </div>
             <div class="sidebar-popup-contact">
                 <h4>Contact Info</h4>
@@ -177,7 +118,7 @@
                         </div>
                         <div class="content">
                             <h6>Email</h6>
-                            <a href="mailto:info@example.com">info.com</a>
+                            <a href="mailto:info@example.com">SmartTax@gmail.com</a>
                         </div>
                     </li>
                     <li>
@@ -186,7 +127,7 @@
                         </div>
                         <div class="content">
                             <h6>Phone</h6>
-                            <a href="tel:+21236547898">+2 123 654 7898</a>
+                            <a href="tel:+21236547898">+216 71 654 798</a>
                         </div>
                     </li>
                     <li>
@@ -195,7 +136,7 @@
                         </div>
                         <div class="content">
                             <h6>Address</h6>
-                            <a href="#">25/B Milford Road, New York</a>
+                            <a href="#">Tunisie , Tunis</a>
                         </div>
                     </li>
                 </ul>

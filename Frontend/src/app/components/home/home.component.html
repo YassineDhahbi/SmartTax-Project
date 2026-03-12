@@ -2,38 +2,61 @@
 <main class="main">
 
         <!-- hero area -->
-        <div class="hero-section">
+        <section class="hero-section" aria-label="Hero Section">
             <div class="hero-slider owl-carousel">
-                <div class="hero-single" style="background-image: url(assets/img/back2.jpg);">
+                <article class="hero-single" style="background-image: linear-gradient url(assets/img/background.png)" role="article">
+                    <!-- Animated background elements -->
+                    <div class="hero-particles">
+                        <span class="particle particle-1"></span>
+                        <span class="particle particle-2"></span>
+                        <span class="particle particle-3"></span>
+                        <span class="particle particle-4"></span>
+                        <span class="particle particle-5"></span>
+                    </div>
+                    
+                    <!-- Geometric shapes -->
+                    <div class="hero-shapes">
+                        <div class="shape shape-1"></div>
+                        <div class="shape shape-2"></div>
+                        <div class="shape shape-3"></div>
+                    </div>
+                    
                     <div class="container">
                         <div class="row align-items-center">
                             <div class="col-md-12 col-lg-6">
                                 <div class="hero-content">
-                                    <h6 class="hero-sub-title" data-animation="fadeInUp" data-delay=".25s">
-                                        <i class="far fa-hand-heart"></i> Welcome to ArabSoft!
-                                    </h6>
-                                    <h1 >
-                                        Soumettez vos documents, notre <span>IA</span> les valide en toute simplicité
+                                    <header>
+                                        <h6 class="hero-sub-title" data-animation="fadeInUp" data-delay=".25s">
+                                            <i class="far fa-hand-heart"></i> Bienvenue chez SmartTax !
+                                        </h6>
+                                    </header>
+                                    <h1 class="hero-title">
+                                        Simplifiez vos démarches fiscales <span class="gradient-text">en ligne</span> 
                                     </h1>
-                                    <p data-animation="fadeInLeft" data-delay=".75s">
-                                        There are many variations of passages orem psum available but the majority have
-                                        suffered alteration in some form by injected humour.
+                                    <p class="hero-description" data-animation="fadeInLeft" data-delay=".75s">
+                                        Déposez vos documents, suivez vos dossiers et accédez aux services fiscaux en toute simplicité grâce à une plateforme intelligente, sécurisée et rapide.
                                     </p>
                                     <div class="hero-btn" data-animation="fadeInUp" data-delay="1s">
-                                        <a href="about.html" class="theme-btn">About More<i
-                                                class="fas fa-circle-arrow-right"></i></a>
-                                        <a href="contact.html" class="theme-btn2">Learn More<i
-                                                class="fas fa-circle-arrow-right"></i></a>
+                                        <a href="#services" class="theme-btn" role="button" aria-label="Accéder aux services fiscaux">
+                                            Accéder aux services<i class="fas fa-circle-arrow-right"></i>
+                                        </a>
+                                        <a href="#about" class="theme-btn2" role="button" aria-label="En savoir plus sur SmartTax">
+                                            En savoir plus<i class="fas fa-circle-arrow-right"></i>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
+                           
                         </div>
                     </div>
-                </div>
-
-
+                    
+                    <!-- Scroll indicator -->
+                    <div class="scroll-indicator" aria-hidden="true">
+                        <span>Defilez</span>
+                    </div>
+                </article>
             </div>
-        </div>
+        </section>
         <!-- hero area end -->
 
 

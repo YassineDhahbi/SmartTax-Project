@@ -2,10 +2,14 @@
   font-size: 1.5rem; /* Ajustez la taille de l'icône */
   color : #0056A3;
   cursor: pointer;
+  padding: 0.5rem;
+  transition: all 0.3s ease;
+  border-radius: 0.5rem;
 }
 
 .user-profile:hover {
   color: #F5A300; /* Couleur au survol, ajustez selon votre thème */
+  background-color: rgba(245, 163, 0, 0.1);
 }
 
 .logout-btn i.fa-sign-out-alt {
@@ -14,4 +18,276 @@
 
 .logout-btn i.fa-sign-out-alt:hover {
   color: #F5A300; /* Couleur au survol, ajustez selon votre thème */
+}
+
+/* Amélioration de l'espacement pour la navbar */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-start;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.navbar-brand img {
+  transition: all 0.3s ease;
+  width: 220px !important;
+  height: auto !important;
+}
+
+.navbar-brand:hover img {
+  transform: scale(1.05);
+}
+
+/* Alignement du conteneur navbar à gauche */
+.main-navigation .container {
+  padding-left: 0;
+  justify-content: flex-start;
+}
+
+.main-navigation .navbar {
+  padding-left: 0;
+}
+
+/* Alignement à gauche pour tous les éléments navbar */
+.navbar .container {
+  justify-content: flex-start;
+  padding-left: 1rem;
+}
+
+.navbar .navbar-nav {
+  margin-left: auto;
+  width: 100%;
+  justify-content: space-between;
+  max-width: 900px;
+  display: flex !important;
+}
+
+/* Espacement amélioré pour les liens de navigation */
+.navbar-nav .nav-link {
+  margin: 0 !important;
+  transition: all 0.3s ease;
+  flex: 1;
+  text-align: center;
+  padding: 30px 12px 30px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Styles pour les icônes dans la navbar */
+.navbar-nav .nav-link i {
+  margin-right: 0.5rem;
+  font-size: 14px;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover i {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.navbar-nav .nav-link.active i {
+  opacity: 1;
+  color: #39B54A;
+}
+
+/* Styles pour les icônes dans le dropdown */
+.dropdown-item i {
+  margin-right: 0.5rem;
+  font-size: 12px;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.dropdown-item:hover i {
+  opacity: 1;
+  color: #39B54A;
+}
+
+/* Forcer la répartition des liens de navigation */
+@media (min-width: 992px) {
+  .navbar .navbar-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+    max-width: 900px !important;
+    margin-left: auto !important;
+  }
+  
+  .navbar .nav-item {
+    flex: 1 !important;
+    display: flex !important;
+  }
+  
+  .navbar .nav-item .nav-link {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}
+
+/* Amélioration du bouton sidebar */
+.sidebar-btn {
+  padding: 0.75rem !important;
+  border-radius: 0.5rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.sidebar-btn:hover {
+  background-color: rgba(0, 86, 163, 0.1) !important;
+}
+
+.sidebar-btn span {
+  transition: all 0.3s ease !important;
+}
+
+.sidebar-btn:hover span {
+  border-color: #0056A3 !important;
+}
+
+/* Barre de recherche moderne */
+.search-container {
+  position: relative;
+  margin: 0 1rem;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  border-radius: 25px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.search-box:hover {
+  border-color: #0B5EA8;
+  box-shadow: 0 4px 12px rgba(11, 94, 168, 0.15);
+  transform: translateY(-1px);
+}
+
+.search-box:focus-within {
+  border-color: #39B54A;
+  box-shadow: 0 4px 16px rgba(57, 181, 74, 0.2);
+  background: #fff;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.5rem 1rem;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+  width: 100%;
+}
+
+.search-input::placeholder {
+  color: #999;
+  font-style: normal;
+}
+
+.search-btn {
+  background: linear-gradient(135deg, #0B5EA8, #39B54A);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  font-size: 14px;
+}
+
+.search-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(57, 181, 74, 0.4);
+}
+
+.search-btn:active {
+  transform: scale(0.95);
+}
+
+/* Responsive spacing adjustments */
+@media (max-width: 1200px) {
+  .navbar-brand {
+    gap: 0.5rem;
+  }
+  
+  .navbar-nav .nav-link {
+    margin: 0 0.25rem !important;
+    padding: 30px 0.75rem 30px 0.75rem !important;
+  }
+  
+  .navbar .navbar-nav {
+    max-width: 700px;
+  }
+  
+  .search-container {
+    margin: 0 0.5rem;
+  }
+  
+  .search-box {
+    min-width: 180px;
+    max-width: 250px;
+  }
+}
+
+@media (max-width: 992px) {
+  .navbar-brand {
+    gap: 0.5rem;
+  }
+  
+  .user-profile {
+    padding: 0.4rem;
+    font-size: 1.3rem;
+  }
+  
+  .sidebar-btn {
+    padding: 0.5rem !important;
+  }
+  
+  /* En mobile, revenir à l'affichage normal */
+  .navbar .navbar-nav {
+    width: auto;
+    justify-content: flex-start;
+  }
+  
+  .navbar-nav .nav-link {
+    flex: none;
+    text-align: left;
+    padding: 1rem 0.5rem !important;
+  }
+  
+  /* Cacher la recherche sur mobile ou la mettre dans le menu */
+  .search-container {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-brand {
+    gap: 0.4rem;
+  }
+  
+  .user-profile {
+    padding: 0.3rem;
+    font-size: 1.2rem;
+  }
+  
+  .sidebar-btn {
+    padding: 0.4rem !important;
+  }
 }

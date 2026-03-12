@@ -1,35 +1,522 @@
 .hero-content h1 {
+ 
     font-size: 3.5rem; /* Taille de police grande et moderne */
+ 
     font-weight: 700; /* Poids gras pour une présence forte */
+ 
     color: #ffffff; /* Couleur sombre pour un look professionnel */
+ 
     line-height: 1.2; /* Ajustement de l'espacement des lignes */
+ 
     margin-bottom: 1rem; /* Espacement en bas */
+ 
     text-transform: uppercase; /* Texte en majuscules pour un style audacieux */
+ 
     letter-spacing: 1.5px; /* Espacement des lettres pour une touche moderne */
+ 
     position: relative; /* Pour permettre des effets avec ::after */
+ 
 }
-
+ 
+ 
+ 
 .hero-content h1 span {
+ 
     color: #007bff; /* Couleur pour "IA" pour le mettre en évidence */
+ 
     font-weight: 800; /* Poids encore plus fort pour "IA" */
+ 
     background: linear-gradient(90deg, #007bff, #00c4cc); /* Dégradé moderne */
+ 
     -webkit-background-clip: text; /* Applique le dégradé au texte */
+ 
     background-clip: text;
+ 
     color: transparent; /* Rend le texte transparent pour laisser le dégradé apparaître */
+ 
     display: inline-block; /* Permet d'appliquer le dégradé uniquement au span */
+ 
 }
-
+ 
+ 
+ 
 .hero-content h1::after {
+ 
     content: ""; /* Pseudo-élément pour un effet décoratif */
+ 
     position: absolute;
+ 
     width: 100px;
+ 
     height: 4px;
+ 
     background: #007bff; /* Ligne décorative sous le titre */
+ 
     bottom: -10px;
+ 
     left: 0;
+ 
     transition: width 0.3s ease; /* Animation subtile */
+ 
 }
-
+ 
+ 
+ 
 .hero-content h1:hover::after {
+ 
     width: 150px; /* Élargit la ligne au survol pour un effet interactif */
+ 
+}
+ 
+/* ============================================
+   HERO SECTION MODERNE ET PROFESSIONNEL
+   ============================================ */
+ 
+/* Container principal du hero */
+.hero-section {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0B5EA8 0%, #39B54A 100%);
+}
+ 
+/* Hero slider avec design moderne */
+.hero-slider {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+ 
+/* Slide hero moderne */
+.hero-single {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: 
+    url('/assets/img/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+ 
+/* Effet de particules animées */
+.hero-single::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  animation: floatParticles 20s ease-in-out infinite;
+  pointer-events: none;
+}
+ 
+@keyframes floatParticles {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-20px) rotate(120deg); }
+  66% { transform: translateY(20px) rotate(240deg); }
+}
+ 
+/* Container du contenu */
+.hero-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  max-width: 900px;
+  padding: 0 20px;
+}
+ 
+/* Sous-titre moderne */
+.hero-sub-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+  animation: fadeInDown 1s ease-out;
+  transition: all 0.3s ease;
+}
+ 
+.hero-sub-title:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+ 
+.hero-sub-title i {
+  font-size: 16px;
+  color: #7ED957;
+  animation: pulse 2s infinite;
+}
+ 
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+ 
+/* Titre principal moderne */
+.hero-content h1 {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+  margin-bottom: 25px;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  position: relative;
+  animation: fadeInUp 1s ease-out 0.2s both;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 80px rgba(126, 217, 87, 0.3);
+}
+ 
+/* Span avec effet moderne */
+.hero-content h1 span {
+  position: relative;
+  background: linear-gradient(135deg, #7ED957 0%, #00D4C9 50%, #7ED957 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 900;
+  display: inline-block;
+  animation: gradientShift 3s ease-in-out infinite, glow 2s ease-in-out infinite alternate;
+}
+ 
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+ 
+@keyframes glow {
+  from { filter: drop-shadow(0 0 20px rgba(126, 217, 87, 0.5)); }
+  to { filter: drop-shadow(0 0 30px rgba(126, 217, 87, 0.8)); }
+}
+ 
+/* Ligne décorative animée */
+.hero-content h1::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #7ED957, transparent);
+  border-radius: 2px;
+  animation: expandLine 2s ease-out 0.5s forwards;
+}
+ 
+@keyframes expandLine {
+  to { width: 200px; }
+}
+ 
+/* Paragraphe moderne */
+.hero-content p {
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 40px;
+  font-weight: 400;
+  animation: fadeInUp 1s ease-out 0.4s both;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+ 
+/* Conteneur des boutons */
+.hero-btn {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeInUp 1s ease-out 0.6s both;
+}
+ 
+/* Boutons modernes */
+.hero-btn .theme-btn,
+.hero-btn .theme-btn2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 35px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1;
+  border: none;
+  cursor: pointer;
+}
+ 
+/* Bouton primaire */
+.hero-btn .theme-btn {
+  background: linear-gradient(135deg, #7ED957 0%, #00D4C9 100%);
+  color: #ffffff;
+  box-shadow: 
+    0 10px 30px rgba(126, 217, 87, 0.3),
+    0 0 0 2px rgba(255, 255, 255, 0.1) inset;
+}
+ 
+.hero-btn .theme-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+ 
+.hero-btn .theme-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 
+    0 20px 40px rgba(126, 217, 87, 0.4),
+    0 0 0 2px rgba(255, 255, 255, 0.2) inset;
+}
+ 
+.hero-btn .theme-btn:hover::before {
+  left: 100%;
+}
+ 
+/* Bouton secondaire */
+.hero-btn .theme-btn2 {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+ 
+.hero-btn .theme-btn2:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+ 
+/* Icônes des boutons */
+.hero-btn .theme-btn i,
+.hero-btn .theme-btn2 i {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+ 
+.hero-btn .theme-btn:hover i,
+.hero-btn .theme-btn2:hover i {
+  transform: translateX(3px);
+}
+ 
+/* Animations d'entrée */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+ 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+ 
+/* Formes géométriques décoratives */
+.hero-single::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(from 0deg at 50% 50%, 
+    transparent 0deg, 
+    rgba(126, 217, 87, 0.1) 60deg, 
+    transparent 120deg);
+  animation: rotate 30s linear infinite;
+  pointer-events: none;
+}
+ 
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+ 
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+ 
+  .hero-content p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+  }
+ 
+  .hero-btn {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+ 
+  .hero-btn .theme-btn,
+  .hero-btn .theme-btn2 {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+ 
+  .hero-sub-title {
+    font-size: 12px;
+    padding: 10px 20px;
+  }
+}
+ 
+@media (max-width: 480px) {
+  .hero-content {
+    padding: 0 15px;
+  }
+ 
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+ 
+  .hero-btn .theme-btn,
+  .hero-btn .theme-btn2 {
+    padding: 15px 25px;
+    font-size: 14px;
+  }
+}
+ 
+/* Effet de brillance au survol du hero */
+.hero-single:hover::before {
+  animation-duration: 10s;
+}
+ 
+/* Scroll indicator */
+.scroll-indicator {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: bounce 2s infinite;
+}
+ 
+.scroll-indicator::after {
+  content: '';
+  width: 2px;
+  height: 30px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7), transparent);
+  border-radius: 2px;
+}
+ 
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+  40% { transform: translateX(-50%) translateY(-10px); }
+  60% { transform: translateX(-50%) translateY(-5px); }
+}
+ 
+.hero-content h1 {
+ 
+    font-size: 3.5rem; /* Taille de police grande et moderne */
+ 
+    font-weight: 700; /* Poids gras pour une présence forte */
+ 
+    color: #ffffff; /* Couleur sombre pour un look professionnel */
+ 
+    line-height: 1.2; /* Ajustement de l'espacement des lignes */
+ 
+    margin-bottom: 1rem; /* Espacement en bas */
+ 
+    text-transform: uppercase; /* Texte en majuscules pour un style audacieux */
+ 
+    letter-spacing: 1.5px; /* Espacement des lettres pour une touche moderne */
+ 
+    position: relative; /* Pour permettre des effets avec ::after */
+ 
+}
+ 
+.hero-content h1 span {
+ 
+    color: #007bff; /* Couleur pour "IA" pour le mettre en évidence */
+ 
+    font-weight: 800; /* Poids encore plus fort pour "IA" */
+ 
+    background: linear-gradient(90deg, #007bff, #00c4cc); /* Dégradé moderne */
+ 
+    -webkit-background-clip: text; /* Applique le dégradé au texte */
+ 
+    background-clip: text;
+ 
+    color: transparent; /* Rend le texte transparent pour laisser le dégradé apparaître */
+ 
+    display: inline-block; /* Permet d'appliquer le dégradé uniquement au span */
+ 
+}
+ 
+.hero-content h1::after {
+ 
+    content: ""; /* Pseudo-élément pour un effet décoratif */
+ 
+    position: absolute;
+ 
+    width: 100px;
+ 
+    height: 4px;
+ 
+    background: #007bff; /* Ligne décorative sous le titre */
+ 
+    bottom: -10px;
+ 
+    left: 0;
+ 
+    transition: width 0.3s ease; /* Animation subtile */
+ 
+}
+ 
+.hero-content h1:hover::after {
+ 
+    width: 150px; /* Élargit la ligne au survol pour un effet interactif */
+ 
 }

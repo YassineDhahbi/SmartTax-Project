@@ -8,6 +8,8 @@ import { AuthService } from '../../services/auth/auth.service';
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent {
+  searchQuery: string = '';
+
   constructor(
     public authService: AuthService,
     private router: Router
@@ -24,5 +26,16 @@ export class NavbarComponent {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  performSearch(): void {
+    if (this.searchQuery.trim()) {
+      // Rediriger vers une page de recherche avec la query
+      this.router.navigate(['/search'], { 
+        queryParams: { q: this.searchQuery.trim() } 
+      });
+      // Optionnel: vider le champ de recherche après la recherche
+      this.searchQuery = '';
+    }
   }
 }
