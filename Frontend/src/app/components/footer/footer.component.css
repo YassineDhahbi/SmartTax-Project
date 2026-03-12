@@ -1,0 +1,247 @@
+/* ============================================
+   FOOTER SMARTTAX ANIMATIONS
+   ============================================ */
+
+/* Animation d'entrée des sections du footer */
+.footer-animate-in {
+  animation: footerSectionSlideIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes footerSectionSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Animation de notification de newsletter */
+@keyframes notificationSlide {
+  from {
+    opacity: 0;
+    transform: translateX(100px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes notificationSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100px) scale(0.8);
+  }
+}
+
+/* Animation du contenu de succès */
+.success-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.success-content i {
+  font-size: 20px;
+  color: #10b981;
+  background: white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.success-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.success-text strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.success-text span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* Animation des liens du footer */
+.footer-links li {
+  opacity: 0;
+  animation: footerLinkSlideIn 0.5s ease-out forwards;
+}
+
+.footer-links li:nth-child(1) { animation-delay: 0.1s; }
+.footer-links li:nth-child(2) { animation-delay: 0.2s; }
+.footer-links li:nth-child(3) { animation-delay: 0.3s; }
+.footer-links li:nth-child(4) { animation-delay: 0.4s; }
+.footer-links li:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes footerLinkSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animation des statistiques du footer */
+.footer-stats .stat-item {
+  opacity: 0;
+  animation: statCounter 1s ease-out forwards;
+}
+
+.footer-stats .stat-item:nth-child(1) { animation-delay: 0.2s; }
+.footer-stats .stat-item:nth-child(2) { animation-delay: 0.4s; }
+
+@keyframes statCounter {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Animation des réseaux sociaux */
+.social-link {
+  opacity: 0;
+  animation: socialIconBounce 0.6s ease-out forwards;
+}
+
+.social-link:nth-child(1) { animation-delay: 0.1s; }
+.social-link:nth-child(2) { animation-delay: 0.2s; }
+.social-link:nth-child(3) { animation-delay: 0.3s; }
+.social-link:nth-child(4) { animation-delay: 0.4s; }
+.social-link:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes socialIconBounce {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Animation du logo du footer */
+.footer-logo img {
+  opacity: 0;
+  animation: logoFadeInScale 1s ease-out 0.3s forwards;
+}
+
+@keyframes logoFadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotate(-5deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Animation des éléments de contact */
+.contact-item {
+  opacity: 0;
+  animation: contactItemSlide 0.6s ease-out forwards;
+}
+
+.contact-item:nth-child(1) { animation-delay: 0.1s; }
+.contact-item:nth-child(2) { animation-delay: 0.2s; }
+.contact-item:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes contactItemSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animation du formulaire newsletter */
+.footer-newsletter-form {
+  opacity: 0;
+  animation: newsletterFormSlide 0.8s ease-out 0.5s forwards;
+}
+
+@keyframes newsletterFormSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive animations */
+@media all and (max-width: 768px) {
+  @keyframes footerSectionSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .footer-links li:nth-child(1) { animation-delay: 0.05s; }
+  .footer-links li:nth-child(2) { animation-delay: 0.1s; }
+  .footer-links li:nth-child(3) { animation-delay: 0.15s; }
+  .footer-links li:nth-child(4) { animation-delay: 0.2s; }
+  .footer-links li:nth-child(5) { animation-delay: 0.25s; }
+}
+
+@media all and (max-width: 576px) {
+  @keyframes footerSectionSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(15px) scale(1);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .footer-links li:nth-child(1) { animation-delay: 0.02s; }
+  .footer-links li:nth-child(2) { animation-delay: 0.04s; }
+  .footer-links li:nth-child(3) { animation-delay: 0.06s; }
+  .footer-links li:nth-child(4) { animation-delay: 0.08s; }
+  .footer-links li:nth-child(5) { animation-delay: 0.1s; }
+  
+  .social-link:nth-child(1) { animation-delay: 0.05s; }
+  .social-link:nth-child(2) { animation-delay: 0.1s; }
+  .social-link:nth-child(3) { animation-delay: 0.15s; }
+  .social-link:nth-child(4) { animation-delay: 0.2s; }
+  .social-link:nth-child(5) { animation-delay: 0.25s; }
+}

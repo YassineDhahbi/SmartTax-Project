@@ -18,59 +18,77 @@
  
 }
  
- 
- 
-.hero-content h1 span {
- 
-    color: #007bff; /* Couleur pour "IA" pour le mettre en évidence */
- 
-    font-weight: 800; /* Poids encore plus fort pour "IA" */
- 
-    background: linear-gradient(90deg, #007bff, #00c4cc); /* Dégradé moderne */
- 
-    -webkit-background-clip: text; /* Applique le dégradé au texte */
- 
-    background-clip: text;
- 
-    color: transparent; /* Rend le texte transparent pour laisser le dégradé apparaître */
- 
-    display: inline-block; /* Permet d'appliquer le dégradé uniquement au span */
- 
+/* ============================================
+   STYLES SUPPLEMENTAIRES POUR LES ICÔNES - FORCE VISIBILITÉ
+   ============================================ */
+
+/* Forcer la visibilité des icônes dans la feature area */
+.feature-area .feature-icon .icon-wrapper i {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  color: #0B5EA8 !important;
+  font-size: 28px !important;
 }
- 
- 
- 
-.hero-content h1::after {
- 
-    content: ""; /* Pseudo-élément pour un effet décoratif */
- 
-    position: absolute;
- 
-    width: 100px;
- 
-    height: 4px;
- 
-    background: #007bff; /* Ligne décorative sous le titre */
- 
-    bottom: -10px;
- 
-    left: 0;
- 
-    transition: width 0.3s ease; /* Animation subtile */
- 
+
+.feature-area .feature-icon .icon-wrapper {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-flex !important;
 }
- 
- 
- 
-.hero-content h1:hover::after {
- 
-    width: 150px; /* Élargit la ligne au survol pour un effet interactif */
- 
+
+.feature-area .feature-icon .icon-bg {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
 }
- 
+
+/* S'assurer que les icônes sont visibles dans tous les états */
+.feature-area .feature-item .feature-icon .icon-wrapper i,
+.feature-area .feature-item:hover .feature-icon .icon-wrapper i {
+  opacity: 1 !important;
+  visibility: visible !important;
+  color: #0B5EA8 !important;
+}
+
+.feature-area .feature-item:hover .feature-icon .icon-wrapper i {
+  color: #7ED957 !important;
+  transform: scale(1.1) !important;
+}
+
+/* Forcer toutes les icônes Font Awesome dans la feature area */
+.feature-area .fas,
+.feature-area .fa,
+.feature-area .fab,
+.feature-area .fal,
+.feature-area .far {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-block !important;
+}
+
+/* Responsive - Tablet */
+@media all and (max-width: 991px) {
+  .feature-area .feature-icon .icon-wrapper i {
+    font-size: 24px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
+/* Responsive - Mobile */
+@media all and (max-width: 768px) {
+  .feature-area .feature-icon .icon-wrapper i {
+    font-size: 20px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
 /* ============================================
    HERO SECTION MODERNE ET PROFESSIONNEL
    ============================================ */
+
  
 /* Container principal du hero */
 .hero-section {
@@ -455,7 +473,381 @@
   40% { transform: translateX(-50%) translateY(-10px); }
   60% { transform: translateX(-50%) translateY(-5px); }
 }
- 
+
+/* ============================================
+   BLOG AREA ANIMATIONS
+   ============================================ */
+
+/* Animation d'entrée pour les articles de blog */
+.blog-animate-in {
+  animation: blogSlideInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes blogSlideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Animation des particules du blog */
+@keyframes blogParticleFloat {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x, 0px)), calc(-50% + var(--y, 0px))) scale(0);
+  }
+}
+
+/* Animation du ripple effect du blog */
+@keyframes blogRipple {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+/* Animation de brillance spécifique au blog */
+.blog-item::after {
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(126, 217, 87, 0.15) 50%,
+    transparent 70%
+  );
+}
+
+/* Animation des catégories de blog */
+.blog-category {
+  animation: blogCategoryPulse 2s ease-in-out infinite;
+}
+
+@keyframes blogCategoryPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Animation du lien "Lire la suite" */
+.blog-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.blog-link::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #7ED957, #00D4C9);
+  transition: width 0.3s ease;
+}
+
+.blog-link:hover::before {
+  width: 100%;
+}
+
+/* Animation de la date du blog */
+.blog-date {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.blog-item:hover .blog-date {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Animation du contenu du blog au survol */
+.blog-content {
+  transition: all 0.3s ease;
+}
+
+.blog-item:hover .blog-content {
+  transform: translateY(-2px);
+}
+
+/* Animation des métadonnées du blog */
+.blog-author,
+.blog-comments {
+  transition: all 0.3s ease;
+}
+
+.blog-item:hover .blog-author,
+.blog-item:hover .blog-comments {
+  color: #0B5EA8;
+}
+
+/* Responsive animations */
+@media (max-width: 768px) {
+  @keyframes blogSlideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .blog-category {
+    animation: none;
+  }
+}
+
+@media (max-width: 576px) {
+  @keyframes blogSlideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(1);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}
+
+/* ============================================
+   RÉCLAMATION AREA ANIMATIONS
+   ============================================ */
+
+/* Animation des particules de réclamation */
+@keyframes reclamationParticleFloat {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x, 0px)), calc(-50% + var(--y, 0px))) scale(0);
+  }
+}
+
+/* Animation de succès de réclamation */
+@keyframes reclamationSuccessSlide {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes reclamationSuccessSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+}
+
+/* Animation d'entrée des éléments de réclamation */
+@keyframes reclamationSlideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes reclamationSlideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Animation du formulaire au survol */
+.reclamation-form-wrapper {
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.reclamation-form-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* Animation des champs du formulaire */
+.reclamation-form .form-control,
+.reclamation-form .form-select {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.reclamation-form .form-control:focus,
+.reclamation-form .form-select:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(11, 94, 168, 0.15);
+}
+
+/* Animation du bouton de réclamation */
+.reclamation-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.reclamation-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.reclamation-btn:hover::before {
+  left: 100%;
+}
+
+/* Animation de l'icône du bouton */
+.reclamation-btn i {
+  transition: transform 0.3s ease;
+}
+
+.reclamation-btn:hover i {
+  transform: translateX(3px) rotate(5deg);
+}
+
+/* Animation de l'image de réclamation */
+.reclamation-image {
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.reclamation-image:hover {
+  transform: translateY(-10px) scale(1.02);
+}
+
+/* Animation des statistiques */
+.stat-item {
+  transition: transform 0.3s ease;
+}
+
+.reclamation-image:hover .stat-item {
+  transform: scale(1.05);
+}
+
+.stat-item strong {
+  transition: color 0.3s ease;
+}
+
+.reclamation-image:hover .stat-item strong {
+  color: #7ED957;
+}
+
+/* Animation du checkbox personnalisé */
+.checkbox-mark {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.form-checkbox input[type="checkbox"]:checked + label .checkbox-mark {
+  animation: checkboxPop 0.4s ease-out;
+}
+
+@keyframes checkboxPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive animations */
+@media (max-width: 768px) {
+  @keyframes reclamationSlideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+  
+  @keyframes reclamationSlideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+  
+  .reclamation-form-wrapper:hover {
+    transform: translateY(-3px);
+  }
+}
+
+@media (max-width: 576px) {
+  @keyframes reclamationSlideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px) scale(1);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+  
+  @keyframes reclamationSlideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(20px) scale(1);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+  
+  .reclamation-form-wrapper:hover {
+    transform: translateY(-2px);
+  }
+  
+  .reclamation-image:hover {
+    transform: translateY(-5px) scale(1.01);
+  }
+}
+
 .hero-content h1 {
  
     font-size: 3.5rem; /* Taille de police grande et moderne */

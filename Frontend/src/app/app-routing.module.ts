@@ -10,6 +10,7 @@ import { AdminComponent } from './admin/admin/admin.component';
 import { UtilisateurComponent } from './admin/utilisateur/utilisateur/utilisateur.component';
 import { BlogComponent } from './components/blog/blog.component';
 import { ParametreComponent } from './admin/parametre/parametre.component';
+import { AboutComponent } from './components/about/about.component';
 
 import { AuthGuard } from './guards/auth.guard';
 
@@ -24,6 +25,9 @@ const routes: Routes = [
   { path: 'utilisateur', component: UtilisateurComponent },
   { path: 'service', component: BlogComponent },
   { path: 'parametre', component: ParametreComponent },
+  { path: 'about', component: AboutComponent },
+  
+
 
 
 
