@@ -26,6 +26,7 @@ import { UtilisateurComponent } from './admin/utilisateur/utilisateur/utilisateu
 import { ParametreComponent } from './admin/parametre/parametre.component';
 import { ActualiteComponent } from './components/actualite/actualite.component';
 import { DocumentTelechargerComponent } from './components/document-telecharger/document-telecharger.component';
+import { DocumentFiscalComponent } from './components/document-fiscal/document-fiscal.component';
 
 
 @NgModule({
@@ -50,6 +51,7 @@ import { DocumentTelechargerComponent } from './components/document-telecharger/
     ParametreComponent,
     ActualiteComponent,
     DocumentTelechargerComponent,
+    DocumentFiscalComponent,
 
 
   ],

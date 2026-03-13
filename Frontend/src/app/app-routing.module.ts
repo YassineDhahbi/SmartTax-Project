@@ -13,6 +13,7 @@ import { ParametreComponent } from './admin/parametre/parametre.component';
 import { AboutComponent } from './components/about/about.component';
 import { ActualiteComponent } from './components/actualite/actualite.component';
 import { DocumentTelechargerComponent } from './components/document-telecharger/document-telecharger.component';
+import { DocumentFiscalComponent } from './components/document-fiscal/document-fiscal.component';
 
 import { AuthGuard } from './guards/auth.guard';
 
@@ -30,6 +31,7 @@ const routes: Routes = [
   { path: 'about', component: AboutComponent },
   { path: 'actualite', component: ActualiteComponent },
   { path: 'Document Telecharger', component: DocumentTelechargerComponent },
+  { path: 'Document Fiscale', component: DocumentFiscalComponent },
   
 
 
