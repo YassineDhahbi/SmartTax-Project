@@ -13733,48 +13733,592 @@ label {
 
 
 
-.footer-area {
+/* ============================================
+   ABOUT PAGE SMARTTAX MODERNE
+   ============================================ */
 
+/* Hero Area About */
+.about-hero-area {
   position: relative;
-
-  z-index: 1;
-
-  margin-top: -50px;
-
-  padding-top: 60px;
-
+  padding: 120px 0 80px;
   background: linear-gradient(135deg, #0B5EA8 0%, #1a365d 100%);
-
-  clip-path: polygon(0 40px, 100% 0, 100% 100%, 0 100%);
-
   overflow: hidden;
+}
 
+.about-hero-area::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(126, 217, 87, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(0, 212, 201, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.about-hero-wrap {
+  position: relative;
+  z-index: 2;
+}
+
+.about-hero-content {
+  color: white;
+}
+
+.about-hero-description {
+  margin: 30px 0;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.about-hero-stats {
+  display: flex;
+  gap: 30px;
+  margin: 40px 0;
+}
+
+.about-hero-stats .stat-item {
+  text-align: center;
+}
+
+.about-hero-stats .stat-item strong {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #7ED957;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.about-hero-stats .stat-item span {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.about-hero-actions {
+  display: flex;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+/* Image Grid */
+.about-hero-image {
+  position: relative;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 15px;
+  height: 500px;
+}
+
+.grid-item {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.grid-item:hover {
+  transform: translateY(-10px);
+}
+
+.grid-item.main {
+  grid-row: span 2;
+}
+
+.grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, rgba(11, 94, 168, 0.9), rgba(57, 181, 74, 0.9));
+  padding: 20px;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.grid-item:hover .image-overlay {
+  transform: translateY(0);
+}
+
+.overlay-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+.overlay-content i {
+  font-size: 20px;
+}
+
+.overlay-content span {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Mission & Vision Area */
+.mission-vision-area {
+  padding: 100px 0;
+  background: linear-gradient(135deg, rgba(11, 94, 168, 0.02), rgba(57, 181, 74, 0.02));
+}
+
+.mission-card, .vision-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mission-card:hover, .vision-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.card-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #0B5EA8, #1e40af);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.card-content p {
+  color: #64748b;
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 25px;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.feature-list li i {
+  color: #7ED957;
+  font-size: 16px;
+}
+
+/* Values Area */
+.values-area {
+  padding: 100px 0;
+  background: linear-gradient(135deg, #0B5EA8 0%, #1a365d 100%);
+  clip-path: polygon(0 50px, 100% 0, 100% calc(100% - 50px), 0 100%);
+  margin-top: -50px;
+  padding-top: 150px;
+}
+
+.value-item {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  height: 100%;
+}
+
+.value-item:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+}
+
+.value-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #7ED957, #00D4C9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: white;
+  font-size: 32px;
+  transition: transform 0.3s ease;
+}
+
+.value-item:hover .value-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.value-item h4 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 15px;
+}
+
+.value-item p {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Team Area */
+.team-area {
+  padding: 100px 0;
+  background: linear-gradient(135deg, rgba(11, 94, 168, 0.02), rgba(57, 181, 74, 0.02));
+}
+
+.team-member {
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.team-member:hover {
+  transform: translateY(-10px);
+}
+
+.member-image {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.member-image img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.member-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(11, 94, 168, 0.9), rgba(57, 181, 74, 0.9));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.team-member:hover .member-overlay {
+  opacity: 1;
+}
+
+.social-links {
+  display: flex;
+  gap: 15px;
+}
+
+.social-links a {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.social-links a:hover {
+  background: white;
+  color: #0B5EA8;
+  transform: scale(1.1);
+}
+
+.member-info h5 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 5px;
+}
+
+.member-info span {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Achievements Area */
+.achievements-area {
+  padding: 100px 0;
+  background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+  clip-path: polygon(0 50px, 100% 0, 100% calc(100% - 50px), 0 100%);
+  margin-top: -50px;
+  padding-top: 150px;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.achievement-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.achievement-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #7ED957, #00D4C9);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.achievement-content h3 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0B5EA8;
+  margin-bottom: 5px;
+}
+
+.achievement-content p {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media all and (max-width: 991px) {
+  .about-hero-area {
+    padding: 100px 0 60px;
+  }
+  
+  .about-hero-stats {
+    gap: 20px;
+  }
+  
+  .about-hero-stats .stat-item strong {
+    font-size: 2rem;
+  }
+  
+  .image-grid {
+    height: 400px;
+    gap: 10px;
+  }
+  
+  .mission-card, .vision-card {
+    padding: 30px;
+  }
+  
+  .values-area, .achievements-area {
+    padding-top: 120px;
+  }
+}
+
+@media all and (max-width: 768px) {
+  .about-hero-area {
+    padding: 80px 0 40px;
+  }
+  
+  .about-hero-actions {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .about-hero-stats {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .image-grid {
+    height: 350px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+  
+  .grid-item.main {
+    grid-row: span 1;
+    grid-column: span 2;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .value-item {
+    padding: 30px 15px;
+  }
+  
+  .value-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+  
+  .achievement-item {
+    flex-direction: column;
+    text-align: center;
+    padding: 25px;
+  }
+  
+  .achievement-icon {
+    margin: 0 auto 15px;
+  }
+}
+
+@media all and (max-width: 576px) {
+  .about-hero-area {
+    padding: 60px 0 30px;
+  }
+  
+  .about-hero-content .section-title {
+    font-size: 2rem;
+  }
+  
+  .about-hero-description {
+    font-size: 1rem;
+  }
+  
+  .about-hero-stats .stat-item strong {
+    font-size: 1.5rem;
+  }
+  
+  .image-grid {
+    height: 300px;
+  }
+  
+  .mission-card, .vision-card {
+    padding: 20px;
+  }
+  
+  .card-title {
+    font-size: 1.3rem;
+  }
+  
+  .values-area, .achievements-area {
+    padding-top: 100px;
+    clip-path: polygon(0 30px, 100% 0, 100% calc(100% - 30px), 0 100%);
+  }
+  
+  .value-item {
+    padding: 20px 10px;
+  }
+  
+  .value-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+  
+  .member-image img {
+    height: 250px;
+  }
+  
+  .achievement-content h3 {
+    font-size: 1.5rem;
+  }
+  
+}
+
+/* ============================================
+   STYLES SPECIFIQUES PAGE ABOUT
+   ============================================ */
+
+/* Couleurs spécifiques pour la page about */
+.about-hero-area .section-tagline,
+.mission-vision-area .section-tagline,
+.values-area .section-tagline,
+.team-area .section-tagline,
+.achievements-area .section-tagline {
+  color: rgb(58, 207, 58) !important;
+}
+
+.about-hero-area .section-subtitle,
+.mission-vision-area .section-subtitle,
+.values-area .section-subtitle,
+.team-area .section-subtitle,
+.achievements-area .section-subtitle {
+  color: black !important;
+}
+
+/* Conserver les autres styles de la page about */
+.about-hero-area {
+  position: relative;
+  padding: 120px 0 80px;
+  background: linear-gradient(135deg, #0B5EA8 0%, #1a365d 100%);
+  overflow: hidden;
 }
 
 /* Formes décoratives de fond */
 
-.footer-area::before {
-
-  content: '';
-
-  position: absolute;
-
-  top: 0;
-
-  left: 0;
-
-  right: 0;
-
-  bottom: 0;
-
-  background-image: 
-
-    radial-gradient(circle at 20% 50%, rgba(126, 217, 87, 0.05) 0%, transparent 50%),
-
-    radial-gradient(circle at 80% 80%, rgba(0, 212, 201, 0.05) 0%, transparent 50%);
-
-  pointer-events: none;
-
+.footer-area {
+ 
+  position: relative;
+ 
+  z-index: 1;
+ 
+  margin-top: -50px;
+ 
+  padding-top: 60px;
+ 
+  background: linear-gradient(135deg, #0B5EA8 0%, #1a365d 100%);
+ 
+  clip-path: polygon(0 40px, 100% 0, 100% 100%, 0 100%);
+ 
+  overflow: hidden; 
 }
 
 .footer-wrap {

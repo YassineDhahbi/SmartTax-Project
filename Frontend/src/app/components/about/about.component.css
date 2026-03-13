@@ -1,0 +1,292 @@
+/* ============================================
+   ABOUT PAGE ANIMATIONS
+   ============================================ */
+
+/* Animation classes */
+.animate-fade-in-left {
+  animation: fadeInLeft 1s ease-out forwards;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 1s ease-out 0.3s forwards;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.8s ease-out forwards;
+}
+
+.animate-in {
+  animation: scaleIn 0.8s ease-out forwards;
+}
+
+/* Keyframes */
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Staggered animations for values */
+.value-item {
+  opacity: 0;
+}
+
+.value-item:nth-child(1) { animation-delay: 0.1s; }
+.value-item:nth-child(2) { animation-delay: 0.2s; }
+.value-item:nth-child(3) { animation-delay: 0.3s; }
+.value-item:nth-child(4) { animation-delay: 0.4s; }
+
+/* Staggered animations for team members */
+.team-member {
+  opacity: 0;
+}
+
+.team-member:nth-child(1) { animation-delay: 0.1s; }
+.team-member:nth-child(2) { animation-delay: 0.2s; }
+.team-member:nth-child(3) { animation-delay: 0.3s; }
+.team-member:nth-child(4) { animation-delay: 0.4s; }
+
+/* Staggered animations for achievements */
+.achievement-item {
+  opacity: 0;
+}
+
+.achievement-item:nth-child(1) { animation-delay: 0.1s; }
+.achievement-item:nth-child(2) { animation-delay: 0.2s; }
+.achievement-item:nth-child(3) { animation-delay: 0.3s; }
+.achievement-item:nth-child(4) { animation-delay: 0.4s; }
+
+/* Mission and Vision cards */
+.mission-card, .vision-card {
+  opacity: 0;
+}
+
+.mission-card { animation-delay: 0.1s; }
+.vision-card { animation-delay: 0.3s; }
+
+/* Hero content initial state */
+.about-hero-content {
+  opacity: 0;
+}
+
+.about-hero-image {
+  opacity: 0;
+}
+
+/* Stats initial state */
+.about-hero-stats .stat-item {
+  opacity: 0;
+}
+
+/* Button hover animations */
+.about-hero-actions .theme-btn,
+.about-hero-actions .theme-btn2 {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.about-hero-actions .theme-btn i,
+.about-hero-actions .theme-btn2 i {
+  transition: transform 0.3s ease;
+}
+
+/* Image grid hover effects */
+.grid-item {
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.image-overlay {
+  transition: transform 0.3s ease;
+}
+
+/* Team member hover effects */
+.team-member {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.member-overlay {
+  transition: opacity 0.3s ease;
+}
+
+.social-links a {
+  transition: all 0.3s ease;
+}
+
+/* Value item hover effects */
+.value-icon {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Achievement item hover effects */
+.achievement-item {
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Mission/Vision card hover effects */
+.mission-card:hover,
+.vision-card:hover {
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Pulse animation for icons */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.card-icon:hover,
+.value-icon:hover,
+.achievement-icon:hover {
+  animation: pulse 2s infinite;
+}
+
+/* Floating animation for hero stats */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.about-hero-stats .stat-item:hover strong {
+  animation: float 2s ease-in-out infinite;
+}
+
+/* Responsive animations */
+@media all and (max-width: 768px) {
+  @keyframes fadeInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes fadeInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .value-item:nth-child(1) { animation-delay: 0.05s; }
+  .value-item:nth-child(2) { animation-delay: 0.1s; }
+  .value-item:nth-child(3) { animation-delay: 0.15s; }
+  .value-item:nth-child(4) { animation-delay: 0.2s; }
+  
+  .team-member:nth-child(1) { animation-delay: 0.05s; }
+  .team-member:nth-child(2) { animation-delay: 0.1s; }
+  .team-member:nth-child(3) { animation-delay: 0.15s; }
+  .team-member:nth-child(4) { animation-delay: 0.2s; }
+}
+
+@media all and (max-width: 576px) {
+  @keyframes fadeInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes fadeInRight {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .value-item:nth-child(1) { animation-delay: 0.02s; }
+  .value-item:nth-child(2) { animation-delay: 0.04s; }
+  .value-item:nth-child(3) { animation-delay: 0.06s; }
+  .value-item:nth-child(4) { animation-delay: 0.08s; }
+  
+  .team-member:nth-child(1) { animation-delay: 0.02s; }
+  .team-member:nth-child(2) { animation-delay: 0.04s; }
+  .team-member:nth-child(3) { animation-delay: 0.06s; }
+  .team-member:nth-child(4) { animation-delay: 0.08s; }
+  
+  .achievement-item:nth-child(1) { animation-delay: 0.02s; }
+  .achievement-item:nth-child(2) { animation-delay: 0.04s; }
+  .achievement-item:nth-child(3) { animation-delay: 0.06s; }
+  .achievement-item:nth-child(4) { animation-delay: 0.08s; }
+}
