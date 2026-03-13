@@ -30,16 +30,16 @@
                 <div class="offcanvas-body gap-xl-4">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item dropdown">
-                            <a class="nav-link active" [routerLink]="['/home']" data-bs-toggle="dropdown"><i class="fas fa-home me-2"></i>Accueil</a>
+                            <a class="nav-link" [class.active]="isActive('home')" [routerLink]="['/home']" data-bs-toggle="dropdown"><i class="fas fa-home me-2"></i>Accueil</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link " [routerLink]="['/about']"><i class="fas fa-building me-2"></i>Direction Générale des Impôts</a>
+                            <a class="nav-link" [class.active]="isActive('about')" [routerLink]="['/about']"><i class="fas fa-building me-2"></i>Direction Générale des Impôts</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" [routerLink]="['/service']"><i class="fas fa-laptop me-2"></i>Services en ligne</a>
+                            <a class="nav-link" [class.active]="isActive('service')" [routerLink]="['/service']"><i class="fas fa-laptop me-2"></i>Services en ligne</a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link" href="#" data-bs-toggle="dropdown"><i class="fas fa-newspaper me-2"></i>Actualités</a>
+                            <a class="nav-link" [class.active]="isActive('blog')" href="#" data-bs-toggle="dropdown"><i class="fas fa-newspaper me-2"></i>Actualités</a>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="fas fa-file-alt me-2"></i>Documentation</a>
@@ -50,7 +50,7 @@
                         </li>
                         
                         <li class="nav-item">
-                            <a class="nav-link" [routerLink]="['/home']" fragment="reclamation"><i class="fas fa-envelope me-2"></i>Contact</a>
+                            <a class="nav-link" [class.active]="isActive('reclamation')" [routerLink]="['/home']" fragment="reclamation"><i class="fas fa-envelope me-2"></i>Contact</a>
                         </li>
                     </ul>
                     <!-- nav-right -->
