@@ -68,6 +68,8 @@ export class NavbarComponent implements OnInit {
       this.activeLink = 'service';
     } else if (url.includes('/blog')) {
       this.activeLink = 'blog';
+    } else if (url.includes('/actualite')) {
+      this.activeLink = 'actualite';
     } else if (url.includes('/contact')) {
       this.activeLink = 'reclamation';
     } else if (url.includes('/login')) {

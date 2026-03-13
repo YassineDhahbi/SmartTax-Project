@@ -11,6 +11,8 @@ import { UtilisateurComponent } from './admin/utilisateur/utilisateur/utilisateu
 import { BlogComponent } from './components/blog/blog.component';
 import { ParametreComponent } from './admin/parametre/parametre.component';
 import { AboutComponent } from './components/about/about.component';
+import { ActualiteComponent } from './components/actualite/actualite.component';
+import { DocumentTelechargerComponent } from './components/document-telecharger/document-telecharger.component';
 
 import { AuthGuard } from './guards/auth.guard';
 
@@ -26,6 +28,8 @@ const routes: Routes = [
   { path: 'service', component: BlogComponent },
   { path: 'parametre', component: ParametreComponent },
   { path: 'about', component: AboutComponent },
+  { path: 'actualite', component: ActualiteComponent },
+  { path: 'Document Telecharger', component: DocumentTelechargerComponent },
   
 
 

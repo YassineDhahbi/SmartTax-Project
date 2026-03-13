@@ -40,7 +40,7 @@
                                         <a href="#services" class="theme-btn" role="button" aria-label="Accéder aux services fiscaux">
                                             Accéder aux services<i class="fas fa-circle-arrow-right"></i>
                                         </a>
-                                        <a href="#about" class="theme-btn2" role="button" aria-label="En savoir plus sur SmartTax">
+                                        <a [routerLink]="['/about']" class="theme-btn2" role="button" aria-label="En savoir plus sur SmartTax">
                                             En savoir plus<i class="fas fa-circle-arrow-right"></i>
                                         </a>
                                     </div>
@@ -170,7 +170,7 @@
                                     <p class="feature-description">
                                         Téléchargez vos documents fiscaux officiels de manière simple et sécurisée.
                                     </p>
-                                    <a href="#" class="feature-link">
+                                    <a [routerLink]="['/Document Telecharger']" class="feature-link">
                                         <span>En savoir plus</span>
                                         <i class="fas fa-arrow-right"></i>
                                     </a>

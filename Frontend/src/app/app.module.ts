@@ -24,6 +24,8 @@ import { AdminComponent } from './admin/admin/admin.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UtilisateurComponent } from './admin/utilisateur/utilisateur/utilisateur.component';
 import { ParametreComponent } from './admin/parametre/parametre.component';
+import { ActualiteComponent } from './components/actualite/actualite.component';
+import { DocumentTelechargerComponent } from './components/document-telecharger/document-telecharger.component';
 
 
 @NgModule({
@@ -46,6 +48,8 @@ import { ParametreComponent } from './admin/parametre/parametre.component';
     AdminComponent,
     UtilisateurComponent,
     ParametreComponent,
+    ActualiteComponent,
+    DocumentTelechargerComponent,
 
 
   ],
