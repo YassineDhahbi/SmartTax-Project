@@ -27,6 +27,9 @@ import { ParametreComponent } from './admin/parametre/parametre.component';
 import { ActualiteComponent } from './components/actualite/actualite.component';
 import { DocumentTelechargerComponent } from './components/document-telecharger/document-telecharger.component';
 import { DocumentFiscalComponent } from './components/document-fiscal/document-fiscal.component';
+import { ImmatriculationComponent } from './components/immatriculation/immatriculation.component';
+import { ReclamationComponent } from './components/reclamation/reclamation.component';
+import { DossierComponent } from './components/dossier/dossier.component';
 
 
 @NgModule({
@@ -52,6 +55,9 @@ import { DocumentFiscalComponent } from './components/document-fiscal/document-f
     ActualiteComponent,
     DocumentTelechargerComponent,
     DocumentFiscalComponent,
+    ImmatriculationComponent,
+    ReclamationComponent,
+    DossierComponent,
 
 
   ],

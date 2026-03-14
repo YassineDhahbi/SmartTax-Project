@@ -1,0 +1,792 @@
+<app-navbar></app-navbar>
+
+<!-- Header Section -->
+<section class="immatriculation-header" style="background-image: linear-gradient(135deg, rgba(11, 94, 168, 0.9) 0%, rgba(26, 54, 93, 0.9) 100%), url('assets/img/actualite/Actualite.png'); background-size: cover; background-position: center; background-attachment: fixed;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <div class="section-header">
+                    <span class="section-tagline"><i class="fas fa-user-plus"></i> Création de Dossier</span>
+                    <h1 class="section-title">Demande d'Immatriculation <span class="gradient-text">Fiscale</span></h1>
+                    <p class="section-subtitle">
+                        Créez votre dossier d'immatriculation en ligne et obtenez votre matricule fiscal en quelques étapes
+                    </p>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <div class="progress-steps">
+                        <div class="step active" data-step="1">
+                            <div class="step-number">1</div>
+                            <div class="step-label">Type Contribuable</div>
+                        </div>
+                        <div class="step" data-step="2">
+                            <div class="step-number">2</div>
+                            <div class="step-label">Informations</div>
+                        </div>
+                        <div class="step" data-step="3">
+                            <div class="step-number">3</div>
+                            <div class="step-label">Activité</div>
+                        </div>
+                        <div class="step" data-step="4">
+                            <div class="step-number">4</div>
+                            <div class="step-label">Pièces Jointes</div>
+                        </div>
+                        <div class="step" data-step="5">
+                            <div class="step-number">5</div>
+                            <div class="step-label">Vérification</div>
+                        </div>
+                        <div class="step" data-step="6">
+                            <div class="step-number">6</div>
+                            <div class="step-label">Validation</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Form Section -->
+<section class="immatriculation-form-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <form class="immatriculation-form" [formGroup]="immatriculationForm">
+                    
+                    <!-- Étape 1: Type de Contribuable -->
+                    <div class="form-step" *ngIf="currentStep === 1" [@stepAnimation]>
+                        <div class="step-content">
+                            <div class="step-header">
+                                <h3><i class="fas fa-user-tag"></i> Type de Contribuable</h3>
+                                <p>Sélectionnez le type de contribuable que vous êtes</p>
+                            </div>
+                            
+                            <div class="contribuable-types">
+                                <div class="type-card" 
+                                     [class.selected]="immatriculationForm.get('typeContribuable')?.value === 'physique'"
+                                     (click)="selectTypeContribuable('physique')">
+                                    <div class="type-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <h4>Personne Physique</h4>
+                                    <p>Particulier, entrepreneur individuel</p>
+                                    <ul class="type-features">
+                                        <li><i class="fas fa-check"></i> CIN ou Passeport requis</li>
+                                        <li><i class="fas fa-check"></i> Photo personnelle obligatoire</li>
+                                        <li><i class="fas fa-check"></i> Justificatif d'activité</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="type-card" 
+                                     [class.selected]="immatriculationForm.get('typeContribuable')?.value === 'morale'"
+                                     (click)="selectTypeContribuable('morale')">
+                                    <div class="type-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <h4>Personne Morale</h4>
+                                    <p>Société, association, organisation</p>
+                                    <ul class="type-features">
+                                        <li><i class="fas fa-check"></i> Registre de commerce requis</li>
+                                        <li><i class="fas fa-check"></i> Statuts juridiques</li>
+                                        <li><i class="fas fa-check"></i> Représentant légal</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="form-navigation">
+                                <button type="button" class="btn-next" (click)="nextStep()" 
+                                        [disabled]="!immatriculationForm.get('typeContribuable')?.value">
+                                    Suivant <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Étape 2: Informations Personnelles -->
+                    <div class="form-step" *ngIf="currentStep === 2" [@stepAnimation]>
+                        <div class="step-content">
+                            <div class="step-header">
+                                <h3><i class="fas fa-user"></i> Informations Personnelles</h3>
+                                <p>Veuillez renseigner vos informations personnelles</p>
+                            </div>
+                            
+                            <div class="row g-4">
+                                <!-- Personne Physique -->
+                                <ng-container *ngIf="immatriculationForm.get('typeContribuable')?.value === 'physique'">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="nom">Nom <span class="required">*</span></label>
+                                            <input type="text" id="nom" class="form-control" 
+                                                   formControlName="nom" placeholder="Votre nom">
+                                            <div class="error-message" *ngIf="immatriculationForm.get('nom')?.invalid && immatriculationForm.get('nom')?.touched">
+                                                Le nom est requis
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="prenom">Prénom <span class="required">*</span></label>
+                                            <input type="text" id="prenom" class="form-control" 
+                                                   formControlName="prenom" placeholder="Votre prénom">
+                                            <div class="error-message" *ngIf="immatriculationForm.get('prenom')?.invalid && immatriculationForm.get('prenom')?.touched">
+                                                Le prénom est requis
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="cin">CIN / Passeport <span class="required">*</span></label>
+                                            <input type="text" id="cin" class="form-control" 
+                                                   formControlName="cin" placeholder="Numéro CIN ou Passeport">
+                                            <div class="error-message" *ngIf="immatriculationForm.get('cin')?.invalid && immatriculationForm.get('cin')?.touched">
+                                                Le CIN/Passeport est requis
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="dateNaissance">Date de Naissance <span class="required">*</span></label>
+                                            <input type="date" id="dateNaissance" class="form-control" 
+                                                   formControlName="dateNaissance">
+                                            <div class="error-message" *ngIf="immatriculationForm.get('dateNaissance')?.invalid && immatriculationForm.get('dateNaissance')?.touched">
+                                                La date de naissance est requise
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                
+                                <!-- Personne Morale -->
+                                <ng-container *ngIf="immatriculationForm.get('typeContribuable')?.value === 'morale'">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="raisonSociale">Raison Sociale <span class="required">*</span></label>
+                                            <input type="text" id="raisonSociale" class="form-control" 
+                                                   formControlName="raisonSociale" placeholder="Nom de l'entreprise">
+                                            <div class="error-message" *ngIf="immatriculationForm.get('raisonSociale')?.invalid && immatriculationForm.get('raisonSociale')?.touched">
+                                                La raison sociale est requise
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="matriculeFiscal">Matricule Fiscal Existant</label>
+                                            <input type="text" id="matriculeFiscal" class="form-control" 
+                                                   formControlName="matriculeFiscal" placeholder="Si applicable">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="registreCommerce">Registre de Commerce <span class="required">*</span></label>
+                                            <input type="text" id="registreCommerce" class="form-control" 
+                                                   formControlName="registreCommerce" placeholder="Numéro RC">
+                                            <div class="error-message" *ngIf="immatriculationForm.get('registreCommerce')?.invalid && immatriculationForm.get('registreCommerce')?.touched">
+                                                Le registre de commerce est requis
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="representantLegal">Représentant Légal <span class="required">*</span></label>
+                                            <input type="text" id="representantLegal" class="form-control" 
+                                                   formControlName="representantLegal" placeholder="Nom du représentant">
+                                            <div class="error-message" *ngIf="immatriculationForm.get('representantLegal')?.invalid && immatriculationForm.get('representantLegal')?.touched">
+                                                Le représentant légal est requis
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                
+                                <!-- Champs Communs -->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="email">Email <span class="required">*</span></label>
+                                        <input type="email" id="email" class="form-control" 
+                                               formControlName="email" placeholder="votre@email.com">
+                                        <div class="error-message" *ngIf="immatriculationForm.get('email')?.invalid && immatriculationForm.get('email')?.touched">
+                                            L'email est requis et doit être valide
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="telephone">Téléphone <span class="required">*</span></label>
+                                        <input type="tel" id="telephone" class="form-control" 
+                                               formControlName="telephone" placeholder="+216 XX XXX XXX">
+                                        <div class="error-message" *ngIf="immatriculationForm.get('telephone')?.invalid && immatriculationForm.get('telephone')?.touched">
+                                            Le téléphone est requis
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="adresse">Adresse Complète <span class="required">*</span></label>
+                                        <textarea id="adresse" class="form-control" rows="3"
+                                                  formControlName="adresse" placeholder="Votre adresse complète"></textarea>
+                                        <div class="error-message" *ngIf="immatriculationForm.get('adresse')?.invalid && immatriculationForm.get('adresse')?.touched">
+                                            L'adresse est requise
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-navigation">
+                                <button type="button" class="btn-prev" (click)="previousStep()">
+                                    <i class="fas fa-arrow-left"></i> Précédent
+                                </button>
+                                <button type="button" class="btn-next" (click)="nextStep()">
+                                    Suivant <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Étape 3: Informations sur l'Activité -->
+                    <div class="form-step" *ngIf="currentStep === 3" [@stepAnimation]>
+                        <div class="step-content">
+                            <div class="step-header">
+                                <h3><i class="fas fa-briefcase"></i> Informations sur l'Activité</h3>
+                                <p>Décrivez votre activité professionnelle</p>
+                            </div>
+                            
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="typeActivite">Type d'Activité <span class="required">*</span></label>
+                                        <select id="typeActivite" class="form-control" formControlName="typeActivite">
+                                            <option value="">Sélectionnez...</option>
+                                            <option value="commercial">Commercial</option>
+                                            <option value="artisanal">Artisanal</option>
+                                            <option value="agricole">Agricultole</option>
+                                            <option value="service">Service</option>
+                                            <option value="profession_liberale">Profession Libérale</option>
+                                            <option value="autre">Autre</option>
+                                        </select>
+                                        <div class="error-message" *ngIf="immatriculationForm.get('typeActivite')?.invalid && immatriculationForm.get('typeActivite')?.touched">
+                                            Le type d'activité est requis
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="secteur">Secteur <span class="required">*</span></label>
+                                        <select id="secteur" class="form-control" formControlName="secteur">
+                                            <option value="">Sélectionnez...</option>
+                                            <option value="primaire">Primaire</option>
+                                            <option value="secondaire">Secondaire</option>
+                                            <option value="tertiaire">Tertiaire</option>
+                                        </select>
+                                        <div class="error-message" *ngIf="immatriculationForm.get('secteur')?.invalid && immatriculationForm.get('secteur')?.touched">
+                                            Le secteur est requis
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="adresseProfessionnelle">Adresse Professionnelle <span class="required">*</span></label>
+                                        <input type="text" id="adresseProfessionnelle" class="form-control" 
+                                               formControlName="adresseProfessionnelle" placeholder="Adresse de l'activité">
+                                        <div class="error-message" *ngIf="immatriculationForm.get('adresseProfessionnelle')?.invalid && immatriculationForm.get('adresseProfessionnelle')?.touched">
+                                            L'adresse professionnelle est requise
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="dateDebutActivite">Date Début Activité <span class="required">*</span></label>
+                                        <input type="date" id="dateDebutActivite" class="form-control" 
+                                               formControlName="dateDebutActivite">
+                                        <div class="error-message" *ngIf="immatriculationForm.get('dateDebutActivite')?.invalid && immatriculationForm.get('dateDebutActivite')?.touched">
+                                            La date de début d'activité est requise
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="descriptionActivite">Description de l'Activité <span class="required">*</span></label>
+                                        <textarea id="descriptionActivite" class="form-control" rows="4"
+                                                  formControlName="descriptionActivite" 
+                                                  placeholder="Décrivez en détail votre activité..."></textarea>
+                                        <div class="error-message" *ngIf="immatriculationForm.get('descriptionActivite')?.invalid && immatriculationForm.get('descriptionActivite')?.touched">
+                                            La description est requise
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-navigation">
+                                <button type="button" class="btn-prev" (click)="previousStep()">
+                                    <i class="fas fa-arrow-left"></i> Précédent
+                                </button>
+                                <button type="button" class="btn-next" (click)="nextStep()">
+                                    Suivant <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Étape 4: Pièces Jointes -->
+                    <div class="form-step" *ngIf="currentStep === 4" [@stepAnimation]>
+                        <div class="step-content">
+                            <div class="step-header">
+                                <h3><i class="fas fa-paperclip"></i> Pièces Jointes</h3>
+                                <p>Téléversez les documents requis pour votre dossier</p>
+                            </div>
+                            
+                            <div class="documents-upload">
+                                <!-- Pièce d'identité -->
+                                <div class="upload-section">
+                                    <h4><i class="fas fa-id-card"></i> Pièce d'Identité</h4>
+                                    <div class="upload-area" 
+                                         (drop)="onDrop($event, 'identite')" 
+                                         (dragover)="onDragOver($event)"
+                                         (dragleave)="onDragLeave($event)">
+                                        <input type="file" id="identite" (change)="onFileSelect($event, 'identite')" accept="image/*,.pdf" hidden>
+                                        <label for="identite" class="upload-label">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <span>Glissez-déposez ou cliquez pour sélectionner</span>
+                                            <small>CIN, Passeport ou Carte de séjour (PDF, JPG, PNG)</small>
+                                        </label>
+                                        <div class="uploaded-file" *ngIf="files.identite">
+                                            <i class="fas fa-file-pdf"></i>
+                                            <span>{{ files.identite.name }}</span>
+                                            <button type="button" class="btn-remove" (click)="removeFile('identite')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Document d'activité -->
+                                <div class="upload-section">
+                                    <h4><i class="fas fa-briefcase"></i> Document d'Activité</h4>
+                                    <div class="upload-area" 
+                                         (drop)="onDrop($event, 'activite')" 
+                                         (dragover)="onDragOver($event)"
+                                         (dragleave)="onDragLeave($event)">
+                                        <input type="file" id="activite" (change)="onFileSelect($event, 'activite')" accept="image/*,.pdf" hidden>
+                                        <label for="activite" class="upload-label">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <span>Glissez-déposez ou cliquez pour sélectionner</span>
+                                            <small>Patente, Licence, Autorisation (PDF, JPG, PNG)</small>
+                                        </label>
+                                        <div class="uploaded-file" *ngIf="files.activite">
+                                            <i class="fas fa-file-pdf"></i>
+                                            <span>{{ files.activite.name }}</span>
+                                            <button type="button" class="btn-remove" (click)="removeFile('activite')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Photo personnelle (Personne Physique) -->
+                                <div class="upload-section" *ngIf="immatriculationForm.get('typeContribuable')?.value === 'physique'">
+                                    <h4><i class="fas fa-camera"></i> Photo Personnelle</h4>
+                                    <div class="photo-upload-options">
+                                        <div class="upload-area" 
+                                             (drop)="onDrop($event, 'photo')" 
+                                             (dragover)="onDragOver($event)"
+                                             (dragleave)="onDragLeave($event)">
+                                            <input type="file" id="photo" (change)="onFileSelect($event, 'photo')" accept="image/*" hidden>
+                                            <label for="photo" class="upload-label">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <span>Glissez-déposez ou cliquez pour sélectionner</span>
+                                                <small>Photo d'identité récente (JPG, PNG)</small>
+                                            </label>
+                                            <div class="uploaded-file" *ngIf="files.photo">
+                                                <img [src]="photoPreview" alt="Photo preview" class="photo-preview">
+                                                <span>{{ files.photo.name }}</span>
+                                                <button type="button" class="btn-remove" (click)="removeFile('photo')">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="webcam-section">
+                                            <button type="button" class="btn-webcam" (click)="openWebcam()">
+                                                <i class="fas fa-camera"></i> Prendre une photo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Documents supplémentaires -->
+                                <div class="upload-section">
+                                    <h4><i class="fas fa-file-alt"></i> Autres Documents</h4>
+                                    <div class="upload-area" 
+                                         (drop)="onDrop($event, 'autres')" 
+                                         (dragover)="onDragOver($event)"
+                                         (dragleave)="onDragLeave($event)">
+                                        <input type="file" id="autres" (change)="onFileSelect($event, 'autres')" accept="image/*,.pdf" multiple hidden>
+                                        <label for="autres" class="upload-label">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <span>Glissez-déposez ou cliquez pour sélectionner</span>
+                                            <small>Documents justificatifs supplémentaires (Multiple autorisé)</small>
+                                        </label>
+                                        <div class="uploaded-files-list" *ngIf="files.autres && files.autres.length > 0">
+                                            <div class="uploaded-file" *ngFor="let file of files.autres; let i = index">
+                                                <i class="fas fa-file-pdf"></i>
+                                                <span>{{ file.name }}</span>
+                                                <button type="button" class="btn-remove" (click)="removeFileAtIndex('autres', i)">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-navigation">
+                                <button type="button" class="btn-prev" (click)="previousStep()">
+                                    <i class="fas fa-arrow-left"></i> Précédent
+                                </button>
+                                <button type="button" class="btn-next" (click)="nextStep()" 
+                                        [disabled]="!requiredFilesUploaded()">
+                                    Suivant <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Étape 5: Vérification -->
+                    <div class="form-step" *ngIf="currentStep === 5" [@stepAnimation]>
+                        <div class="step-content">
+                            <div class="step-header">
+                                <h3><i class="fas fa-shield-alt"></i> Vérification Automatique</h3>
+                                <p>Nous vérifions automatiquement vos informations et documents</p>
+                            </div>
+                            
+                            <div class="verification-section">
+                                <!-- OCR Processing -->
+                                <div class="verification-item">
+                                    <div class="verification-icon processing">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                    <div class="verification-content">
+                                        <h4>Reconnaissance Optique de Caractères (OCR)</h4>
+                                        <p>Extraction automatique des informations depuis vos documents</p>
+                                        <div class="ocr-results">
+                                            <div class="ocr-item" *ngFor="let result of ocrResults">
+                                                <span class="ocr-label">{{ result.field }}:</span>
+                                                <span class="ocr-value">{{ result.value }}</span>
+                                                <span class="ocr-status" [class.match]="result.match" [class.nomatch]="!result.match">
+                                                    <i class="fas" [class.fa-check]="result.match" [class.fa-times]="!result.match"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Face Recognition -->
+                                <div class="verification-item" *ngIf="immatriculationForm.get('typeContribuable')?.value === 'physique'">
+                                    <div class="verification-icon processing">
+                                        <i class="fas fa-user-check"></i>
+                                    </div>
+                                    <div class="verification-content">
+                                        <h4>Reconnaissance Faciale</h4>
+                                        <p>Comparaison de votre photo avec votre pièce d'identité</p>
+                                        <div class="face-recognition-results">
+                                            <div class="comparison-images">
+                                                <div class="comparison-image">
+                                                    <img [src]="photoPreview" alt="Photo personnelle">
+                                                    <span>Photo Personnelle</span>
+                                                </div>
+                                                <div class="comparison-arrow">
+                                                    <i class="fas fa-arrows-alt-h"></i>
+                                                </div>
+                                                <div class="comparison-image">
+                                                    <img [src]="identityPhoto" alt="Photo identité">
+                                                    <span>Photo Identité</span>
+                                                </div>
+                                            </div>
+                                            <div class="confidence-score">
+                                                <span>Score de confiance:</span>
+                                                <div class="score-bar">
+                                                    <div class="score-fill" [style.width.%]="faceRecognitionScore"></div>
+                                                </div>
+                                                <span class="score-value">{{ faceRecognitionScore }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Duplicate Detection -->
+                                <div class="verification-item">
+                                    <div class="verification-icon" [class.success]="!duplicateDetected" [class.warning]="duplicateDetected">
+                                        <i class="fas" [class.fa-check-circle]="!duplicateDetected" [class.fa-exclamation-triangle]="duplicateDetected"></i>
+                                    </div>
+                                    <div class="verification-content">
+                                        <h4>Détection de Doublons</h4>
+                                        <p>Vérification si un dossier similaire existe déjà</p>
+                                        <div class="duplicate-status" [class.success]="!duplicateDetected" [class.warning]="duplicateDetected">
+                                            <span *ngIf="!duplicateDetected">
+                                                <i class="fas fa-check-circle"></i> Aucun doublon détecté
+                                            </span>
+                                            <span *ngIf="duplicateDetected">
+                                                <i class="fas fa-exclamation-triangle"></i> Doublon potentiel détecté
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Confidence Score -->
+                                <div class="verification-item">
+                                    <div class="verification-icon" [class.success]="overallScore >= 80" [class.warning]="overallScore >= 60 && overallScore < 80" [class.danger]="overallScore < 60">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="verification-content">
+                                        <h4>Score de Confiance Global</h4>
+                                        <p>Évaluation de la fiabilité de votre dossier</p>
+                                        <div class="overall-score">
+                                            <div class="score-circle">
+                                                <svg viewBox="0 0 36 36" class="circular-chart">
+                                                    <path class="circle-bg"
+                                                          d="M18 2.0845
+                                                          a 15.9155 15.9155 0 0 1 0 31.831
+                                                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                    />
+                                                    <path class="circle"
+                                                          [attr.stroke-dasharray]="overallScore + ', 100'"
+                                                          d="M18 2.0845
+                                                          a 15.9155 15.9155 0 0 1 0 31.831
+                                                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                    />
+                                                    <text x="18" y="20.35" class="percentage">{{ overallScore }}%</text>
+                                                </svg>
+                                            </div>
+                                            <div class="score-details">
+                                                <div class="score-item">
+                                                    <span>Complétude:</span>
+                                                    <span>{{ completenessScore }}%</span>
+                                                </div>
+                                                <div class="score-item">
+                                                    <span>Vérification:</span>
+                                                    <span>{{ verificationScore }}%</span>
+                                                </div>
+                                                <div class="score-item">
+                                                    <span>Documents:</span>
+                                                    <span>{{ documentsScore }}%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-navigation">
+                                <button type="button" class="btn-prev" (click)="previousStep()">
+                                    <i class="fas fa-arrow-left"></i> Précédent
+                                </button>
+                                <button type="button" class="btn-next" (click)="nextStep()">
+                                    Suivant <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Étape 6: Validation et Soumission -->
+                    <div class="form-step" *ngIf="currentStep === 6" [@stepAnimation]>
+                        <div class="step-content">
+                            <div class="step-header">
+                                <h3><i class="fas fa-check-circle"></i> Validation du Dossier</h3>
+                                <p>Vérifiez toutes les informations avant de soumettre votre dossier</p>
+                            </div>
+                            
+                            <div class="validation-summary">
+                                <div class="summary-section">
+                                    <h4><i class="fas fa-user"></i> Informations Personnelles</h4>
+                                    <div class="summary-content">
+                                        <div class="summary-item" *ngIf="immatriculationForm.get('typeContribuable')?.value === 'physique'">
+                                            <span class="label">Nom:</span>
+                                            <span class="value">{{ immatriculationForm.get('nom')?.value }}</span>
+                                        </div>
+                                        <div class="summary-item" *ngIf="immatriculationForm.get('typeContribuable')?.value === 'physique'">
+                                            <span class="label">Prénom:</span>
+                                            <span class="value">{{ immatriculationForm.get('prenom')?.value }}</span>
+                                        </div>
+                                        <div class="summary-item" *ngIf="immatriculationForm.get('typeContribuable')?.value === 'morale'">
+                                            <span class="label">Raison Sociale:</span>
+                                            <span class="value">{{ immatriculationForm.get('raisonSociale')?.value }}</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="label">Email:</span>
+                                            <span class="value">{{ immatriculationForm.get('email')?.value }}</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="label">Téléphone:</span>
+                                            <span class="value">{{ immatriculationForm.get('telephone')?.value }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="summary-section">
+                                    <h4><i class="fas fa-briefcase"></i> Activité</h4>
+                                    <div class="summary-content">
+                                        <div class="summary-item">
+                                            <span class="label">Type d'activité:</span>
+                                            <span class="value">{{ immatriculationForm.get('typeActivite')?.value }}</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="label">Secteur:</span>
+                                            <span class="value">{{ immatriculationForm.get('secteur')?.value }}</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="label">Adresse professionnelle:</span>
+                                            <span class="value">{{ immatriculationForm.get('adresseProfessionnelle')?.value }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="summary-section">
+                                    <h4><i class="fas fa-paperclip"></i> Documents</h4>
+                                    <div class="summary-content">
+                                        <div class="summary-item" *ngIf="files.identite">
+                                            <span class="label">Pièce d'identité:</span>
+                                            <span class="value">{{ files.identite.name }}</span>
+                                        </div>
+                                        <div class="summary-item" *ngIf="files.activite">
+                                            <span class="label">Document d'activité:</span>
+                                            <span class="value">{{ files.activite.name }}</span>
+                                        </div>
+                                        <div class="summary-item" *ngIf="files.photo">
+                                            <span class="label">Photo personnelle:</span>
+                                            <span class="value">{{ files.photo.name }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="summary-section">
+                                    <h4><i class="fas fa-chart-line"></i> Scores de Validation</h4>
+                                    <div class="summary-content">
+                                        <div class="summary-item">
+                                            <span class="label">Score global:</span>
+                                            <span class="value score-badge" [class.high]="overallScore >= 80" [class.medium]="overallScore >= 60 && overallScore < 80" [class.low]="overallScore < 60">
+                                                {{ overallScore }}%
+                                            </span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="label">Statut doublon:</span>
+                                            <span class="value" [class.success]="!duplicateDetected" [class.warning]="duplicateDetected">
+                                                {{ duplicateDetected ? 'Doublon détecté' : 'Aucun doublon' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Options de soumission -->
+                            <div class="submission-options">
+                                <div class="option-card" [class.selected]="submissionMode === 'draft'" (click)="submissionMode = 'draft'">
+                                    <div class="option-icon">
+                                        <i class="fas fa-save"></i>
+                                    </div>
+                                    <h5>Enregistrer comme Brouillon</h5>
+                                    <p>Sauvegardez votre dossier pour le compléter plus tard</p>
+                                </div>
+                                <div class="option-card" [class.selected]="submissionMode === 'submit'" (click)="submissionMode = 'submit'">
+                                    <div class="option-icon">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </div>
+                                    <h5>Soumettre pour Validation</h5>
+                                    <p>Envoyez votre dossier pour traitement par la DGI</p>
+                                </div>
+                            </div>
+
+                            <!-- Confirmation -->
+                            <div class="confirmation-section">
+                                <div class="form-check">
+                                    <input type="checkbox" id="confirmation" class="form-check-input" [(ngModel)]="confirmed">
+                                    <label for="confirmation" class="form-check-label">
+                                        Je certifie que toutes les informations fournies sont exactes et j'accepte les 
+                                        <a href="#" class="terms-link">termes et conditions</a>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-navigation">
+                                <button type="button" class="btn-prev" (click)="previousStep()">
+                                    <i class="fas fa-arrow-left"></i> Précédent
+                                </button>
+                                <button type="button" class="btn-submit" (click)="submitForm()" 
+                                        [disabled]="!confirmed || isSubmitting">
+                                    <span *ngIf="!isSubmitting">
+                                        <i class="fas fa-paper-plane"></i> 
+                                        {{ submissionMode === 'draft' ? 'Enregistrer le Brouillon' : 'Soumettre le Dossier' }}
+                                    </span>
+                                    <span *ngIf="isSubmitting">
+                                        <i class="fas fa-spinner fa-spin"></i> 
+                                        Traitement en cours...
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Webcam Modal -->
+<div class="webcam-modal" *ngIf="showWebcamModal" [@modalAnimation]>
+    <div class="modal-overlay" (click)="closeWebcam()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4><i class="fas fa-camera"></i> Prendre une Photo</h4>
+            <button type="button" class="btn-close" (click)="closeWebcam()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="webcam-container">
+                <video #videoElement id="webcam" autoplay playsinline></video>
+                <canvas #canvas id="canvas" style="display: none;"></canvas>
+                <div class="webcam-controls">
+                    <button type="button" class="btn-capture" (click)="capturePhoto()">
+                        <i class="fas fa-camera"></i> Capturer
+                    </button>
+                    <button type="button" class="btn-retake" (click)="retakePhoto()" *ngIf="capturedPhoto">
+                        <i class="fas fa-redo"></i> Reprendre
+                    </button>
+                    <button type="button" class="btn-use-photo" (click)="usePhoto()" *ngIf="capturedPhoto">
+                        <i class="fas fa-check"></i> Utiliser cette photo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="success-modal" *ngIf="showSuccessModal" [@modalAnimation]>
+    <div class="modal-overlay" (click)="closeSuccessModal()"></div>
+    <div class="modal-content">
+        <div class="modal-body text-center">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>{{ submissionMode === 'draft' ? 'Brouillon Enregistré' : 'Dossier Soumis avec Succès' }}</h3>
+            <p *ngIf="submissionMode === 'draft'">
+                Votre brouillon a été enregistré. Vous pouvez le compléter à tout moment depuis votre tableau de bord.
+            </p>
+            <p *ngIf="submissionMode === 'submit'">
+                Votre dossier a été soumis pour validation. Vous recevrez un email dès que le traitement commencera.
+                <br>
+                <strong>Numéro de dossier:</strong> {{ dossierNumber }}
+            </p>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" (click)="closeSuccessModal()">
+                    Fermer
+                </button>
+                <button type="button" class="btn-primary" (click)="goToDashboard()">
+                    Accéder au Tableau de Bord
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-footer></app-footer>

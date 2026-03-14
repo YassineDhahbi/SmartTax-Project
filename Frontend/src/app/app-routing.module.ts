@@ -14,6 +14,9 @@ import { AboutComponent } from './components/about/about.component';
 import { ActualiteComponent } from './components/actualite/actualite.component';
 import { DocumentTelechargerComponent } from './components/document-telecharger/document-telecharger.component';
 import { DocumentFiscalComponent } from './components/document-fiscal/document-fiscal.component';
+import { ImmatriculationComponent } from './components/immatriculation/immatriculation.component';
+import { ReclamationComponent } from './components/reclamation/reclamation.component';
+import { DossierComponent } from './components/dossier/dossier.component';
 
 import { AuthGuard } from './guards/auth.guard';
 
@@ -32,6 +35,9 @@ const routes: Routes = [
   { path: 'actualite', component: ActualiteComponent },
   { path: 'Document Telecharger', component: DocumentTelechargerComponent },
   { path: 'Document Fiscale', component: DocumentFiscalComponent },
+  { path: 'Immatriculation', component: ImmatriculationComponent },
+  { path: 'Reclamation', component: ReclamationComponent },
+  { path: 'Dossier', component: DossierComponent },
   
 
 
