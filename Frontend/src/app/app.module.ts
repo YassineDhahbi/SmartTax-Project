@@ -30,6 +30,7 @@ import { DocumentFiscalComponent } from './components/document-fiscal/document-f
 import { ImmatriculationComponent } from './components/immatriculation/immatriculation.component';
 import { ReclamationComponent } from './components/reclamation/reclamation.component';
 import { DossierComponent } from './components/dossier/dossier.component';
+import { NotificationComponent } from './components/notification/notification.component';
 
 
 @NgModule({
@@ -58,6 +59,7 @@ import { DossierComponent } from './components/dossier/dossier.component';
     ImmatriculationComponent,
     ReclamationComponent,
     DossierComponent,
+    NotificationComponent
 
 
   ],

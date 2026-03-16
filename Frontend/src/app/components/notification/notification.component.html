@@ -1,0 +1,36 @@
+<div class="notification-container" *ngIf="notifications.length > 0">
+  <div 
+    *ngFor="let notification of notifications" 
+    class="notification"
+    [class.notification-success]="notification.type === 'success'"
+    [class.notification-error]="notification.type === 'error'"
+    [class.notification-warning]="notification.type === 'warning'"
+    [class.notification-info]="notification.type === 'info'"
+    [@notificationAnimation]
+  >
+    <div class="notification-icon">
+      <i *ngIf="notification.type === 'success'" class="fas fa-check-circle"></i>
+      <i *ngIf="notification.type === 'error'" class="fas fa-exclamation-circle"></i>
+      <i *ngIf="notification.type === 'warning'" class="fas fa-exclamation-triangle"></i>
+      <i *ngIf="notification.type === 'info'" class="fas fa-info-circle"></i>
+    </div>
+    
+    <div class="notification-content">
+      <div class="notification-title">{{ notification.title }}</div>
+      <div class="notification-message">{{ notification.message }}</div>
+      <div class="notification-time">{{ formatTime(notification.timestamp) }}</div>
+    </div>
+    
+    <button class="notification-close" (click)="removeNotification(notification.id)">
+      <i class="fas fa-times"></i>
+    </button>
+    
+    <!-- Progress bar pour l'auto-suppression -->
+    <div 
+      class="notification-progress" 
+      *ngIf="notification.duration && notification.duration > 0"
+      [@progressAnimation]
+      [style.animationDuration] = "notification.duration + 'ms'"
+    ></div>
+  </div>
+</div>
