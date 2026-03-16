@@ -1,0 +1,286 @@
+/* Progress Bar Styles */
+.progress-container {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.progress-steps::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #dee2e6;
+  z-index: 1;
+  transform: translateY(-50%);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #6c757d;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.step-number i {
+  font-size: 14px;
+  color: #fff;
+}
+
+.step-label {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6c757d;
+  text-align: center;
+  transition: all 0.3s ease;
+  max-width: 100px;
+}
+
+/* Étape active */
+.step.active .step-number {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border-color: #007bff;
+  color: #fff;
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.step.active .step-label {
+  color: #007bff;
+  font-weight: 600;
+}
+
+/* Étape complétée (verte) */
+.step.completed .step-number {
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+  border-color: #28a745;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.step.completed .step-label {
+  color: #28a745;
+  font-weight: 600;
+}
+
+/* Barre de progression */
+.progress-bar {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Validation des doublons - Styles pour les input-groups */
+.input-group {
+  position: relative;
+}
+
+.input-group .form-control.is-valid {
+  border-color: #28a745;
+  background-image: none;
+  padding-right: 2.5rem;
+}
+
+.input-group .form-control.is-invalid {
+  border-color: #dc3545;
+  background-image: none;
+  padding-right: 2.5rem;
+}
+
+.input-group-text {
+  border-left: none;
+  background: transparent;
+  min-width: 40px;
+  justify-content: center;
+}
+
+.input-group-text .fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.input-group-text.text-success {
+  color: #28a745 !important;
+}
+
+.input-group-text.text-danger {
+  color: #dc3545 !important;
+}
+
+/* Messages d'erreur de validation */
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.error-message i {
+  font-size: 0.75rem;
+}
+
+/* Animation pour les champs en validation */
+.form-control.is-valid {
+  animation: validPulse 0.3s ease;
+}
+
+.form-control.is-invalid {
+  animation: invalidShake 0.3s ease;
+}
+
+@keyframes validPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+  }
+}
+
+@keyframes invalidShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-2px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(2px);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .progress-steps {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .step {
+    flex: 0 0 calc(33.333% - 1rem);
+    margin-bottom: 1rem;
+  }
+  
+  .progress-steps::before {
+    display: none;
+  }
+  
+  .step-number {
+    width: 35px;
+    height: 35px;
+    font-size: 0.875rem;
+  }
+  
+  .step-label {
+    font-size: 0.75rem;
+    max-width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .step {
+    flex: 0 0 calc(50% - 0.5rem);
+  }
+  
+  .step-label {
+    font-size: 0.7rem;
+    max-width: 70px;
+  }
+}
+
+/* Animation pour le changement d'étape */
+.step {
+  animation: stepPulse 0.3s ease;
+}
+
+@keyframes stepPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Effet de survol */
+.step:hover:not(.active):not(.completed) .step-number {
+  border-color: #007bff;
+  color: #007bff;
+  transform: scale(1.05);
+}
+
+.step:hover:not(.active):not(.completed) .step-label {
+  color: #007bff;
+}

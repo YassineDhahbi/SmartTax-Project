@@ -1,8 +1,9 @@
 import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormControl, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { ImmatriculationService } from '../../services/immatriculation.service';
+import { ValidationService } from '../../services/validation.service';
 import { NotificationService } from '../../services/notification.service';
 import { 
   Immatriculation, 
@@ -84,10 +85,25 @@ export class ImmatriculationComponent implements OnInit {
   showSuccessModal: boolean = false;
   dossierNumber: string = '';
 
+  // Messages d'erreur de validation
+  validationErrors: {
+    cin?: string;
+    email?: string;
+    registreCommerce?: string;
+  } = {};
+
+  // États de validation en cours
+  validationInProgress: {
+    cin?: boolean;
+    email?: boolean;
+    registreCommerce?: boolean;
+  } = {};
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private immatriculationService: ImmatriculationService,
+    private validationService: ValidationService,
     private notificationService: NotificationService
   ) {}
 
@@ -100,37 +116,214 @@ export class ImmatriculationComponent implements OnInit {
   private initForm(): void {
     this.immatriculationForm = this.fb.group({
       // Type contribuable
-      typeContribuable: ['', Validators.required],
+      typeContribuable: ['', [Validators.required]],
       
       // Personne Physique
-      nom: [''],
-      prenom: [''],
-      cin: [''],
-      dateNaissance: [''],
+      nom: ['', [
+        Validators.pattern(/^[A-Za-z\u00C0-\u017F\s'-]{2,50}$/), // Lettres, accents, espaces, tirets
+        Validators.minLength(2),
+        Validators.maxLength(50)
+      ]],
+      prenom: ['', [
+        Validators.pattern(/^[A-Za-z\u00C0-\u017F\s'-]{2,50}$/),
+        Validators.minLength(2),
+        Validators.maxLength(50)
+      ]],
+      cin: ['', [
+        Validators.pattern(/^\d{8}$/), // Exactement 8 chiffres
+        Validators.required
+      ]],
+      dateNaissance: ['', [
+        this.validateDateNaissance(), // Doit avoir entre 18 et 100 ans
+        Validators.required
+      ]],
       
       // Personne Morale
-      raisonSociale: [''],
-      matriculeFiscal: [''],
-      registreCommerce: [''],
-      representantLegal: [''],
+      raisonSociale: ['', [
+        Validators.pattern(/^[A-Za-z0-9\u00C0-\u017F\s&'-]{3,100}$/),
+        Validators.minLength(3),
+        Validators.maxLength(100)
+      ]],
+      matriculeFiscal: ['', [
+        Validators.pattern(/^\d{7,8}$/), // 7 ou 8 chiffres
+        Validators.required
+      ]],
+      registreCommerce: ['', [
+        Validators.pattern(/^[A-Za-z0-9]{1,20}$/), // Alphanumérique, 1-20 caractères
+        Validators.required
+      ]],
+      representantLegal: ['', [
+        Validators.pattern(/^[A-Za-z\u00C0-\u017F\s'-]{2,100}$/),
+        Validators.minLength(2),
+        Validators.maxLength(100)
+      ]],
       
       // Champs communs
-      email: ['', [Validators.required, Validators.email]],
-      telephone: ['', Validators.required],
-      adresse: ['', Validators.required],
+      email: ['', [
+        Validators.required,
+        Validators.email,
+        Validators.maxLength(100)
+      ]],
+      telephone: ['', [
+        Validators.required,
+        Validators.pattern(/^(?:\+216|216)?\d{8}$/), // Format tunisien
+        Validators.minLength(8),
+        Validators.maxLength(12)
+      ]],
+      adresse: ['', [
+        Validators.required,
+        Validators.minLength(10),
+        Validators.maxLength(200)
+      ]],
       
       // Activité
-      typeActivite: ['', Validators.required],
-      secteur: ['', Validators.required],
-      adresseProfessionnelle: ['', Validators.required],
-      dateDebutActivite: ['', Validators.required],
-      descriptionActivite: ['', Validators.required]
+      typeActivite: ['', [
+        Validators.required,
+        Validators.pattern(/^[A-Za-z\u00C0-\u017F\s&'-]{3,50}$/),
+        Validators.minLength(3),
+        Validators.maxLength(50)
+      ]],
+      secteur: ['', [
+        Validators.required,
+        Validators.pattern(/^[A-Za-z\u00C0-\u017F\s&'-]{3,50}$/),
+        Validators.minLength(3),
+        Validators.maxLength(50)
+      ]],
+      adresseProfessionnelle: ['', [
+        Validators.required,
+        Validators.minLength(10),
+        Validators.maxLength(200)
+      ]],
+      dateDebutActivite: ['', [
+        this.validateDateDebutActivite(), // Ne peut pas être dans le futur
+        Validators.required
+      ]],
+      descriptionActivite: ['', [
+        Validators.required,
+        Validators.minLength(20),
+        Validators.maxLength(1000)
+      ]]
     });
+
+    // Mettre à jour les validateurs selon le type de contribuable
+    this.immatriculationForm.get('typeContribuable')?.valueChanges.subscribe(value => {
+      this.updateValidatorsByType(value);
+    });
+  }
+
+  // Validateurs personnalisés
+  validateDateNaissance(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      
+      const dateNaissance = new Date(control.value);
+      const today = new Date();
+      const age = today.getFullYear() - dateNaissance.getFullYear();
+      const monthDiff = today.getMonth() - dateNaissance.getMonth();
+      
+      // Calcul précis de l'âge
+      const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < dateNaissance.getDate()) 
+        ? age - 1 
+        : age;
+      
+      if (actualAge < 18) {
+        return { tooYoung: { message: 'Vous devez avoir au moins 18 ans' } };
+      }
+      
+      if (actualAge > 100) {
+        return { tooOld: { message: 'Âge invalide' } };
+      }
+      
+      if (dateNaissance > today) {
+        return { futureDate: { message: 'La date ne peut pas être dans le futur' } };
+      }
+      
+      return null;
+    };
+  }
+
+  validateDateDebutActivite(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      
+      const dateDebut = new Date(control.value);
+      const today = new Date();
+      
+      if (dateDebut > today) {
+        return { futureDate: { message: 'La date de début ne peut pas être dans le futur' } };
+      }
+      
+      if (dateDebut.getFullYear() < 1900) {
+        return { tooOld: { message: 'Date invalide' } };
+      }
+      
+      return null;
+    };
+  }
+
+  // Mettre à jour les validateurs selon le type de contribuable
+  private updateValidatorsByType(type: string): void {
+    const nomControl = this.immatriculationForm.get('nom');
+    const prenomControl = this.immatriculationForm.get('prenom');
+    const cinControl = this.immatriculationForm.get('cin');
+    const dateNaissanceControl = this.immatriculationForm.get('dateNaissance');
+    
+    const raisonSocialeControl = this.immatriculationForm.get('raisonSociale');
+    const matriculeFiscalControl = this.immatriculationForm.get('matriculeFiscal');
+    const registreCommerceControl = this.immatriculationForm.get('registreCommerce');
+    const representantLegalControl = this.immatriculationForm.get('representantLegal');
+
+    if (type?.toUpperCase() === 'PHYSIQUE') {
+      // Champs obligatoires pour personne physique
+      nomControl?.setValidators([Validators.required, Validators.pattern(/^[A-Za-z\u00C0-\u017F\s'-]{2,50}$/), Validators.minLength(2), Validators.maxLength(50)]);
+      prenomControl?.setValidators([Validators.required, Validators.pattern(/^[A-Za-z\u00C0-\u017F\s'-]{2,50}$/), Validators.minLength(2), Validators.maxLength(50)]);
+      cinControl?.setValidators([Validators.required, Validators.pattern(/^\d{8}$/)]);
+      dateNaissanceControl?.setValidators([Validators.required, this.validateDateNaissance()]);
+      
+      // Champs non obligatoires pour personne physique
+      raisonSocialeControl?.clearValidators();
+      matriculeFiscalControl?.clearValidators();
+      registreCommerceControl?.clearValidators();
+      representantLegalControl?.clearValidators();
+      
+    } else if (type?.toUpperCase() === 'MORALE') {
+      // Champs obligatoires pour personne morale
+      raisonSocialeControl?.setValidators([Validators.required, Validators.pattern(/^[A-Za-z0-9\u00C0-\u017F\s&'-]{3,100}$/), Validators.minLength(3), Validators.maxLength(100)]);
+      matriculeFiscalControl?.setValidators([Validators.required, Validators.pattern(/^\d{7,8}$/)]);
+      registreCommerceControl?.setValidators([Validators.required, Validators.pattern(/^[A-Za-z0-9]{1,20}$/)]);
+      representantLegalControl?.setValidators([Validators.required, Validators.pattern(/^[A-Za-z\u00C0-\u017F\s'-]{2,100}$/), Validators.minLength(2), Validators.maxLength(100)]);
+      
+      // Champs non obligatoires pour personne morale
+      nomControl?.clearValidators();
+      prenomControl?.clearValidators();
+      cinControl?.clearValidators();
+      dateNaissanceControl?.clearValidators();
+    } else {
+      // Pas de type sélectionné - tout est optionnel
+      nomControl?.clearValidators();
+      prenomControl?.clearValidators();
+      cinControl?.clearValidators();
+      dateNaissanceControl?.clearValidators();
+      raisonSocialeControl?.clearValidators();
+      matriculeFiscalControl?.clearValidators();
+      registreCommerceControl?.clearValidators();
+      representantLegalControl?.clearValidators();
+    }
+    
+    // Mettre à jour la validité des champs
+    nomControl?.updateValueAndValidity();
+    prenomControl?.updateValueAndValidity();
+    cinControl?.updateValueAndValidity();
+    dateNaissanceControl?.updateValueAndValidity();
+    raisonSocialeControl?.updateValueAndValidity();
+    matriculeFiscalControl?.updateValueAndValidity();
+    registreCommerceControl?.updateValueAndValidity();
+    representantLegalControl?.updateValueAndValidity();
   }
 
   // Navigation entre étapes
   nextStep(): void {
-    if (this.validateCurrentStep()) {
+    if (this.validateCurrentStep() && !this.hasValidationErrors()) {
       if (this.currentStep < this.totalSteps) {
         this.currentStep++;
         this.updateProgress();
@@ -140,6 +333,10 @@ export class ImmatriculationComponent implements OnInit {
           this.performAutomaticVerification();
         }
       }
+    } else if (this.hasValidationErrors()) {
+      // Afficher un message d'erreur s'il y a des doublons
+      const firstError = Object.values(this.validationErrors)[0];
+      this.notificationService.showError(firstError || 'Veuillez corriger les erreurs avant de continuer');
     }
   }
 
@@ -150,48 +347,373 @@ export class ImmatriculationComponent implements OnInit {
     }
   }
 
+  // Validation de l'étape actuelle
   private validateCurrentStep(): boolean {
     switch (this.currentStep) {
       case 1:
-        return !!this.immatriculationForm.get('typeContribuable')?.valid;
+        return this.validateTypeContribuableStep();
       case 2:
-        return this.validatePersonalInfo();
+        return this.validateInformationsPersonnellesStep(); // Inclut email, téléphone, adresse
       case 3:
-        return this.validateActivityInfo();
+        return this.validateActiviteStep(); // CORRIGÉ: Les champs d'activité sont à l'étape 3
       case 4:
-        return this.requiredFilesUploaded();
+        return this.validateDocumentsStep(); // Pièces Jointes
+      case 5:
+        return true; // Vérification Automatique (pas de validation spécifique)
+      case 6:
+        return this.validateValidationStep(); // Validation finale
       default:
         return true;
     }
   }
 
-  private validatePersonalInfo(): boolean {
-    const type = this.immatriculationForm.get('typeContribuable')?.value;
+  // Validation étape 1: Type contribuable
+  private validateTypeContribuableStep(): boolean {
+    const typeControl = this.immatriculationForm.get('typeContribuable');
     
-    if (type === 'physique') {
-      return !!this.immatriculationForm.get('nom')?.valid &&
-             !!this.immatriculationForm.get('prenom')?.valid &&
-             !!this.immatriculationForm.get('cin')?.valid &&
-             !!this.immatriculationForm.get('dateNaissance')?.valid &&
-             !!this.immatriculationForm.get('email')?.valid &&
-             !!this.immatriculationForm.get('telephone')?.valid &&
-             !!this.immatriculationForm.get('adresse')?.valid;
-    } else {
-      return !!this.immatriculationForm.get('raisonSociale')?.valid &&
-             !!this.immatriculationForm.get('registreCommerce')?.valid &&
-             !!this.immatriculationForm.get('representantLegal')?.valid &&
-             !!this.immatriculationForm.get('email')?.valid &&
-             !!this.immatriculationForm.get('telephone')?.valid &&
-             !!this.immatriculationForm.get('adresse')?.valid;
+    if (!typeControl?.value) {
+      this.notificationService.showError(
+        'Veuillez sélectionner un type de contribuable (Personne Physique ou Personne Morale)',
+        'Type obligatoire'
+      );
+      return false;
     }
+    
+    return true;
   }
 
-  private validateActivityInfo(): boolean {
-    return !!this.immatriculationForm.get('typeActivite')?.valid &&
-           !!this.immatriculationForm.get('secteur')?.valid &&
-           !!this.immatriculationForm.get('adresseProfessionnelle')?.valid &&
-           !!this.immatriculationForm.get('dateDebutActivite')?.valid &&
-           !!this.immatriculationForm.get('descriptionActivite')?.valid;
+  // Validation étape 2: Informations personnelles
+  private validateInformationsPersonnellesStep(): boolean {
+    const type = this.immatriculationForm.get('typeContribuable')?.value?.toUpperCase();
+    
+    if (type === 'PHYSIQUE') {
+      const nom = this.immatriculationForm.get('nom');
+      const prenom = this.immatriculationForm.get('prenom');
+      const cin = this.immatriculationForm.get('cin');
+      const dateNaissance = this.immatriculationForm.get('dateNaissance');
+      
+      if (!nom?.value) {
+        this.notificationService.showError('Le nom est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (nom?.invalid) {
+        if (nom?.errors?.['minlength']) {
+          this.notificationService.showError('Le nom doit contenir au moins 2 caractères', 'Nom trop court');
+        } else if (nom?.errors?.['maxlength']) {
+          this.notificationService.showError('Le nom ne peut pas dépasser 50 caractères', 'Nom trop long');
+        } else if (nom?.errors?.['pattern']) {
+          this.notificationService.showError('Le nom ne peut contenir que des lettres, espaces et tirets', 'Format invalide');
+        } else {
+          this.notificationService.showError('Le nom est invalide', 'Erreur de format');
+        }
+        return false;
+      }
+      
+      if (!prenom?.value) {
+        this.notificationService.showError('Le prénom est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (prenom?.invalid) {
+        if (prenom?.errors?.['minlength']) {
+          this.notificationService.showError('Le prénom doit contenir au moins 2 caractères', 'Prénom trop court');
+        } else if (prenom?.errors?.['maxlength']) {
+          this.notificationService.showError('Le prénom ne peut pas dépasser 50 caractères', 'Prénom trop long');
+        } else if (prenom?.errors?.['pattern']) {
+          this.notificationService.showError('Le prénom ne peut contenir que des lettres, espaces et tirets', 'Format invalide');
+        } else {
+          this.notificationService.showError('Le prénom est invalide', 'Erreur de format');
+        }
+        return false;
+      }
+      
+      if (!cin?.value) {
+        this.notificationService.showError('Le CIN est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (cin?.invalid) {
+        if (cin?.errors?.['pattern']) {
+          this.notificationService.showError('Le CIN doit contenir exactement 8 chiffres', 'Format invalide');
+        } else {
+          this.notificationService.showError('Le CIN est invalide', 'Erreur de format');
+        }
+        return false;
+      }
+      
+      if (!dateNaissance?.value) {
+        this.notificationService.showError('La date de naissance est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (dateNaissance?.invalid) {
+        const errors = dateNaissance?.errors;
+        if (errors?.['tooYoung']?.message) {
+          this.notificationService.showError(errors['tooYoung'].message, 'Âge invalide');
+        } else if (errors?.['tooOld']?.message) {
+          this.notificationService.showError(errors['tooOld'].message, 'Date invalide');
+        } else if (errors?.['futureDate']?.message) {
+          this.notificationService.showError(errors['futureDate'].message, 'Date invalide');
+        } else {
+          this.notificationService.showError('La date de naissance est invalide', 'Erreur de format');
+        }
+        return false;
+      }
+      
+    } else if (type === 'MORALE') {
+      const raisonSociale = this.immatriculationForm.get('raisonSociale');
+      const matriculeFiscal = this.immatriculationForm.get('matriculeFiscal');
+      const registreCommerce = this.immatriculationForm.get('registreCommerce');
+      const representantLegal = this.immatriculationForm.get('representantLegal');
+      
+      if (!raisonSociale?.value) {
+        this.notificationService.showError('La raison sociale est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (raisonSociale?.invalid) {
+        if (raisonSociale?.errors?.['minlength']) {
+          this.notificationService.showError('La raison sociale doit contenir au moins 3 caractères', 'Raison sociale trop courte');
+        } else if (raisonSociale?.errors?.['maxlength']) {
+          this.notificationService.showError('La raison sociale ne peut pas dépasser 100 caractères', 'Raison sociale trop longue');
+        } else if (raisonSociale?.errors?.['pattern']) {
+          this.notificationService.showError('La raison sociale ne peut contenir que des lettres, chiffres, espaces et tirets', 'Format invalide');
+        } else {
+          this.notificationService.showError('La raison sociale est invalide', 'Erreur de format');
+        }
+        return false;
+      }
+      
+      if (!matriculeFiscal?.value) {
+        this.notificationService.showError('Le matricule fiscal est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (matriculeFiscal?.invalid) {
+        if (matriculeFiscal?.errors?.['pattern']) {
+          this.notificationService.showError('Le matricule fiscal doit contenir 7 ou 8 chiffres', 'Format invalide');
+        } else {
+          this.notificationService.showError('Le matricule fiscal est invalide', 'Erreur de format');
+        }
+        return false;
+      }
+      
+      if (!registreCommerce?.value) {
+        this.notificationService.showError('Le registre de commerce est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (registreCommerce?.invalid) {
+        if (registreCommerce?.errors?.['minlength']) {
+          this.notificationService.showError('Le registre de commerce doit contenir au moins 1 caractère', 'Registre commerce trop court');
+        } else if (registreCommerce?.errors?.['maxlength']) {
+          this.notificationService.showError('Le registre de commerce ne peut pas dépasser 20 caractères', 'Registre commerce trop long');
+        } else if (registreCommerce?.errors?.['pattern']) {
+          this.notificationService.showError('Le registre de commerce ne peut contenir que des lettres et chiffres', 'Format invalide');
+        } else {
+          this.notificationService.showError('Le registre de commerce est invalide', 'Erreur de format');
+        }
+        return false;
+      }
+      
+      if (!representantLegal?.value) {
+        this.notificationService.showError('Le représentant légal est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (representantLegal?.invalid) {
+        if (representantLegal?.errors?.['minlength']) {
+          this.notificationService.showError('Le représentant légal doit contenir au moins 2 caractères', 'Nom trop court');
+        } else if (representantLegal?.errors?.['maxlength']) {
+          this.notificationService.showError('Le représentant légal ne peut pas dépasser 100 caractères', 'Nom trop long');
+        } else if (representantLegal?.errors?.['pattern']) {
+          this.notificationService.showError('Le représentant légal ne peut contenir que des lettres, espaces et tirets', 'Format invalide');
+        } else {
+          this.notificationService.showError('Le représentant légal est invalide', 'Erreur de format');
+        }
+        return false;
+      }
+    }
+    
+    // Validation des champs communs (email, téléphone, adresse) dans l'étape 2
+    const email = this.immatriculationForm.get('email');
+    const telephone = this.immatriculationForm.get('telephone');
+    const adresse = this.immatriculationForm.get('adresse');
+    
+    if (!email?.value) {
+      this.notificationService.showError('L\'email est obligatoire', 'Champ manquant');
+      return false;
+    }
+    
+    if (email?.invalid) {
+      if (email?.errors?.['email']) {
+        this.notificationService.showError('Veuillez entrer une adresse email valide (ex: nom@domaine.com)', 'Email invalide');
+      } else if (email?.errors?.['maxlength']) {
+        this.notificationService.showError('L\'email ne peut pas dépasser 100 caractères', 'Email trop long');
+      } else {
+        this.notificationService.showError('L\'email est invalide', 'Erreur de format');
+      }
+      return false;
+    }
+    
+    if (!telephone?.value) {
+      this.notificationService.showError('Le téléphone est obligatoire', 'Champ manquant');
+      return false;
+    }
+    
+    if (telephone?.invalid) {
+      if (telephone?.errors?.['pattern']) {
+        this.notificationService.showError('Le téléphone doit être au format tunisien (ex: 21612345678 ou +21612345678)', 'Format invalide');
+      } else if (telephone?.errors?.['minlength']) {
+        this.notificationService.showError('Le téléphone doit contenir au moins 8 chiffres', 'Téléphone trop court');
+      } else if (telephone?.errors?.['maxlength']) {
+        this.notificationService.showError('Le téléphone ne peut pas dépasser 12 chiffres', 'Téléphone trop long');
+      } else {
+        this.notificationService.showError('Le téléphone est invalide', 'Erreur de format');
+      }
+      return false;
+    }
+    
+    if (!adresse?.value) {
+      this.notificationService.showError('L\'adresse est obligatoire', 'Champ manquant');
+      return false;
+    }
+    
+    if (adresse?.invalid) {
+      if (adresse?.errors?.['minlength']) {
+        this.notificationService.showError('L\'adresse doit contenir au moins 10 caractères', 'Adresse trop courte');
+      } else if (adresse?.errors?.['maxlength']) {
+        this.notificationService.showError('L\'adresse ne peut pas dépasser 200 caractères', 'Adresse trop longue');
+      } else {
+        this.notificationService.showError('L\'adresse est invalide', 'Erreur de format');
+      }
+      return false;
+    }
+    
+    return true;
+  }
+
+  // Validation étape 3: Coordonnées (maintenant vide car tous les champs sont validés à l'étape 2)
+  private validateCoordonneesStep(): boolean {
+    // Tous les champs de cette étape ont été déplacés vers l'étape 2 (Informations Personnelles)
+    // Cette étape pourrait contenir d'autres coordonnées spécifiques à l'avenir
+    return true;
+  }
+
+  // Validation étape 4: Activité
+  private validateActiviteStep(): boolean {
+    const typeActivite = this.immatriculationForm.get('typeActivite');
+    const secteur = this.immatriculationForm.get('secteur');
+    const adresseProfessionnelle = this.immatriculationForm.get('adresseProfessionnelle');
+    const dateDebutActivite = this.immatriculationForm.get('dateDebutActivite');
+    const descriptionActivite = this.immatriculationForm.get('descriptionActivite');
+    
+    if (!typeActivite?.value) {
+      this.notificationService.showError('Le type d\'activité est obligatoire', 'Champ manquant');
+      return false;
+    }
+    
+    if (typeActivite?.invalid) {
+      if (typeActivite?.errors?.['minlength']) {
+        this.notificationService.showError('Le type d\'activité doit contenir au moins 3 caractères (ex: Commerce)', 'Type activité trop court');
+      } else if (typeActivite?.errors?.['maxlength']) {
+        this.notificationService.showError('Le type d\'activité ne peut pas dépasser 50 caractères', 'Type activité trop long');
+      } else if (typeActivite?.errors?.['pattern']) {
+        this.notificationService.showError('Le type d\'activité ne peut contenir que des lettres, espaces et tirets (pas de chiffres)', 'Format invalide');
+      } else {
+        this.notificationService.showError('Le type d\'activité est invalide', 'Erreur de format');
+      }
+      return false;
+    }
+    
+    if (!secteur?.value) {
+      this.notificationService.showError('Le secteur est obligatoire', 'Champ manquant');
+      return false;
+    }
+    
+    if (secteur?.invalid) {
+      if (secteur?.errors?.['minlength']) {
+        this.notificationService.showError('Le secteur doit contenir au moins 3 caractères (ex: Technologie)', 'Secteur trop court');
+      } else if (secteur?.errors?.['maxlength']) {
+        this.notificationService.showError('Le secteur ne peut pas dépasser 50 caractères', 'Secteur trop long');
+      } else if (secteur?.errors?.['pattern']) {
+        this.notificationService.showError('Le secteur ne peut contenir que des lettres, espaces et tirets (pas de chiffres)', 'Format invalide');
+      } else {
+        this.notificationService.showError('Le secteur est invalide', 'Erreur de format');
+      }
+      return false;
+    }
+    
+    if (!adresseProfessionnelle?.value) {
+      this.notificationService.showError('L\'adresse professionnelle est obligatoire', 'Champ manquant');
+      return false;
+    }
+    
+    if (adresseProfessionnelle?.invalid) {
+      if (adresseProfessionnelle?.errors?.['minlength']) {
+        this.notificationService.showError('L\'adresse professionnelle doit contenir au moins 10 caractères (ex: 123 Rue de la Paix)', 'Adresse trop courte');
+      } else if (adresseProfessionnelle?.errors?.['maxlength']) {
+        this.notificationService.showError('L\'adresse professionnelle ne peut pas dépasser 200 caractères', 'Adresse trop longue');
+      } else {
+        this.notificationService.showError('L\'adresse professionnelle est invalide', 'Erreur de format');
+      }
+      return false;
+    }
+    
+    if (!dateDebutActivite?.value) {
+      this.notificationService.showError('La date de début d\'activité est obligatoire', 'Champ manquant');
+      return false;
+    }
+    
+    if (dateDebutActivite?.invalid) {
+      const errors = dateDebutActivite?.errors;
+      if (errors?.['futureDate']?.message) {
+        this.notificationService.showError(errors['futureDate'].message, 'Date invalide');
+      } else if (errors?.['tooOld']?.message) {
+        this.notificationService.showError(errors['tooOld'].message, 'Date invalide');
+      } else {
+        this.notificationService.showError('La date de début d\'activité est invalide', 'Erreur de format');
+      }
+      return false;
+    }
+    
+    if (!descriptionActivite?.value) {
+      this.notificationService.showError('La description de l\'activité est obligatoire', 'Champ manquant');
+      return false;
+    }
+    
+    if (descriptionActivite?.invalid) {
+      if (descriptionActivite?.errors?.['minlength']) {
+        this.notificationService.showError('La description doit contenir au moins 20 caractères (ex: Vente de produits informatiques)', 'Description trop courte');
+      } else if (descriptionActivite?.errors?.['maxlength']) {
+        this.notificationService.showError('La description ne peut pas dépasser 1000 caractères', 'Description trop longue');
+      } else {
+        this.notificationService.showError('La description de l\'activité est invalide', 'Erreur de format');
+      }
+      return false;
+    }
+    
+    return true;
+  }
+
+  // Validation étape 5: Documents
+  private validateDocumentsStep(): boolean {
+    // Cette étape est optionnelle pour les documents
+    return true;
+  }
+
+  // Validation étape 6: Validation finale
+  private validateValidationStep(): boolean {
+    if (!this.confirmed) {
+      this.notificationService.showError(
+        'Veuillez cocher la case de confirmation pour soumettre votre dossier',
+        'Confirmation requise'
+      );
+      return false;
+    }
+    
+    return true;
   }
 
   // Sélection type de contribuable
@@ -711,6 +1233,113 @@ export class ImmatriculationComponent implements OnInit {
   private updateProgress(): void {
     const totalSteps = 6;
     this.progress = (this.currentStep / totalSteps) * 100;
+  }
+
+  // Validation des doublons
+  onCinChange(event: any): void {
+    const cin = event.target.value;
+    
+    // Effacer l'erreur précédente
+    delete this.validationErrors.cin;
+    
+    if (!cin) {
+      return;
+    }
+    
+    // Valider le format d'abord
+    if (!this.validationService.validateCinFormat(cin)) {
+      this.validationErrors.cin = this.validationService.getErrorMessage('cin', cin);
+      return;
+    }
+    
+    // Vérifier le doublon
+    this.validationInProgress.cin = true;
+    this.validationService.checkCinExists(cin).subscribe({
+      next: (exists) => {
+        this.validationInProgress.cin = false;
+        if (exists) {
+          this.validationErrors.cin = this.validationService.getErrorMessage('cin', cin);
+        }
+      },
+      error: () => {
+        this.validationInProgress.cin = false;
+        // En cas d'erreur, on ne bloque pas la saisie
+      }
+    });
+  }
+
+  onEmailChange(event: any): void {
+    const email = event.target.value;
+    
+    // Effacer l'erreur précédente
+    delete this.validationErrors.email;
+    
+    if (!email) {
+      return;
+    }
+    
+    // Valider le format d'abord
+    if (!this.validationService.validateEmailFormat(email)) {
+      this.validationErrors.email = this.validationService.getErrorMessage('email', email);
+      return;
+    }
+    
+    // Vérifier le doublon
+    this.validationInProgress.email = true;
+    this.validationService.checkEmailExists(email).subscribe({
+      next: (exists) => {
+        this.validationInProgress.email = false;
+        if (exists) {
+          this.validationErrors.email = this.validationService.getErrorMessage('email', email);
+        }
+      },
+      error: () => {
+        this.validationInProgress.email = false;
+        // En cas d'erreur, on ne bloque pas la saisie
+      }
+    });
+  }
+
+  onRegistreCommerceChange(event: any): void {
+    const rc = event.target.value;
+    
+    // Effacer l'erreur précédente
+    delete this.validationErrors.registreCommerce;
+    
+    if (!rc) {
+      return;
+    }
+    
+    // Valider le format d'abord
+    if (!this.validationService.validateRegistreCommerceFormat(rc)) {
+      this.validationErrors.registreCommerce = this.validationService.getErrorMessage('registreCommerce', rc);
+      return;
+    }
+    
+    // Vérifier le doublon
+    this.validationInProgress.registreCommerce = true;
+    this.validationService.checkRegistreCommerceExists(rc).subscribe({
+      next: (exists) => {
+        this.validationInProgress.registreCommerce = false;
+        if (exists) {
+          this.validationErrors.registreCommerce = this.validationService.getErrorMessage('registreCommerce', rc);
+        }
+      },
+      error: () => {
+        this.validationInProgress.registreCommerce = false;
+        // En cas d'erreur, on ne bloque pas la saisie
+      }
+    });
+  }
+
+  // Vérifier s'il y a des erreurs de validation
+  hasValidationErrors(): boolean {
+    return Object.keys(this.validationErrors).length > 0;
+  }
+
+  // Effacer toutes les erreurs de validation
+  clearValidationErrors(): void {
+    this.validationErrors = {};
   }
 
   // Étapes du formulaire

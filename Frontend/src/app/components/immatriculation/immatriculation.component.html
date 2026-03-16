@@ -16,28 +16,64 @@
                 <!-- Progress Bar -->
                 <div class="progress-container">
                     <div class="progress-steps">
-                        <div class="step active" data-step="1">
-                            <div class="step-number">1</div>
+                        <div class="step" 
+                             [class.active]="currentStep === 1" 
+                             [class.completed]="currentStep > 1"
+                             data-step="1">
+                            <div class="step-number">
+                                <i class="fas fa-check" *ngIf="currentStep > 1"></i>
+                                <span *ngIf="currentStep <= 1">1</span>
+                            </div>
                             <div class="step-label">Type Contribuable</div>
                         </div>
-                        <div class="step" data-step="2">
-                            <div class="step-number">2</div>
+                        <div class="step" 
+                             [class.active]="currentStep === 2" 
+                             [class.completed]="currentStep > 2"
+                             data-step="2">
+                            <div class="step-number">
+                                <i class="fas fa-check" *ngIf="currentStep > 2"></i>
+                                <span *ngIf="currentStep <= 2">2</span>
+                            </div>
                             <div class="step-label">Informations</div>
                         </div>
-                        <div class="step" data-step="3">
-                            <div class="step-number">3</div>
+                        <div class="step" 
+                             [class.active]="currentStep === 3" 
+                             [class.completed]="currentStep > 3"
+                             data-step="3">
+                            <div class="step-number">
+                                <i class="fas fa-check" *ngIf="currentStep > 3"></i>
+                                <span *ngIf="currentStep <= 3">3</span>
+                            </div>
                             <div class="step-label">Activité</div>
                         </div>
-                        <div class="step" data-step="4">
-                            <div class="step-number">4</div>
+                        <div class="step" 
+                             [class.active]="currentStep === 4" 
+                             [class.completed]="currentStep > 4"
+                             data-step="4">
+                            <div class="step-number">
+                                <i class="fas fa-check" *ngIf="currentStep > 4"></i>
+                                <span *ngIf="currentStep <= 4">4</span>
+                            </div>
                             <div class="step-label">Pièces Jointes</div>
                         </div>
-                        <div class="step" data-step="5">
-                            <div class="step-number">5</div>
+                        <div class="step" 
+                             [class.active]="currentStep === 5" 
+                             [class.completed]="currentStep > 5"
+                             data-step="5">
+                            <div class="step-number">
+                                <i class="fas fa-check" *ngIf="currentStep > 5"></i>
+                                <span *ngIf="currentStep <= 5">5</span>
+                            </div>
                             <div class="step-label">Vérification</div>
                         </div>
-                        <div class="step" data-step="6">
-                            <div class="step-number">6</div>
+                        <div class="step" 
+                             [class.active]="currentStep === 6" 
+                             [class.completed]="currentStep > 6"
+                             data-step="6">
+                            <div class="step-number">
+                                <i class="fas fa-check" *ngIf="currentStep > 6"></i>
+                                <span *ngIf="currentStep <= 6">6</span>
+                            </div>
                             <div class="step-label">Validation</div>
                         </div>
                     </div>
@@ -121,9 +157,14 @@
                                         <div class="form-group">
                                             <label for="nom">Nom <span class="required">*</span></label>
                                             <input type="text" id="nom" class="form-control" 
-                                                   formControlName="nom" placeholder="Votre nom">
+                                                   formControlName="nom" placeholder="Votre nom"
+                                                   [class.is-invalid]="immatriculationForm.get('nom')?.invalid && immatriculationForm.get('nom')?.touched"
+                                                   [class.is-valid]="immatriculationForm.get('nom')?.valid && immatriculationForm.get('nom')?.touched">
                                             <div class="error-message" *ngIf="immatriculationForm.get('nom')?.invalid && immatriculationForm.get('nom')?.touched">
-                                                Le nom est requis
+                                                <span *ngIf="immatriculationForm.get('nom')?.errors?.['required']">Le nom est obligatoire</span>
+                                                <span *ngIf="immatriculationForm.get('nom')?.errors?.['minlength']">Le nom doit contenir au moins 2 caractères</span>
+                                                <span *ngIf="immatriculationForm.get('nom')?.errors?.['maxlength']">Le nom ne peut pas dépasser 50 caractères</span>
+                                                <span *ngIf="immatriculationForm.get('nom')?.errors?.['pattern']">Le nom ne peut contenir que des lettres, espaces et tirets</span>
                                             </div>
                                         </div>
                                     </div>
@@ -133,17 +174,37 @@
                                             <input type="text" id="prenom" class="form-control" 
                                                    formControlName="prenom" placeholder="Votre prénom">
                                             <div class="error-message" *ngIf="immatriculationForm.get('prenom')?.invalid && immatriculationForm.get('prenom')?.touched">
-                                                Le prénom est requis
+                                                <span *ngIf="immatriculationForm.get('prenom')?.errors?.['required']">Le prénom est obligatoire</span>
+                                                <span *ngIf="immatriculationForm.get('prenom')?.errors?.['minlength']">Le prénom doit contenir au moins 2 caractères</span>
+                                                <span *ngIf="immatriculationForm.get('prenom')?.errors?.['maxlength']">Le prénom ne peut pas dépasser 50 caractères</span>
+                                                <span *ngIf="immatriculationForm.get('prenom')?.errors?.['pattern']">Le prénom ne peut contenir que des lettres, espaces et tirets</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="cin">CIN / Passeport <span class="required">*</span></label>
-                                            <input type="text" id="cin" class="form-control" 
-                                                   formControlName="cin" placeholder="Numéro CIN ou Passeport">
+                                            <div class="input-group">
+                                                <input type="text" id="cin" class="form-control" 
+                                                       formControlName="cin" placeholder="Numéro CIN (8 chiffres)"
+                                                       (input)="onCinChange($event)"
+                                                       [ngClass]="{'is-invalid': validationErrors.cin, 'is-valid': immatriculationForm.get('cin')?.value && !validationErrors.cin && !validationInProgress.cin}">
+                                                <span class="input-group-text" *ngIf="validationInProgress.cin">
+                                                    <i class="fas fa-spinner fa-spin"></i>
+                                                </span>
+                                                <span class="input-group-text text-success" *ngIf="immatriculationForm.get('cin')?.value && !validationErrors.cin && !validationInProgress.cin">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </span>
+                                                <span class="input-group-text text-danger" *ngIf="validationErrors.cin">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                </span>
+                                            </div>
                                             <div class="error-message" *ngIf="immatriculationForm.get('cin')?.invalid && immatriculationForm.get('cin')?.touched">
-                                                Le CIN/Passeport est requis
+                                                <span *ngIf="immatriculationForm.get('cin')?.errors?.['required']">Le CIN est obligatoire</span>
+                                                <span *ngIf="immatriculationForm.get('cin')?.errors?.['pattern']">Le CIN doit contenir exactement 8 chiffres</span>
+                                            </div>
+                                            <div class="error-message" *ngIf="validationErrors.cin">
+                                                <i class="fas fa-exclamation-triangle"></i> {{ validationErrors.cin }}
                                             </div>
                                         </div>
                                     </div>
@@ -153,7 +214,10 @@
                                             <input type="date" id="dateNaissance" class="form-control" 
                                                    formControlName="dateNaissance">
                                             <div class="error-message" *ngIf="immatriculationForm.get('dateNaissance')?.invalid && immatriculationForm.get('dateNaissance')?.touched">
-                                                La date de naissance est requise
+                                                <span *ngIf="immatriculationForm.get('dateNaissance')?.errors?.['required']">La date de naissance est obligatoire</span>
+                                                <span *ngIf="immatriculationForm.get('dateNaissance')?.errors?.['tooYoung']?.message">{{ immatriculationForm.get('dateNaissance')?.errors?.['tooYoung']?.message }}</span>
+                                                <span *ngIf="immatriculationForm.get('dateNaissance')?.errors?.['tooOld']?.message">{{ immatriculationForm.get('dateNaissance')?.errors?.['tooOld']?.message }}</span>
+                                                <span *ngIf="immatriculationForm.get('dateNaissance')?.errors?.['futureDate']?.message">{{ immatriculationForm.get('dateNaissance')?.errors?.['futureDate']?.message }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -181,10 +245,26 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="registreCommerce">Registre de Commerce <span class="required">*</span></label>
-                                            <input type="text" id="registreCommerce" class="form-control" 
-                                                   formControlName="registreCommerce" placeholder="Numéro RC">
+                                            <div class="input-group">
+                                                <input type="text" id="registreCommerce" class="form-control" 
+                                                       formControlName="registreCommerce" placeholder="Numéro RC"
+                                                       (input)="onRegistreCommerceChange($event)"
+                                                       [ngClass]="{'is-invalid': validationErrors.registreCommerce, 'is-valid': immatriculationForm.get('registreCommerce')?.value && !validationErrors.registreCommerce && !validationInProgress.registreCommerce}">
+                                                <span class="input-group-text" *ngIf="validationInProgress.registreCommerce">
+                                                    <i class="fas fa-spinner fa-spin"></i>
+                                                </span>
+                                                <span class="input-group-text text-success" *ngIf="immatriculationForm.get('registreCommerce')?.value && !validationErrors.registreCommerce && !validationInProgress.registreCommerce">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </span>
+                                                <span class="input-group-text text-danger" *ngIf="validationErrors.registreCommerce">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                </span>
+                                            </div>
                                             <div class="error-message" *ngIf="immatriculationForm.get('registreCommerce')?.invalid && immatriculationForm.get('registreCommerce')?.touched">
                                                 Le registre de commerce est requis
+                                            </div>
+                                            <div class="error-message" *ngIf="validationErrors.registreCommerce">
+                                                <i class="fas fa-exclamation-triangle"></i> {{ validationErrors.registreCommerce }}
                                             </div>
                                         </div>
                                     </div>
@@ -204,10 +284,28 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="email">Email <span class="required">*</span></label>
-                                        <input type="email" id="email" class="form-control" 
-                                               formControlName="email" placeholder="votre@email.com">
+                                        <div class="input-group">
+                                            <input type="email" id="email" class="form-control" 
+                                                   formControlName="email" placeholder="votre@email.com"
+                                                   (input)="onEmailChange($event)"
+                                                   [ngClass]="{'is-invalid': validationErrors.email, 'is-valid': immatriculationForm.get('email')?.value && !validationErrors.email && !validationInProgress.email}">
+                                            <span class="input-group-text" *ngIf="validationInProgress.email">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                            </span>
+                                            <span class="input-group-text text-success" *ngIf="immatriculationForm.get('email')?.value && !validationErrors.email && !validationInProgress.email">
+                                                <i class="fas fa-check-circle"></i>
+                                            </span>
+                                            <span class="input-group-text text-danger" *ngIf="validationErrors.email">
+                                                <i class="fas fa-exclamation-circle"></i>
+                                            </span>
+                                        </div>
                                         <div class="error-message" *ngIf="immatriculationForm.get('email')?.invalid && immatriculationForm.get('email')?.touched">
-                                            L'email est requis et doit être valide
+                                            <span *ngIf="immatriculationForm.get('email')?.errors?.['required']">L'email est obligatoire</span>
+                                            <span *ngIf="immatriculationForm.get('email')?.errors?.['email']">Veuillez entrer une adresse email valide</span>
+                                            <span *ngIf="immatriculationForm.get('email')?.errors?.['maxlength']">L'email ne peut pas dépasser 100 caractères</span>
+                                        </div>
+                                        <div class="error-message" *ngIf="validationErrors.email">
+                                            <i class="fas fa-exclamation-triangle"></i> {{ validationErrors.email }}
                                         </div>
                                     </div>
                                 </div>
@@ -217,7 +315,9 @@
                                         <input type="tel" id="telephone" class="form-control" 
                                                formControlName="telephone" placeholder="+216 XX XXX XXX">
                                         <div class="error-message" *ngIf="immatriculationForm.get('telephone')?.invalid && immatriculationForm.get('telephone')?.touched">
-                                            Le téléphone est requis
+                                            <span *ngIf="immatriculationForm.get('telephone')?.errors?.['required']">Le téléphone est obligatoire</span>
+                                            <span *ngIf="immatriculationForm.get('telephone')?.errors?.['pattern']">Le téléphone doit être au format tunisien (ex: 21612345678)</span>
+                                            <span *ngIf="immatriculationForm.get('telephone')?.errors?.['minlength']">Le téléphone doit contenir au moins 8 chiffres</span>
                                         </div>
                                     </div>
                                 </div>
@@ -227,7 +327,10 @@
                                         <textarea id="adresse" class="form-control" rows="3"
                                                   formControlName="adresse" placeholder="Votre adresse complète"></textarea>
                                         <div class="error-message" *ngIf="immatriculationForm.get('adresse')?.invalid && immatriculationForm.get('adresse')?.touched">
-                                            L'adresse est requise
+                                            <span *ngIf="immatriculationForm.get('adresse')?.errors?.['required']">L'adresse est obligatoire</span>
+                                            <span *ngIf="immatriculationForm.get('adresse')?.errors?.['minlength']">L'adresse doit contenir au moins 10 caractères</span>
+                                            <span *ngIf="immatriculationForm.get('adresse')?.errors?.['maxlength']">L'adresse ne peut pas dépasser 200 caractères</span>
+                                        </div>
                                         </div>
                                     </div>
                                 </div>
@@ -242,7 +345,6 @@
                                 </button>
                             </div>
                         </div>
-                    </div>
 
                     <!-- Étape 3: Informations sur l'Activité -->
                     <div class="form-step" *ngIf="currentStep === 3" [@stepAnimation]>
