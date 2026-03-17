@@ -1,0 +1,274 @@
+<div class="da" [class.is-sidebarOpen]="sidebarOpen" [attr.data-theme]="theme">
+  <button class="da__overlay" type="button" (click)="closeSidebar()" aria-label="Fermer le menu"></button>
+
+  <aside class="da__sidebar" aria-label="Menu principal">
+    <div class="da__brand">
+      <div class="da__logo" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="da__brandText">
+        <div class="da__brandTitle">AgentDGI</div>
+        <div class="da__brandSub">Espace agent</div>
+      </div>
+      <button class="da__close" type="button" (click)="closeSidebar()" aria-label="Fermer le menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="da__nav">
+      <div class="da__navSection" *ngFor="let section of nav">
+        <div class="da__navTitle">{{ section.title }}</div>
+        <button
+          class="da__navItem"
+          type="button"
+          *ngFor="let item of section.items"
+          [class.is-active]="activeNavKey === item.key"
+          (click)="setActiveNav(item.key)"
+        >
+          <i class="{{ item.icon }}" aria-hidden="true"></i>
+          <span class="da__navLabel">{{ item.label }}</span>
+          <span class="da__navBadge" *ngIf="item.badge as b">{{ b }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="da__sidebarFooter">
+      <div class="da__user">
+        <div class="da__avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></div>
+        <div class="da__userMeta">
+          <div class="da__userName">{{ userName }}</div>
+          <div class="da__userRole">Agent DGI</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="da__main">
+    <header class="da__topbar">
+      <div class="da__topbarLeft">
+        <button class="da__burger" type="button" (click)="toggleSidebar()" aria-label="Ouvrir le menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="da__crumbs" aria-label="Fil d’ariane">
+          <span class="da__crumb">AgentDGI</span>
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+          <span class="da__crumb is-strong">Dashboard</span>
+        </div>
+      </div>
+
+      <div class="da__topbarRight">
+        <div class="da__range">
+          <button class="da__seg" type="button" [class.is-active]="activityRange === '7d'" (click)="setActivityRange('7d')">7 jours</button>
+          <button class="da__seg" type="button" [class.is-active]="activityRange === '30d'" (click)="setActivityRange('30d')">30 jours</button>
+        </div>
+
+        <div class="da__search" role="search">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input class="da__searchInput" type="search" placeholder="Rechercher dossier, contribuable…" aria-label="Rechercher" />
+        </div>
+
+        <button class="da__iconBtn" type="button" (click)="toggleTheme()" [attr.aria-label]="theme === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre'">
+          <i class="fa-solid" [class.fa-sun]="theme === 'dark'" [class.fa-moon]="theme === 'light'"></i>
+        </button>
+
+        <button class="da__iconBtn" type="button" aria-label="Notifications">
+          <i class="fa-regular fa-bell"></i>
+          <span class="da__badge" aria-label="3 notifications">3</span>
+        </button>
+
+        <button class="da__profile" type="button" aria-label="Profil">
+          <span class="da__profileDot" aria-hidden="true"></span>
+          <span class="da__profileText">
+            <span class="da__profileName">{{ userName }}</span>
+            <span class="da__profileSub">{{ greeting }}</span>
+          </span>
+          <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <section class="da__hero">
+      <div class="da__heroCard">
+        <div class="da__heroHead">
+          <div>
+            <div class="da__heroKicker">{{ greeting }}, {{ userName }}</div>
+            <h1 class="da__heroTitle">Tableau de bord Agent DGI</h1>
+            <div class="da__heroDesc">Suivi des dossiers, décisions et conformité — vue claire, actions rapides et priorités.</div>
+          </div>
+
+          <div class="da__heroActions">
+            <button class="da__btn is-primary" type="button">
+              <i class="fa-solid fa-circle-plus" aria-hidden="true"></i>
+              Nouveau dossier
+            </button>
+            <button class="da__btn" type="button">
+              <i class="fa-solid fa-file-export" aria-hidden="true"></i>
+              Exporter
+            </button>
+          </div>
+        </div>
+
+        <div class="da__kpis" aria-label="Indicateurs clés">
+          <article class="da__kpi" *ngFor="let kpi of kpis" [attr.data-tone]="kpi.tone">
+            <div class="da__kpiIcon" aria-hidden="true"><i class="{{ kpi.icon }}"></i></div>
+            <div class="da__kpiBody">
+              <div class="da__kpiLabel">{{ kpi.label }}</div>
+              <div class="da__kpiValue">{{ kpi.value }}</div>
+              <div class="da__kpiMeta">
+                <span class="da__delta" [class.is-up]="kpi.deltaUp" [class.is-down]="!kpi.deltaUp">
+                  <i class="fa-solid" [class.fa-arrow-trend-up]="kpi.deltaUp" [class.fa-arrow-trend-down]="!kpi.deltaUp"></i>
+                  {{ kpi.delta }}
+                </span>
+                <span class="da__kpiSub">{{ kpi.sub }}</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="da__grid">
+      <div class="da__panel">
+        <div class="da__panelHead">
+          <div class="da__panelTitle">
+            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+            Performance
+          </div>
+          <div class="da__panelHint">Évolution des traitements (placeholder)</div>
+        </div>
+
+        <div class="da__panelBody">
+          <div class="da__chart">
+            <svg viewBox="0 0 520 160" aria-label="Graphique performance" role="img">
+              <polyline class="da__chartGrid" points="0,32 520,32"></polyline>
+              <polyline class="da__chartGrid" points="0,80 520,80"></polyline>
+              <polyline class="da__chartGrid" points="0,128 520,128"></polyline>
+              <polyline class="da__chartArea" [attr.points]="linePoints + ' 510,148 10,148'"></polyline>
+              <polyline class="da__chartLine" [attr.points]="linePoints"></polyline>
+            </svg>
+          </div>
+
+          <div class="da__miniBars" aria-hidden="true">
+            <div class="da__bar" *ngFor="let v of activityBars" [style.height.%]="v"></div>
+          </div>
+
+          <div class="da__quick">
+            <button class="da__qa" type="button" *ngFor="let a of quickActions" [attr.data-tone]="a.tone">
+              <span class="da__qaIcon" aria-hidden="true"><i class="{{ a.icon }}"></i></span>
+              <span class="da__qaText">
+                <span class="da__qaTitle">{{ a.title }}</span>
+                <span class="da__qaSub">{{ a.sub }}</span>
+              </span>
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="da__panel">
+        <div class="da__panelHead">
+          <div class="da__panelTitle">
+            <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
+            Répartition
+          </div>
+          <div class="da__panelHint">Dossiers par statut</div>
+        </div>
+
+        <div class="da__panelBody">
+          <div class="da__donutWrap">
+            <div class="da__donut" [style.background]="donutStyle" aria-label="Répartition" role="img">
+              <div class="da__donutCenter">
+                <div class="da__donutValue">52</div>
+                <div class="da__donutLabel">Total</div>
+              </div>
+            </div>
+
+            <div class="da__legend" aria-label="Légende statuts">
+              <div class="da__legRow"><span class="da__dot is-brand"></span><span>Ouvert</span><span class="da__legVal">46%</span></div>
+              <div class="da__legRow"><span class="da__dot is-success"></span><span>Terminé</span><span class="da__legVal">30%</span></div>
+              <div class="da__legRow"><span class="da__dot is-warning"></span><span>En revue</span><span class="da__legVal">16%</span></div>
+              <div class="da__legRow"><span class="da__dot is-danger"></span><span>Bloqué</span><span class="da__legVal">8%</span></div>
+            </div>
+          </div>
+
+          <div class="da__alerts">
+            <div class="da__alert" *ngFor="let a of alerts" [attr.data-tone]="a.tone">
+              <div class="da__alertIcon" aria-hidden="true"><i class="{{ a.icon }}"></i></div>
+              <div class="da__alertBody">
+                <div class="da__alertTitle">{{ a.title }}</div>
+                <div class="da__alertMeta">{{ a.meta }}</div>
+              </div>
+              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="da__panel da__panel--wide">
+        <div class="da__panelHead">
+          <div class="da__panelTitle">
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+            Dernières opérations
+          </div>
+          <button class="da__link" type="button">Voir tout</button>
+        </div>
+
+        <div class="da__panelBody">
+          <div class="da__tableWrap">
+            <table class="da__table" aria-label="Dernières opérations">
+              <thead>
+                <tr>
+                  <th>Référence</th>
+                  <th>Contribuable</th>
+                  <th>Type</th>
+                  <th>Statut</th>
+                  <th class="da__right">Dernière maj</th>
+                  <th class="da__right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of recentOps">
+                  <td class="da__mono">{{ row.ref }}</td>
+                  <td>{{ row.subject }}</td>
+                  <td>{{ row.kind }}</td>
+                  <td>
+                    <span class="da__status" [attr.data-status]="row.statusKey">
+                      <span class="da__statusDot" aria-hidden="true"></span>
+                      {{ row.status }}
+                    </span>
+                  </td>
+                  <td class="da__right">{{ row.updatedAt }}</td>
+                  <td class="da__right">
+                    <button class="da__rowBtn" type="button" aria-label="Ouvrir"><i class="fa-regular fa-folder-open"></i></button>
+                    <button class="da__rowBtn" type="button" aria-label="Éditer"><i class="fa-regular fa-pen-to-square"></i></button>
+                    <button class="da__rowBtn" type="button" aria-label="Plus"><i class="fa-solid fa-ellipsis"></i></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="da__panel">
+        <div class="da__panelHead">
+          <div class="da__panelTitle">
+            <i class="fa-solid fa-list" aria-hidden="true"></i>
+            À faire
+          </div>
+          <div class="da__panelHint">Rappels</div>
+        </div>
+        <div class="da__panelBody">
+          <div class="da__tasks">
+            <button class="da__task" type="button" *ngFor="let t of tasks" [class.is-done]="t.done" [attr.data-tone]="t.tone" (click)="toggleTask(t)">
+              <span class="da__check" aria-hidden="true"><i class="fa-solid" [class.fa-check]="t.done" [class.fa-minus]="!t.done"></i></span>
+              <span class="da__taskBody">
+                <span class="da__taskTitle">{{ t.title }}</span>
+                <span class="da__taskMeta">{{ t.meta }}</span>
+              </span>
+              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

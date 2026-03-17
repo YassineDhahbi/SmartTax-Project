@@ -33,6 +33,8 @@ import { DossierComponent } from './components/dossier/dossier.component';
 import { NotificationComponent } from './components/notification/notification.component';
 import { ReclamationService } from './services/reclamation.service';
 import { NotificationService } from './services/notification.service';
+import { DashboardAgentComponent } from './AgentDGI/dashboard-agent/dashboard-agent.component';
+import { ProfileAgentComponent } from './AgentDGI/profile-agent/profile-agent.component';
 
 
 @NgModule({
@@ -61,7 +63,9 @@ import { NotificationService } from './services/notification.service';
     ImmatriculationComponent,
     ReclamationComponent,
     DossierComponent,
-    NotificationComponent
+    NotificationComponent,
+    DashboardAgentComponent,
+    ProfileAgentComponent
 
 
   ],

@@ -17,6 +17,7 @@ import { DocumentFiscalComponent } from './components/document-fiscal/document-f
 import { ImmatriculationComponent } from './components/immatriculation/immatriculation.component';
 import { ReclamationComponent } from './components/reclamation/reclamation.component';
 import { DossierComponent } from './components/dossier/dossier.component';
+import { DashboardAgentComponent } from './AgentDGI/dashboard-agent/dashboard-agent.component';
 
 import { AuthGuard } from './guards/auth.guard';
 
@@ -38,6 +39,7 @@ const routes: Routes = [
   { path: 'Immatriculation', component: ImmatriculationComponent },
   { path: 'Reclamation', component: ReclamationComponent },
   { path: 'Dossier', component: DossierComponent },
+  { path: 'Dashboard-Agent', component: DashboardAgentComponent },
   
 
 
