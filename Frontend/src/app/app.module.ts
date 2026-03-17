@@ -31,6 +31,8 @@ import { ImmatriculationComponent } from './components/immatriculation/immatricu
 import { ReclamationComponent } from './components/reclamation/reclamation.component';
 import { DossierComponent } from './components/dossier/dossier.component';
 import { NotificationComponent } from './components/notification/notification.component';
+import { ReclamationService } from './services/reclamation.service';
+import { NotificationService } from './services/notification.service';
 
 
 @NgModule({
@@ -70,7 +72,10 @@ import { NotificationComponent } from './components/notification/notification.co
     HttpClientModule, // Add this to imports
     FormsModule, BrowserAnimationsModule
   ],
-  providers: [],
+  providers: [
+    ReclamationService,
+    NotificationService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

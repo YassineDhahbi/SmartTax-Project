@@ -1,2 +1,404 @@
 <app-navbar></app-navbar>
+
+<div class="reclamation-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <h1 class="page-title">
+            <i class="fa fa-exclamation-circle me-3"></i>
+            Dépôt des Réclamations
+          </h1>
+          <p class="page-subtitle">Soumettez vos réclamations et suivez leur traitement en temps réel</p>
+        </div>
+        <div class="col-md-6 text-end">
+          <button class="btn btn-outline-secondary me-2" (click)="toggleMessagerie()">
+            <i class="fas fa-comments me-2"></i>Tester Messagerie
+          </button>
+          <button class="btn btn-outline-primary me-2" (click)="toggleHistorique()">
+            <i class="fas fa-history me-2"></i>Historique
+          </button>
+          <button class="btn btn-primary" (click)="goToStep(1)">
+            <i class="fas fa-plus me-2"></i>Nouvelle Réclamation
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historique des réclamations -->
+  <div class="container" *ngIf="showHistorique">
+    <div class="historique-section" @fadeIn>
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-history me-2"></i>Historique des Réclamations</h3>
+        </div>
+        <div class="card-body">
+          <div class="row" *ngIf="reclamations.length > 0; else noReclamations">
+            <div class="col-md-6 mb-3" *ngFor="let rec of reclamations">
+              <div class="reclamation-card" (click)="selectReclamation(rec)">
+                <div class="card-header-custom">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="reclamation-type">
+                      <i class="fas {{ getTypeIcon(rec.type) }} me-2"></i>
+                      {{ rec.type }}
+                    </span>
+                    <span class="badge {{ getStatutColor(rec.statut) }}">
+                      <i class="fas {{ getStatutIcon(rec.statut) }} me-1"></i>
+                      {{ rec.statut }}
+                    </span>
+                  </div>
+                </div>
+                <div class="card-body-custom">
+                  <h6 class="reclamation-sujet">{{ rec.sujet }}</h6>
+                  <p class="reclamation-description">{{ rec.description | slice:0:100 }}...</p>
+                  <div class="reclamation-meta">
+                    <small class="text-muted">
+                      <i class="fas fa-calendar me-1"></i>
+                      {{ formatDate(rec.dateCreation) }}
+                    </small>
+                    <small class="text-muted ms-3">
+                      <i class="fas fa-folder me-1"></i>
+                      {{ rec.categorie }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noReclamations>
+            <div class="text-center py-5">
+              <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+              <p class="text-muted">Aucune réclamation trouvée</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Messagerie -->
+  <div class="container" *ngIf="selectedReclamation && showMessages">
+    <div class="messaging-section" @slideIn>
+      <div class="card">
+        <div class="card-header">
+          <h4>
+            <i class="fas fa-comments me-2"></i>
+            Discussion - {{ selectedReclamation.sujet }}
+          </h4>
+          <button class="btn btn-sm btn-outline-secondary" (click)="showMessages = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="messages-container">
+            <div class="message" *ngFor="let msg of messages" 
+                 [class.message-contribuable]="msg.auteur === 'contribuable'"
+                 [class.message-agent]="msg.auteur === 'agent'">
+              <div class="message-content">
+                <div class="message-header">
+                  <strong>{{ msg.auteur === 'contribuable' ? 'Vous' : 'Agent DGI' }}</strong>
+                  <small class="text-muted">{{ formatDate(msg.date) }}</small>
+                </div>
+                <div class="message-text">{{ msg.contenu }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="message-form">
+            <form [formGroup]="messageForm" (ngSubmit)="sendMessage()">
+              <div class="input-group">
+                <input type="text" class="form-control" formControlName="contenu" 
+                       placeholder="Tapez votre message...">
+                <button class="btn btn-primary" type="submit" [disabled]="!messageForm.valid">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulaire de réclamation -->
+  <div class="container">
+    <div class="form-section" @fadeIn>
+      <div class="card">
+        <!-- Progress bar -->
+        <div class="progress-header">
+          <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                 [style.width.%]="progressPercentage"></div>
+          </div>
+          <div class="step-indicators">
+            <div class="step" 
+                 [class.active]="currentStep >= 1" 
+                 [class.completed]="currentStep > 1"
+                 (click)="goToStep(1)">
+              <div class="step-number">1</div>
+              <div class="step-label">Type</div>
+            </div>
+            <div class="step" 
+                 [class.active]="currentStep >= 2" 
+                 [class.completed]="currentStep > 2"
+                 (click)="goToStep(2)">
+              <div class="step-number">2</div>
+              <div class="step-label">Détails</div>
+            </div>
+            <div class="step" 
+                 [class.active]="currentStep >= 3" 
+                 [class.completed]="currentStep > 3"
+                 (click)="goToStep(3)">
+              <div class="step-number">3</div>
+              <div class="step-label">Documents</div>
+            </div>
+            <div class="step" 
+                 [class.active]="currentStep >= 4" 
+                 [class.completed]="currentStep > 4"
+                 (click)="goToStep(4)">
+              <div class="step-number">4</div>
+              <div class="step-label">Validation</div>
+            </div>
+          </div>
+        </div>
+
+        <form [formGroup]="reclamationForm" class="reclamation-form">
+          <!-- Étape 1: Type et Catégorie -->
+          <div class="step-content" *ngIf="currentStep === 1">
+            <h3 class="step-title">
+              <i class="fas fa-tag me-2"></i>Type de Réclamation
+            </h3>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <label class="form-label">Type de réclamation <span class="required">*</span></label>
+                <div class="type-selector">
+                  <div class="type-option" 
+                       *ngFor="let type of typesReclamation"
+                       [class.selected]="reclamationForm.get('type')?.value === type.value"
+                       (click)="reclamationForm.get('type')?.setValue(type.value)">
+                    <i class="fas {{ type.icon }} fa-2x mb-2"></i>
+                    <h6>{{ type.label }}</h6>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Catégorie <span class="required">*</span></label>
+                <select class="form-select" formControlName="categorie">
+                  <option value="">Sélectionnez une catégorie</option>
+                  <option *ngFor="let cat of getCategoriesForType(reclamationForm.get('type')?.value)" 
+                          [value]="cat">{{ cat }}</option>
+                </select>
+                <div class="error-message" *ngIf="reclamationForm.get('categorie')?.invalid && reclamationForm.get('categorie')?.touched">
+                  La catégorie est obligatoire
+                </div>
+              </div>
+            </div>
+
+            <div class="row mt-4">
+              <div class="col-md-6">
+                <label class="form-label">Niveau d'urgence <span class="required">*</span></label>
+                <select class="form-select" formControlName="urgence">
+                  <option value="BASSE">Basse</option>
+                  <option value="MOYENNE">Moyenne</option>
+                  <option value="HAUTE">Haute</option>
+                  <option value="URGENTE">Urgente</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Référence (optionnel)</label>
+                <input type="text" class="form-control" formControlName="reference" 
+                       placeholder="Numéro de dossier, facture, etc.">
+              </div>
+            </div>
+          </div>
+
+          <!-- Étape 2: Description -->
+          <div class="step-content" *ngIf="currentStep === 2">
+            <h3 class="step-title">
+              <i class="fas fa-edit me-2"></i>Description Détaillée
+            </h3>
+            
+            <div class="row">
+              <div class="col-12">
+                <label class="form-label">Sujet de la réclamation <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="sujet" 
+                       placeholder="Décrivez brièvement votre problème">
+                <div class="error-message" *ngIf="reclamationForm.get('sujet')?.invalid && reclamationForm.get('sujet')?.touched">
+                  <span *ngIf="reclamationForm.get('sujet')?.errors?.['required']">Le sujet est obligatoire</span>
+                  <span *ngIf="reclamationForm.get('sujet')?.errors?.['minlength']">Minimum 5 caractères</span>
+                  <span *ngIf="reclamationForm.get('sujet')?.errors?.['maxlength']">Maximum 100 caractères</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row mt-4">
+              <div class="col-12">
+                <label class="form-label">Description détaillée <span class="required">*</span></label>
+                <textarea class="form-control" formControlName="description" rows="8"
+                          placeholder="Décrivez en détail votre réclamation, les circonstances, et ce que vous attendez comme solution..."></textarea>
+                <div class="character-count">
+                  {{ reclamationForm.get('description')?.value?.length || 0 }}/1000 caractères
+                </div>
+                <div class="error-message" *ngIf="reclamationForm.get('description')?.invalid && reclamationForm.get('description')?.touched">
+                  <span *ngIf="reclamationForm.get('description')?.errors?.['required']">La description est obligatoire</span>
+                  <span *ngIf="reclamationForm.get('description')?.errors?.['minlength']">Minimum 20 caractères</span>
+                  <span *ngIf="reclamationForm.get('description')?.errors?.['maxlength']">Maximum 1000 caractères</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Étape 3: Pièces jointes -->
+          <div class="step-content" *ngIf="currentStep === 3">
+            <h3 class="step-title">
+              <i class="fas fa-paperclip me-2"></i>Pièces Jointes
+            </h3>
+            
+            <div class="upload-section">
+              <div class="upload-area" 
+                   (drop)="onFileDrop($event)" 
+                   (dragover)="onDragOver($event)"
+                   (dragleave)="onDragLeave($event)">
+                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                <h5>Glissez-déposez vos fichiers ici</h5>
+                <p class="text-muted">ou</p>
+                <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">
+                  <i class="fas fa-folder-open me-2"></i>Parcourir
+                </button>
+                <input type="file" id="fileInput" class="d-none" 
+                       multiple (change)="onFileSelect($event)"
+                       accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
+                <small class="text-muted d-block mt-3">
+                  Formats acceptés: JPG, PNG, PDF, DOC, DOCX (max 5MB par fichier)
+                </small>
+              </div>
+            </div>
+
+            <div class="files-list" *ngIf="files.length > 0">
+              <h5>Fichiers sélectionnés:</h5>
+              <div class="file-item" *ngFor="let file of files; let i = index">
+                <div class="file-info">
+                  <i class="fas {{ getFileIcon(file.type) }} me-2"></i>
+                  <div>
+                    <div class="file-name">{{ file.name }}</div>
+                    <small class="text-muted">{{ formatFileSize(file.size) }}</small>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-danger" (click)="removeFile(i)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Étape 4: Validation -->
+          <div class="step-content" *ngIf="currentStep === 4">
+            <h3 class="step-title">
+              <i class="fas fa-check-circle me-2"></i>Validation et Soumission
+            </h3>
+            
+            <div class="validation-summary">
+              <div class="card">
+                <div class="card-header">
+                  <h5>Récapitulatif de votre réclamation</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p><strong>Type:</strong> {{ reclamationForm.get('type')?.value }}</p>
+                      <p><strong>Catégorie:</strong> {{ reclamationForm.get('categorie')?.value }}</p>
+                      <p><strong>Urgence:</strong> {{ reclamationForm.get('urgence')?.value }}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p><strong>Sujet:</strong> {{ reclamationForm.get('sujet')?.value }}</p>
+                      <p><strong>Référence:</strong> {{ reclamationForm.get('reference')?.value || 'N/A' }}</p>
+                      <p><strong>Pièces jointes:</strong> {{ files.length }} fichier(s)</p>
+                    </div>
+                  </div>
+                  <div class="mt-3">
+                    <p><strong>Description:</strong></p>
+                    <p class="text-muted">{{ reclamationForm.get('description')?.value }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-info mt-4">
+              <i class="fas fa-info-circle me-2"></i>
+              En soumettant cette réclamation, vous confirmez que les informations fournies sont exactes.
+              Vous recevrez une confirmation par email et pourrez suivre le traitement de votre demande.
+            </div>
+          </div>
+
+          <!-- Navigation -->
+          <div class="form-navigation">
+            <button type="button" class="btn btn-secondary" 
+                    (click)="previousStep()" 
+                    [disabled]="currentStep === 1">
+              <i class="fas fa-arrow-left me-2"></i>Précédent
+            </button>
+            
+            <div class="ms-auto">
+              <button type="button" class="btn btn-outline-secondary me-2" 
+                      (click)="saveAsDraft()" 
+                      [disabled]="isSubmitting">
+                <i class="fas fa-save me-2"></i>Enregistrer en brouillon
+              </button>
+              
+              <button type="button" class="btn btn-primary" 
+                      (click)="nextStep()" 
+                      [disabled]="!validateCurrentStep()"
+                      *ngIf="currentStep < 4">
+                Suivant<i class="fas fa-arrow-right ms-2"></i>
+              </button>
+              
+              <button type="button" class="btn btn-success" 
+                      (click)="submitReclamation('SOUmis')" 
+                      [disabled]="isSubmitting || !validateCurrentStep()"
+                      *ngIf="currentStep === 4">
+                <i class="fas fa-paper-plane me-2"></i>
+                {{ isSubmitting ? 'Soumission...' : 'Soumettre la réclamation' }}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de succès -->
+  <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);" 
+       *ngIf="showSuccessModal" @fadeIn>
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            Réclamation Soumise avec Succès!
+          </h5>
+        </div>
+        <div class="modal-body text-center">
+          <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
+          <h4>Merci pour votre réclamation</h4>
+          <p class="text-muted">
+            Votre réclamation a été soumise avec succès sous la référence:<br>
+            <strong>{{ reclamationId }}</strong>
+          </p>
+          <p>Vous recevrez une confirmation par email et pourrez suivre le traitement de votre demande.</p>
+        </div>
+        <div class="modal-footer border-0 justify-content-center">
+          <button type="button" class="btn btn-primary" (click)="closeSuccessModal()">
+            <i class="fas fa-home me-2"></i>Retour au tableau de bord
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="showSuccessModal = false">
+            <i class="fas fa-plus me-2"></i>Nouvelle réclamation
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <app-footer></app-footer>
