@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { ImmatriculationService } from '../../services/immatriculation.service';
 
 type Tone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger';
 
@@ -71,11 +72,38 @@ export class DashboardAgentComponent implements OnInit {
 
   activeNavKey: string = 'overview';
 
+  currentView: string = 'overview'; // 'overview' or 'dossiers'
+
   activityRange: '7d' | '30d' = '7d';
 
   theme: 'dark' | 'light' = getInitialTheme();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private immatriculationService: ImmatriculationService) {}
+
+  // Données des immatriculations depuis PostgreSQL
+  immatriculations: any[] = [];
+  filteredImmatriculations: any[] = [];
+  isLoadingImmatriculations = false;
+  
+  // Modal properties
+  showDetailsModal = false;
+  selectedImmatriculation: any = null;
+  
+  // Filter properties
+  activeFilter: 'all' | 'PHYSIQUE' | 'MORALE' = 'all';
+  
+  // Computed properties for filter counts
+  get totalCount(): number {
+    return this.immatriculations.length;
+  }
+  
+  get physiqueCount(): number {
+    return this.immatriculations.filter(i => i.typeContribuable === 'PHYSIQUE').length;
+  }
+  
+  get moraleCount(): number {
+    return this.immatriculations.filter(i => i.typeContribuable === 'MORALE').length;
+  }
 
   ngOnInit(): void {
     this.loadUserName();
@@ -97,16 +125,11 @@ export class DashboardAgentComponent implements OnInit {
         try {
           // Décoder le token pour obtenir les informations utilisateur
           const payload = JSON.parse(atob(token.split('.')[1]));
-          console.log('JWT Payload:', payload); // Debug pour voir la structure
           
           // Extraire firstName et lastName du payload
           const firstName = payload.firstName || payload.prenom || payload.given_name || '';
           const lastName = payload.lastName || payload.nom || payload.family_name || '';
           const fullName = `${firstName} ${lastName}`.trim();
-          
-          console.log('Extracted firstName:', firstName);
-          console.log('Extracted lastName:', lastName);
-          console.log('Combined fullName:', fullName);
           
           if (fullName) {
             this.userName = fullName;
@@ -136,12 +159,10 @@ export class DashboardAgentComponent implements OnInit {
       // Appeler l'API pour récupérer les informations complètes de l'utilisateur
       this.http.get(`http://localhost:8080/api/users/${userId}`).subscribe({
         next: (user: any) => {
-          console.log('User info from API:', user);
           const firstName = user.firstName || user.prenom || '';
           const lastName = user.lastName || user.nom || '';
           const fullName = `${firstName} ${lastName}`.trim() || user.fullName || user.name || 'Agent';
           this.userName = fullName;
-          console.log('Final userName from API:', this.userName);
         },
         error: (error) => {
           console.error('Erreur lors de la récupération des infos utilisateur:', error);
@@ -359,10 +380,247 @@ export class DashboardAgentComponent implements OnInit {
 
   setActiveNav(key: string): void {
     this.activeNavKey = key;
+    if (key === 'work') {
+      this.currentView = 'dossiers';
+      this.loadImmatriculations();
+    } else {
+      this.currentView = 'overview';
+    }
+  }
+
+  private loadImmatriculations(): void {
+    this.isLoadingImmatriculations = true;
+    this.immatriculationService.getAllImmatriculations().subscribe({
+      next: (data) => {
+        this.immatriculations = data;
+        this.applyFilter();
+        this.isLoadingImmatriculations = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des immatriculations:', error);
+        this.isLoadingImmatriculations = false;
+        this.immatriculations = [];
+        this.filteredImmatriculations = [];
+      }
+    });
+  }
+
+  setFilter(filter: 'all' | 'PHYSIQUE' | 'MORALE'): void {
+    this.activeFilter = filter;
+    this.applyFilter();
+  }
+
+  private applyFilter(): void {
+    if (this.activeFilter === 'all') {
+      this.filteredImmatriculations = [...this.immatriculations];
+    } else {
+      this.filteredImmatriculations = this.immatriculations.filter(
+        immatriculation => immatriculation.typeContribuable === this.activeFilter
+      );
+    }
   }
 
   toggleTask(t: TaskItem): void {
     t.done = !t.done;
+  }
+
+  getStatutKey(statut: string): string {
+    const statutMap: { [key: string]: string } = {
+      'Ouvert': 'open',
+      'Terminé': 'done', 
+      'En revue': 'in_review',
+      'Bloqué': 'blocked'
+    };
+    return statutMap[statut] || 'open';
+  }
+
+  getPriorityKey(priorite: string): string {
+    const priorityMap: { [key: string]: string } = {
+      'Haute': 'high',
+      'Moyenne': 'medium',
+      'Basse': 'low'
+    };
+    return priorityMap[priorite] || 'medium';
+  }
+
+  // Méthodes pour les immatriculations
+  getImmatriculationStatusKey(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'BROUILLON': 'open',
+      'SOUMIS': 'in_review',
+      'VALIDE': 'done',
+      'REJETE': 'blocked',
+      'ARCHIVE': 'done'
+    };
+    return statusMap[status] || 'open';
+  }
+
+  formatStatus(status: string): string {
+    const statusLabels: { [key: string]: string } = {
+      'BROUILLON': 'Brouillon',
+      'SOUMIS': 'Soumis',
+      'VALIDE': 'Validé',
+      'REJETE': 'Rejeté',
+      'ARCHIVE': 'Archivé'
+    };
+    return statusLabels[status] || status;
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch {
+      return 'N/A';
+    }
+  }
+
+  viewImmatriculationDetails(immatriculation: any): void {
+    this.selectedImmatriculation = immatriculation;
+    this.showDetailsModal = true;
+  }
+
+  closeModal(): void {
+    this.showDetailsModal = false;
+    this.selectedImmatriculation = null;
+  }
+
+  getContribuableName(immatriculation: any): string {
+    if (immatriculation.raisonSociale) {
+      return immatriculation.raisonSociale;
+    }
+    
+    const nom = immatriculation.nom || '';
+    const prenom = immatriculation.prenom || '';
+    const fullName = `${nom} ${prenom}`.trim();
+    
+    return fullName || 'N/A';
+  }
+
+  getScoreLevel(score: number): string {
+    if (score >= 80) return 'high';
+    if (score >= 60) return 'medium';
+    return 'low';
+  }
+
+  deleteImmatriculation(immatriculation: any): void {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer l'immatriculation "${immatriculation.dossierNumber || immatriculation.id}" ?\n\nCette action est irréversible.`)) {
+      this.immatriculationService.deleteImmatriculation(immatriculation.id).subscribe({
+        next: () => {
+          // Supprimer localement
+          const index = this.immatriculations.findIndex(i => i.id === immatriculation.id);
+          if (index > -1) {
+            this.immatriculations.splice(index, 1);
+            this.applyFilter();
+          }
+          
+          // Afficher un message de succès (vous pourriez utiliser un toast/notification)
+          console.log('Immatriculation supprimée avec succès');
+        },
+        error: (error: any) => {
+          console.error('Erreur lors de la suppression de l\'immatriculation:', error);
+          alert('Une erreur est survenue lors de la suppression. Veuillez réessayer.');
+        }
+      });
+    }
+  }
+
+  printDetails(): void {
+    if (!this.selectedImmatriculation) return;
+    
+    const printContent = document.getElementById('modalContent') || document.querySelector('.da__modalBody');
+    if (!printContent) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Détails Immatriculation - ${this.selectedImmatriculation.dossierNumber || this.selectedImmatriculation.id}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          h1 { color: #333; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }
+          h2 { color: #555; margin-top: 30px; }
+          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+          .info-item { display: flex; flex-direction: column; }
+          .info-item label { font-weight: bold; color: #666; margin-bottom: 5px; }
+          .info-item span { padding: 8px; background: #f5f5f5; border-radius: 4px; }
+          .status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-weight: bold; }
+          .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+          .score-item { text-align: center; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin: 10px; }
+          .score-value { font-size: 24px; font-weight: bold; }
+          @media print { body { margin: 10px; } }
+        </style>
+      </head>
+      <body>
+        <h1>Détails de l'Immatriculation</h1>
+        <p><strong>N° Dossier:</strong> ${this.selectedImmatriculation.dossierNumber || this.selectedImmatriculation.id}</p>
+        <p><strong>Date d'impression:</strong> ${new Date().toLocaleDateString('fr-FR')}</p>
+        
+        <h2>Informations principales</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Statut</label>
+            <span>${this.formatStatus(this.selectedImmatriculation.status)}</span>
+          </div>
+          <div class="info-item">
+            <label>Type de contribuable</label>
+            <span>${this.selectedImmatriculation.typeContribuable || 'N/A'}</span>
+          </div>
+          <div class="info-item">
+            <label>Date de création</label>
+            <span>${this.formatDate(this.selectedImmatriculation.dateCreation)}</span>
+          </div>
+        </div>
+        
+        <h2>Contribuable</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Nom complet</label>
+            <span>${this.getContribuableName(this.selectedImmatriculation)}</span>
+          </div>
+          <div class="info-item">
+            <label>Email</label>
+            <span>${this.selectedImmatriculation.email || 'N/A'}</span>
+          </div>
+          <div class="info-item">
+            <label>Téléphone</label>
+            <span>${this.selectedImmatriculation.telephone || 'N/A'}</span>
+          </div>
+          <div class="info-item">
+            <label>Adresse</label>
+            <span>${this.selectedImmatriculation.adresse || 'N/A'}</span>
+          </div>
+        </div>
+        
+        <h2>Activité</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Type d'activité</label>
+            <span>${this.selectedImmatriculation.typeActivite || 'N/A'}</span>
+          </div>
+          <div class="info-item">
+            <label>Secteur</label>
+            <span>${this.selectedImmatriculation.secteur || 'N/A'}</span>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
   }
 }
 

@@ -125,7 +125,8 @@
       </div>
     </section>
 
-    <section class="da__grid">
+    <!-- Vue Overview -->
+    <section class="da__grid" *ngIf="currentView === 'overview'">
       <div class="da__panel">
         <div class="da__panelHead">
           <div class="da__panelTitle">
@@ -270,5 +271,284 @@
         </div>
       </div>
     </section>
+
+    <!-- Vue Dossiers -->
+    <section class="da__grid" *ngIf="currentView === 'dossiers'">
+        <div class="da__panel da__panel--wide">
+          <div class="da__panelHead">
+            <div class="da__panelTitle">
+              <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
+              Liste des Immatriculations
+            </div>
+            <div class="da__panelHint">
+              <span *ngIf="isLoadingImmatriculations">Chargement...</span>
+              <span *ngIf="!isLoadingImmatriculations">{{ filteredImmatriculations.length }} immatriculations trouvées</span>
+            </div>
+          </div>
+          
+          <!-- Filtres -->
+          <div class="da__filters">
+            <div class="da__filterGroup">
+              <button class="da__filterBtn" 
+                      [class.da__filterBtn--active]="activeFilter === 'all'"
+                      (click)="setFilter('all')">
+                <i class="fa-solid fa-users"></i>
+                Tous
+                <span class="da__filterCount">{{ totalCount }}</span>
+              </button>
+              <button class="da__filterBtn" 
+                      [class.da__filterBtn--active]="activeFilter === 'PHYSIQUE'"
+                      (click)="setFilter('PHYSIQUE')">
+                <i class="fa-solid fa-user"></i>
+                Personnes physiques
+                <span class="da__filterCount">{{ physiqueCount }}</span>
+              </button>
+              <button class="da__filterBtn" 
+                      [class.da__filterBtn--active]="activeFilter === 'MORALE'"
+                      (click)="setFilter('MORALE')">
+                <i class="fa-solid fa-building"></i>
+                Personnes morales
+                <span class="da__filterCount">{{ moraleCount }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="da__panelBody">
+          <!-- État de chargement -->
+          <div *ngIf="isLoadingImmatriculations" class="da__loading">
+            <div class="da__spinner"></div>
+            <p>Chargement des immatriculations...</p>
+          </div>
+
+          <!-- Tableau des immatriculations -->
+          <div class="da__tableWrap" *ngIf="!isLoadingImmatriculations">
+            <table class="da__table" aria-label="Liste des immatriculations">
+              <thead>
+                <tr>
+                  <th>N° Dossier</th>
+                  <th>Contribuable</th>
+                  <th>Type</th>
+                  <th>Statut</th>
+                  <th>Date</th>
+                  <th class="da__center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let immatriculation of filteredImmatriculations">
+                  <td class="da__mono">{{ immatriculation.dossierNumber || immatriculation.id }}</td>
+                  <td>
+                    <div class="da__contribuableInfo">
+                      <div class="da__strong">
+                        {{ getContribuableName(immatriculation) }}
+                      </div>
+                      <div class="da__small">{{ immatriculation.email || 'N/A' }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="da__typeBadge" [attr.data-type]="immatriculation.typeContribuable">
+                      {{ immatriculation.typeContribuable || 'N/A' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="da__status" [attr.data-status]="getImmatriculationStatusKey(immatriculation.status)">
+                      <span class="da__statusDot" aria-hidden="true"></span>
+                      {{ formatStatus(immatriculation.status) }}
+                    </span>
+                  </td>
+                  <td>{{ formatDate(immatriculation.dateCreation) }}</td>
+                  <td class="da__center">
+                    <button class="da__rowBtn da__rowBtn--primary" type="button" 
+                            (click)="viewImmatriculationDetails(immatriculation)" 
+                            title="Voir les détails" 
+                            aria-label="Voir les détails de l'immatriculation">
+                      <i class="fa-regular fa-eye"></i>
+                    </button>
+                    <button class="da__rowBtn da__rowBtn--danger" type="button" 
+                            (click)="deleteImmatriculation(immatriculation)" 
+                            title="Supprimer l'immatriculation" 
+                            aria-label="Supprimer l'immatriculation">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="filteredImmatriculations.length === 0">
+                  <td colspan="6" class="da__emptyState">
+                    <div class="da__emptyIcon">
+                      <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                    <div class="da__emptyText">
+                      <h4>Aucune immatriculation trouvée</h4>
+                      <p *ngIf="activeFilter !== 'all'">Aucune immatriculation de type "{{ activeFilter === 'PHYSIQUE' ? 'Personne physique' : 'Personne morale' }}" trouvée.</p>
+                      <p *ngIf="activeFilter === 'all'">Il n'y a aucune demande d'immatriculation pour le moment.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <!-- Modal Détails Immatriculation -->
+  <div class="da__modalOverlay" *ngIf="showDetailsModal" (click)="closeModal()">
+    <div class="da__modal" (click)="$event.stopPropagation()">
+      <div class="da__modalHeader">
+        <div class="da__modalTitle">
+          <i class="fa-solid fa-folder-open"></i>
+          Détails de l'Immatriculation
+        </div>
+        <button class="da__modalClose" (click)="closeModal()" aria-label="Fermer">
+          <i class="fa-solid fa-times"></i>
+        </button>
+      </div>
+
+      <div class="da__modalBody" *ngIf="selectedImmatriculation">
+        <!-- Informations principales -->
+        <div class="da__section">
+          <h3 class="da__sectionTitle">Informations principales</h3>
+          <div class="da__infoGrid">
+            <div class="da__infoItem">
+              <label>N° Dossier</label>
+              <span>{{ selectedImmatriculation.dossierNumber || selectedImmatriculation.id || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem">
+              <label>Statut</label>
+              <span class="da__status" [attr.data-status]="getImmatriculationStatusKey(selectedImmatriculation.status)">
+                <span class="da__statusDot" aria-hidden="true"></span>
+                {{ formatStatus(selectedImmatriculation.status) }}
+              </span>
+            </div>
+            <div class="da__infoItem">
+              <label>Type de contribuable</label>
+              <span class="da__typeBadge" [attr.data-type]="selectedImmatriculation.typeContribuable">
+                {{ selectedImmatriculation.typeContribuable || 'N/A' }}
+              </span>
+            </div>
+            <div class="da__infoItem">
+              <label>Date de création</label>
+              <span>{{ formatDate(selectedImmatriculation.dateCreation) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Informations du contribuable -->
+        <div class="da__section">
+          <h3 class="da__sectionTitle">Informations du contribuable</h3>
+          <div class="da__infoGrid">
+            <div class="da__infoItem" *ngIf="selectedImmatriculation.typeContribuable === 'MORALE'">
+              <label>Raison sociale</label>
+              <span>{{ selectedImmatriculation.raisonSociale || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem" *ngIf="selectedImmatriculation.typeContribuable === 'PHYSIQUE'">
+              <label>Nom</label>
+              <span>{{ selectedImmatriculation.nom || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem" *ngIf="selectedImmatriculation.typeContribuable === 'PHYSIQUE'">
+              <label>Prénom</label>
+              <span>{{ selectedImmatriculation.prenom || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem">
+              <label>Email</label>
+              <span>{{ selectedImmatriculation.email || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem">
+              <label>Téléphone</label>
+              <span>{{ selectedImmatriculation.telephone || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem">
+              <label>Adresse</label>
+              <span>{{ selectedImmatriculation.adresse || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem" *ngIf="selectedImmatriculation.typeContribuable === 'PHYSIQUE'">
+              <label>CIN</label>
+              <span>{{ selectedImmatriculation.cin || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem" *ngIf="selectedImmatriculation.typeContribuable === 'PHYSIQUE'">
+              <label>Date de naissance</label>
+              <span>{{ formatDate(selectedImmatriculation.dateNaissance) }}</span>
+            </div>
+            <div class="da__infoItem" *ngIf="selectedImmatriculation.typeContribuable === 'MORALE'">
+              <label>Registre de commerce</label>
+              <span>{{ selectedImmatriculation.registreCommerce || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem" *ngIf="selectedImmatriculation.typeContribuable === 'MORALE'">
+              <label>Représentant légal</label>
+              <span>{{ selectedImmatriculation.representantLegal || 'N/A' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Informations professionnelles -->
+        <div class="da__section">
+          <h3 class="da__sectionTitle">Informations professionnelles</h3>
+          <div class="da__infoGrid">
+            <div class="da__infoItem">
+              <label>Type d'activité</label>
+              <span>{{ selectedImmatriculation.typeActivite || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem">
+              <label>Secteur</label>
+              <span>{{ selectedImmatriculation.secteur || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem">
+              <label>Adresse professionnelle</label>
+              <span>{{ selectedImmatriculation.adresseProfessionnelle || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem">
+              <label>Date début d'activité</label>
+              <span>{{ formatDate(selectedImmatriculation.dateDebutActivite) }}</span>
+            </div>
+            <div class="da__infoItem da__infoItem--full">
+              <label>Description de l'activité</label>
+              <span>{{ selectedImmatriculation.descriptionActivite || 'N/A' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scores et validation -->
+        <div class="da__section" *ngIf="selectedImmatriculation.overallScore !== undefined">
+          <h3 class="da__sectionTitle">Scores de validation</h3>
+          <div class="da__scoresGrid">
+            <div class="da__scoreItem">
+              <div class="da__scoreLabel">Score global</div>
+              <div class="da__scoreValue" [attr.data-score]="getScoreLevel(selectedImmatriculation.overallScore)">
+                {{ selectedImmatriculation.overallScore }}%
+              </div>
+            </div>
+            <div class="da__scoreItem" *ngIf="selectedImmatriculation.completenessScore !== undefined">
+              <div class="da__scoreLabel">Complétude</div>
+              <div class="da__scoreValue" [attr.data-score]="getScoreLevel(selectedImmatriculation.completenessScore)">
+                {{ selectedImmatriculation.completenessScore }}%
+              </div>
+            </div>
+            <div class="da__scoreItem" *ngIf="selectedImmatriculation.verificationScore !== undefined">
+              <div class="da__scoreLabel">Vérification</div>
+              <div class="da__scoreValue" [attr.data-score]="getScoreLevel(selectedImmatriculation.verificationScore)">
+                {{ selectedImmatriculation.verificationScore }}%
+              </div>
+            </div>
+            <div class="da__scoreItem" *ngIf="selectedImmatriculation.documentsScore !== undefined">
+              <div class="da__scoreLabel">Documents</div>
+              <div class="da__scoreValue" [attr.data-score]="getScoreLevel(selectedImmatriculation.documentsScore)">
+                {{ selectedImmatriculation.documentsScore }}%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="da__modalFooter">
+        <button class="da__btn da__btn--secondary" (click)="closeModal()">
+          <i class="fa-solid fa-times"></i>
+          Fermer
+        </button>
+        <button class="da__btn da__btn--primary" (click)="printDetails()">
+          <i class="fa-solid fa-print"></i>
+          Imprimer
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

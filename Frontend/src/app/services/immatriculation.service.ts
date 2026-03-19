@@ -211,6 +211,15 @@ export class ImmatriculationService {
   }
 
   /**
+   * Supprimer un dossier
+   */
+  deleteImmatriculation(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
    * Archiver un dossier
    */
   archiveDossier(id: number): Observable<void> {
