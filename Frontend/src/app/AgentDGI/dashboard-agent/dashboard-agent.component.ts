@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 type Tone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger';
 
@@ -61,7 +62,7 @@ interface AlertItem {
   templateUrl: './dashboard-agent.component.html',
   styleUrls: ['./dashboard-agent.component.css']
 })
-export class DashboardAgentComponent {
+export class DashboardAgentComponent implements OnInit {
   userName = 'Agent';
 
   greeting = getGreeting();
@@ -73,6 +74,136 @@ export class DashboardAgentComponent {
   activityRange: '7d' | '30d' = '7d';
 
   theme: 'dark' | 'light' = getInitialTheme();
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.loadUserName();
+  }
+
+  private loadUserName(): void {
+    try {
+      // Essayer de récupérer le nom depuis userInfo d'abord
+      const userInfo = localStorage.getItem('userInfo');
+      if (userInfo) {
+        const user = JSON.parse(userInfo);
+        this.userName = user.fullName || user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Agent';
+        return;
+      }
+
+      // Alternative: essayer de récupérer depuis le token JWT
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          // Décoder le token pour obtenir les informations utilisateur
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          console.log('JWT Payload:', payload); // Debug pour voir la structure
+          
+          // Extraire firstName et lastName du payload
+          const firstName = payload.firstName || payload.prenom || payload.given_name || '';
+          const lastName = payload.lastName || payload.nom || payload.family_name || '';
+          const fullName = `${firstName} ${lastName}`.trim();
+          
+          console.log('Extracted firstName:', firstName);
+          console.log('Extracted lastName:', lastName);
+          console.log('Combined fullName:', fullName);
+          
+          if (fullName) {
+            this.userName = fullName;
+          } else {
+            // Si pas de nom dans le token, faire un appel API pour récupérer les infos utilisateur
+            this.fetchUserInfo();
+          }
+        } catch {
+          // Si le décodage échoue, utiliser une valeur par défaut personnalisée
+          const role = localStorage.getItem('role');
+          this.userName = role === 'AGENT_DGI' ? 'Agent DGI' : 'Agent';
+        }
+      } else {
+        // Fallback basique
+        const role = localStorage.getItem('role');
+        this.userName = role === 'AGENT_DGI' ? 'Agent DGI' : 'Agent';
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du nom d\'utilisateur:', error);
+      this.userName = 'Agent';
+    }
+  }
+
+  private fetchUserInfo(): void {
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      // Appeler l'API pour récupérer les informations complètes de l'utilisateur
+      this.http.get(`http://localhost:8080/api/users/${userId}`).subscribe({
+        next: (user: any) => {
+          console.log('User info from API:', user);
+          const firstName = user.firstName || user.prenom || '';
+          const lastName = user.lastName || user.nom || '';
+          const fullName = `${firstName} ${lastName}`.trim() || user.fullName || user.name || 'Agent';
+          this.userName = fullName;
+          console.log('Final userName from API:', this.userName);
+        },
+        error: (error) => {
+          console.error('Erreur lors de la récupération des infos utilisateur:', error);
+          // Fallback: utiliser une version améliorée de l'email
+          const email = localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token')!.split('.')[1])).sub : '';
+          const emailUsername = email.split('@')[0];
+          // Essayer de séparer le nom/prénom (ex: yassinedhahbi -> yassine dhahbi)
+          this.userName = this.formatUsername(emailUsername);
+        }
+      });
+    } else {
+      // Fallback: utiliser l'email si pas de userId
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          this.userName = this.formatUsername(payload.sub.split('@')[0]);
+        } catch {
+          this.userName = 'Agent';
+        }
+      }
+    }
+  }
+
+  private formatUsername(username: string): string {
+    // Convertir en minuscules et supprimer les chiffres
+    let cleanName = username.toLowerCase().replace(/[0-9]/g, '');
+    
+    // Cas spéciaux connus
+    const knownNames: { [key: string]: string } = {
+      'yassinedhahbi': 'Yassine Dhahbi',
+      'mohamedali': 'Mohamed Ali',
+      'jeanpierre': 'Jean Pierre',
+      'paulmartin': 'Paul Martin'
+    };
+    
+    if (knownNames[cleanName]) {
+      return knownNames[cleanName];
+    }
+    
+    // Essayer de séparer nom/prénom pour les patterns communs
+    const patterns = [
+      // Pattern: prénom + nom avec majuscule (johnDoe -> john Doe)
+      /^([a-z]+)([A-Z][a-z]+)$/,
+      // Pattern: prénom + nom avec séparation par voyelle commune
+      /^([a-z]{2,8})([aeiouy][a-z]{2,8})$/,
+      // Pattern: essayer de séparer au milieu pour les noms longs
+      /^([a-z]{4,8})([a-z]{4,8})$/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = cleanName.match(pattern);
+      if (match) {
+        const firstName = match[1].charAt(0).toUpperCase() + match[1].slice(1);
+        const lastName = match[2].charAt(0).toUpperCase() + match[2].slice(1);
+        return `${firstName} ${lastName}`;
+      }
+    }
+    
+    // Si aucun pattern ne correspond, capitaliser simplement
+    return cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+  }
 
   nav: NavSection[] = [
     {

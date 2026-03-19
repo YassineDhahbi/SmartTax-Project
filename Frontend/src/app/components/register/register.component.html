@@ -20,84 +20,155 @@
   </div>
 </div>
 
-<!-- Register Form Area -->
-<div class="auth-area py-120">
-  <div class="container">
-    <div class="col-md-5 mx-auto">
-      <div class="auth-form">
-        <div class="auth-header">
-          <img src="assets/img/logo/logo arabsoft.png" alt="Logo">
-          <p>Create your free lovcare account</p>
+<!-- Register Area (same template as login) -->
+<div class="auth-area">
+  <div class="auth-layout">
+    <!-- Left side: illustration / branding -->
+    <div class="auth-illustration">
+      <div class="auth-illustration-overlay">
+        <div class="auth-illustration-header">
+          <div class="auth-brand">
+            <div class="auth-brand-text">
+             
+            </div>
+          </div>
+         
         </div>
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      </div>
+    </div>
+
+    <!-- Right side: register card -->
+    <div class="auth-form">
+      <div class="auth-header">
+        <h2>Créer un compte</h2>
+        <p>Rejoignez SmartTax en quelques secondes</p>
+      </div>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
           <div class="form-group">
+            <label for="firstName">Prénom</label>
             <div class="form-icon">
-              <i class="far fa-user-tie"></i>
-              <input type="text" formControlName="firstName" class="form-control" placeholder="First Name" (blur)="validateField('firstName')" />
+              <i class="far fa-user"></i>
+              <input id="firstName" type="text" formControlName="firstName" class="form-control" placeholder="Votre prénom" (blur)="validateField('firstName')" />
             </div>
           </div>
+
           <div class="form-group">
+            <label for="lastName">Nom</label>
             <div class="form-icon">
-              <i class="far fa-user-tie"></i>
-              <input type="text" formControlName="lastName" class="form-control" placeholder="Last Name" (blur)="validateField('lastName')" />
+              <i class="far fa-user"></i>
+              <input id="lastName" type="text" formControlName="lastName" class="form-control" placeholder="Votre nom" (blur)="validateField('lastName')" />
             </div>
           </div>
-          <div class="form-group">
-            <div class="form-icon">
-              <i class="far fa-envelope"></i>
-              <input type="email" formControlName="email" class="form-control" placeholder="Your Email" (blur)="validateField('email')" />
-            </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Adresse Email</label>
+          <div class="form-icon">
+            <i class="far fa-envelope"></i>
+            <input id="email" type="email" formControlName="email" class="form-control" placeholder="exemple@domaine.com" (blur)="validateField('email')" />
           </div>
+        </div>
+
+        <div class="form-grid">
           <div class="form-group">
+            <label for="password">Mot de passe</label>
             <div class="form-icon">
               <i class="far fa-key"></i>
-              <input [type]="showPassword ? 'text' : 'password'" formControlName="password" class="form-control" placeholder="Your Password" (input)="updatePasswordStrength()" (blur)="validateField('password')" />
+              <input
+                id="password"
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                class="form-control"
+                placeholder="Votre mot de passe"
+                (input)="updatePasswordStrength()"
+                (blur)="validateField('password')"
+              />
               <span class="password-view" (click)="togglePasswordVisibility()">
                 <i [class]="showPassword ? 'far fa-eye' : 'far fa-eye-slash'"></i>
               </span>
             </div>
-            <div class="password-strength-bar mt-2">
+            <div class="password-strength-bar">
               <div class="strength-label">{{ passwordStrength.label }}</div>
               <div class="progress">
                 <div class="progress-bar" [ngClass]="passwordStrength.class" [style.width]="passwordStrength.width"></div>
               </div>
             </div>
           </div>
+
           <div class="form-group">
+            <label for="confirmPassword">Confirmer</label>
             <div class="form-icon">
               <i class="far fa-key"></i>
-              <input [type]="showPassword ? 'text' : 'password'" formControlName="confirmPassword" class="form-control" placeholder="Confirm Password" (blur)="validateField('confirmPassword')" />
-              <span class="password-view" (click)="togglePasswordVisibility()">
-                <i [class]="showPassword ? 'far fa-eye' : 'far fa-eye-slash'"></i>
+              <input
+                id="confirmPassword"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                class="form-control"
+                placeholder="Confirmez le mot de passe"
+                (blur)="validateField('confirmPassword')"
+              />
+              <span class="password-view" (click)="toggleConfirmPasswordVisibility()">
+                <i [class]="showConfirmPassword ? 'far fa-eye' : 'far fa-eye-slash'"></i>
               </span>
             </div>
           </div>
+        </div>
+
+        <div class="form-grid">
           <div class="form-group">
+            <label for="dateNaissance">Date de naissance</label>
             <div class="form-icon">
               <i class="far fa-calendar"></i>
-              <input type="date" formControlName="dateNaissance" class="form-control" placeholder="Date of Birth" (blur)="validateField('dateNaissance')" />
+              <input id="dateNaissance" type="date" formControlName="dateNaissance" class="form-control" (blur)="validateField('dateNaissance')" />
             </div>
           </div>
-         
-          <div class="auth-btn">
-            <button type="submit" class="theme-btn" [disabled]="isLoading">
-              <span class="far fa-paper-plane"></span> Register
-            </button>
-          </div>
-        </form>
-        <div class="auth-bottom">
-          <div class="auth-social">
-            <p>Continue with social media</p>
-            <div class="auth-social-list">
-              <a href="#"><i class="fab fa-facebook-f"></i></a>
-              <a href="#"><i class="fab fa-google"></i></a>
-              <a href="#"><i class="fab fa-x-twitter"></i></a>
+
+          <div class="form-group">
+            <label for="role">Rôle</label>
+            <div class="form-icon">
+              <i class="far fa-user-shield"></i>
+              <select id="role" formControlName="role" class="form-control">
+                <option value="CONTRIBUABLE">Contribuable</option>
+                <option value="AGENT">Agent DGI</option>
+              </select>
             </div>
           </div>
-          <p class="auth-bottom-text">
-            Already have an account? <a routerLink="/login">Login.</a>
-          </p>
         </div>
+
+        <div class="auth-btn">
+          <button type="submit" class="theme-btn" [disabled]="isLoading">
+            <span class="far fa-paper-plane"></span>
+            <span>S'inscrire</span>
+          </button>
+        </div>
+
+        <!-- <div class="auth-divider">
+          <span>Ou</span>
+        </div>
+
+        <div class="auth-social-buttons">
+          <button type="button" class="social-btn google-btn">
+            <span class="social-icon">
+              <i class="fab fa-google"></i>
+            </span>
+            <span>Continuer avec Google</span>
+          </button>
+          <button type="button" class="social-btn facebook-btn">
+            <span class="social-icon">
+              <i class="fab fa-facebook-f"></i>
+            </span>
+            <span>Continuer avec Facebook</span>
+          </button>
+        </div> -->
+      </form>
+
+      <div class="auth-bottom">
+        <p class="auth-bottom-text">
+          Déjà un compte ?
+          <a routerLink="/login">Connectez-vous</a>
+        </p>
       </div>
     </div>
   </div>

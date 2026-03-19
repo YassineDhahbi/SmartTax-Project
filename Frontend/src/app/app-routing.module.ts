@@ -23,12 +23,12 @@ import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
-  { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
+  { path: 'home', component: HomeComponent, canActivate: [AuthGuard], data: { roles: ['CONTRIBUABLE', 'AGENT', 'ADMIN'] } },
   { path: 'register', component: RegisterComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
-  { path: 'admin', component: AdminComponent, canActivate: [AuthGuard] }, // Protégé par AuthGuard
+  { path: 'admin', component: AdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } }, // Protégé par AuthGuard
   { path: 'utilisateur', component: UtilisateurComponent },
   { path: 'service', component: BlogComponent },
   { path: 'parametre', component: ParametreComponent },
@@ -39,7 +39,7 @@ const routes: Routes = [
   { path: 'Immatriculation', component: ImmatriculationComponent },
   { path: 'Reclamation', component: ReclamationComponent },
   { path: 'Dossier', component: DossierComponent },
-  { path: 'Dashboard-Agent', component: DashboardAgentComponent },
+  { path: 'Dashboard-Agent', component: DashboardAgentComponent, canActivate: [AuthGuard], data: { roles: ['AGENT'] } },
   
 
 

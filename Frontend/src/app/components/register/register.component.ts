@@ -14,6 +14,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   errorMessage: string | null = null;
   isLoading: boolean = false;
   showPassword: boolean = false;
+  showConfirmPassword: boolean = false;
   passwordStrength: { label: string; class: string; width: string } = {
     label: '',
     class: '',
@@ -33,7 +34,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
       dateNaissance: ['', [Validators.required, this.minimumAgeValidator(18)]],
-      photo: ['', Validators.pattern(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/)]
+      photo: ['', Validators.pattern(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/)],
+      role: ['CONTRIBUABLE', Validators.required]
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -150,7 +152,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         email: this.registerForm.value.email,
         password: this.registerForm.value.password,
         dateNaissance: new Date(this.registerForm.value.dateNaissance).toISOString().split('T')[0],
-        photo: this.registerForm.value.photo || null
+        photo: this.registerForm.value.photo || null,
+        role: this.registerForm.value.role
       };
 
       this.authService.register(user).subscribe({
@@ -169,6 +172,10 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 
   addToast(title: string, message: string, type: string): void {

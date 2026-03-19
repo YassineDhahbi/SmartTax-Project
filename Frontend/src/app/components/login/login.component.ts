@@ -36,14 +36,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('Login component initialized');
-    if (this.authService.isLoggedIn()) {
-      const role = localStorage.getItem('role');
-      if (role === 'admin') {
-        this.router.navigate(['/admin']);
-      } else if (role === 'CONTRIBUABLE') {
-        this.router.navigate(['/home']);
-      }
-    }
+    // Remove automatic redirection to allow manual access to login page
     this.loadRecaptchaScript();
   }
 
@@ -175,6 +168,8 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
               setTimeout(() => this.router.navigate(['/admin']), 2000);
             } else if (response.role === 'CONTRIBUABLE') {
               setTimeout(() => this.router.navigate(['/home']), 2000);
+            } else if (response.role === 'AGENT') {
+              setTimeout(() => this.router.navigate(['/Dashboard-Agent']), 2000);
             } else {
               this.addToast('Erreur', 'Rôle non reconnu. Veuillez contacter un administrateur.', 'toast-error');
             }
