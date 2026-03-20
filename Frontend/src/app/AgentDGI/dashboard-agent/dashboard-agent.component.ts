@@ -88,6 +88,8 @@ export class DashboardAgentComponent implements OnInit {
   // Modal properties
   showDetailsModal = false;
   selectedImmatriculation: any = null;
+  showDeleteModal = false;
+  immatriculationToDelete: any = null;
   
   // Filter properties
   activeFilter: 'all' | 'PHYSIQUE' | 'MORALE' = 'all';
@@ -508,26 +510,40 @@ export class DashboardAgentComponent implements OnInit {
     return 'low';
   }
 
-  deleteImmatriculation(immatriculation: any): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'immatriculation "${immatriculation.dossierNumber || immatriculation.id}" ?\n\nCette action est irréversible.`)) {
-      this.immatriculationService.deleteImmatriculation(immatriculation.id).subscribe({
-        next: () => {
-          // Supprimer localement
-          const index = this.immatriculations.findIndex(i => i.id === immatriculation.id);
-          if (index > -1) {
-            this.immatriculations.splice(index, 1);
-            this.applyFilter();
-          }
-          
-          // Afficher un message de succès (vous pourriez utiliser un toast/notification)
-          console.log('Immatriculation supprimée avec succès');
-        },
-        error: (error: any) => {
-          console.error('Erreur lors de la suppression de l\'immatriculation:', error);
-          alert('Une erreur est survenue lors de la suppression. Veuillez réessayer.');
+  openDeleteModal(immatriculation: any): void {
+    this.immatriculationToDelete = immatriculation;
+    this.showDeleteModal = true;
+  }
+
+  confirmDelete(): void {
+    if (!this.immatriculationToDelete) return;
+    
+    this.immatriculationService.deleteImmatriculation(this.immatriculationToDelete.id).subscribe({
+      next: () => {
+        // Supprimer localement
+        const index = this.immatriculations.findIndex(i => i.id === this.immatriculationToDelete.id);
+        if (index > -1) {
+          this.immatriculations.splice(index, 1);
+          this.applyFilter();
         }
-      });
-    }
+        
+        // Fermer la modal
+        this.closeDeleteModal();
+        
+        // Afficher un message de succès (vous pourriez utiliser un toast/notification)
+        console.log('Immatriculation supprimée avec succès');
+      },
+      error: (error: any) => {
+        console.error('Erreur lors de la suppression de l\'immatriculation:', error);
+        alert('Une erreur est survenue lors de la suppression. Veuillez réessayer.');
+        this.closeDeleteModal();
+      }
+    });
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.immatriculationToDelete = null;
   }
 
   printDetails(): void {

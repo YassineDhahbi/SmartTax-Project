@@ -364,7 +364,7 @@
                       <i class="fa-regular fa-eye"></i>
                     </button>
                     <button class="da__rowBtn da__rowBtn--danger" type="button" 
-                            (click)="deleteImmatriculation(immatriculation)" 
+                            (click)="openDeleteModal(immatriculation)" 
                             title="Supprimer l'immatriculation" 
                             aria-label="Supprimer l'immatriculation">
                       <i class="fa-solid fa-trash"></i>
@@ -549,6 +549,64 @@
           Imprimer
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de suppression -->
+<div class="da__deleteModalOverlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="da__deleteModal" (click)="$event.stopPropagation()">
+    <div class="da__deleteModalHeader">
+      <div class="da__deleteModalIcon">
+        <i class="fa-solid fa-exclamation-triangle"></i>
+      </div>
+      <h3 class="da__deleteModalTitle">Confirmer la suppression</h3>
+      <button class="da__deleteModalClose" (click)="closeDeleteModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="da__deleteModalBody">
+      <div class="da__deleteModalContent">
+        <p class="da__deleteModalMessage">
+          Êtes-vous sûr de vouloir supprimer cette immatriculation ?
+        </p>
+        <div class="da__deleteModalInfo" *ngIf="immatriculationToDelete">
+          <div class="da__deleteModalItem">
+            <strong>N° Dossier:</strong>
+            <span>{{ immatriculationToDelete.dossierNumber || immatriculationToDelete.id }}</span>
+          </div>
+          <div class="da__deleteModalItem">
+            <strong>Contribuable:</strong>
+            <span>{{ getContribuableName(immatriculationToDelete) }}</span>
+          </div>
+          <div class="da__deleteModalItem">
+            <strong>Type:</strong>
+            <span class="da__deleteModalType" 
+                  [class.da__deleteModalType--physique]="immatriculationToDelete.typeContribuable === 'PHYSIQUE'"
+                  [class.da__deleteModalType--morale]="immatriculationToDelete.typeContribuable === 'MORALE'">
+              {{ immatriculationToDelete.typeContribuable === 'PHYSIQUE' ? 'Personne physique' : 'Personne morale' }}
+            </span>
+          </div>
+        </div>
+        <div class="da__deleteModalWarning">
+          <i class="fa-solid fa-info-circle"></i>
+          <p>
+            <strong>Attention:</strong> Cette action est irréversible et entraînera la suppression définitive de toutes les données associées à ce dossier.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="da__deleteModalFooter">
+      <button class="da__deleteModalBtn da__deleteModalBtn--cancel" (click)="closeDeleteModal()">
+        <i class="fa-solid fa-times"></i>
+        Annuler
+      </button>
+      <button class="da__deleteModalBtn da__deleteModalBtn--confirm" (click)="confirmDelete()">
+        <i class="fa-solid fa-trash"></i>
+        Supprimer définitivement
+      </button>
     </div>
   </div>
 </div>
