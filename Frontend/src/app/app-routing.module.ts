@@ -18,6 +18,7 @@ import { ImmatriculationComponent } from './components/immatriculation/immatricu
 import { ReclamationComponent } from './components/reclamation/reclamation.component';
 import { DossierComponent } from './components/dossier/dossier.component';
 import { DashboardAgentComponent } from './AgentDGI/dashboard-agent/dashboard-agent.component';
+import { TrashViewComponent } from './AgentDGI/trash-view/trash-view.component';
 
 import { AuthGuard } from './guards/auth.guard';
 
@@ -40,12 +41,7 @@ const routes: Routes = [
   { path: 'Reclamation', component: ReclamationComponent },
   { path: 'Dossier', component: DossierComponent },
   { path: 'Dashboard-Agent', component: DashboardAgentComponent, canActivate: [AuthGuard], data: { roles: ['AGENT'] } },
-  
-
-
-
-
-
+  { path: 'trash', component: TrashViewComponent, canActivate: [AuthGuard], data: { roles: ['AGENT'] } },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }
 ];

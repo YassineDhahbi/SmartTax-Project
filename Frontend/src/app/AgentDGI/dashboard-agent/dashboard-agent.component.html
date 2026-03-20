@@ -310,6 +310,11 @@
                 Personnes morales
                 <span class="da__filterCount">{{ moraleCount }}</span>
               </button>
+              <button class="da__filterBtn da__filterBtn--trash" 
+                      (click)="navigateToTrash()">
+                <i class="fa-solid fa-trash"></i>
+                Corbeille
+              </button>
             </div>
           </div>
 
@@ -592,7 +597,7 @@
         <div class="da__deleteModalWarning">
           <i class="fa-solid fa-info-circle"></i>
           <p>
-            <strong>Attention:</strong> Cette action est irréversible et entraînera la suppression définitive de toutes les données associées à ce dossier.
+            <strong>Information:</strong> Cette immatriculation sera déplacée vers la corbeille et conservée pendant 30 jours avant suppression définitive. Vous pourrez la restaurer à tout moment depuis la corbeille.
           </p>
         </div>
       </div>
@@ -605,7 +610,7 @@
       </button>
       <button class="da__deleteModalBtn da__deleteModalBtn--confirm" (click)="confirmDelete()">
         <i class="fa-solid fa-trash"></i>
-        Supprimer définitivement
+        Déplacer vers la corbeille
       </button>
     </div>
   </div>

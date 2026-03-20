@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ImmatriculationService } from '../../services/immatriculation.service';
+import { TrashService } from '../../services/trash.service';
 
 type Tone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger';
 
@@ -78,7 +79,7 @@ export class DashboardAgentComponent implements OnInit {
 
   theme: 'dark' | 'light' = getInitialTheme();
 
-  constructor(private http: HttpClient, private immatriculationService: ImmatriculationService) {}
+  constructor(private http: HttpClient, private immatriculationService: ImmatriculationService, private trashService: TrashService) {}
 
   // Données des immatriculations depuis PostgreSQL
   immatriculations: any[] = [];
@@ -518,7 +519,8 @@ export class DashboardAgentComponent implements OnInit {
   confirmDelete(): void {
     if (!this.immatriculationToDelete) return;
     
-    this.immatriculationService.deleteImmatriculation(this.immatriculationToDelete.id).subscribe({
+    // Déplacer vers la corbeille au lieu de supprimer définitivement
+    this.trashService.moveToTrash(this.immatriculationToDelete.id.toString(), this.userName || 'current_user').subscribe({
       next: () => {
         // Supprimer localement
         const index = this.immatriculations.findIndex(i => i.id === this.immatriculationToDelete.id);
@@ -530,12 +532,13 @@ export class DashboardAgentComponent implements OnInit {
         // Fermer la modal
         this.closeDeleteModal();
         
-        // Afficher un message de succès (vous pourriez utiliser un toast/notification)
-        console.log('Immatriculation supprimée avec succès');
+        // Afficher un message de succès
+        console.log('Immatriculation déplacée vers la corbeille. Elle sera supprimée définitivement dans 30 jours.');
+        // Vous pourriez utiliser un toast/notification ici
       },
       error: (error: any) => {
-        console.error('Erreur lors de la suppression de l\'immatriculation:', error);
-        alert('Une erreur est survenue lors de la suppression. Veuillez réessayer.');
+        console.error('Erreur lors du déplacement vers la corbeille:', error);
+        alert('Une erreur est survenue lors du déplacement vers la corbeille. Veuillez réessayer.');
         this.closeDeleteModal();
       }
     });
@@ -544,6 +547,12 @@ export class DashboardAgentComponent implements OnInit {
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.immatriculationToDelete = null;
+  }
+
+  // Navigation vers la corbeille
+  navigateToTrash(): void {
+    // Rediriger vers la page de corbeille
+    window.location.href = '/trash';
   }
 
   printDetails(): void {

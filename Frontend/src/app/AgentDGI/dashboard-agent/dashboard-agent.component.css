@@ -1759,6 +1759,20 @@
     justify-content: center;
   }
 }
+
+/* Trash Button Styles */
+.da__filterBtn--trash {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--danger);
+}
+
+.da__filterBtn--trash:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #dc2626;
+  transform: translateY(-1px);
+}
 :host{
   --bg-0:#0b1220;
   --bg-1:#0d1526;
@@ -3519,4 +3533,18 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+/* Trash Button Styles */
+.da__filterBtn--trash {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--danger);
+}
+
+.da__filterBtn--trash:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #dc2626;
+  transform: translateY(-1px);
 }

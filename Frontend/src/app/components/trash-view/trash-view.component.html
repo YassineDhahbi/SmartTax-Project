@@ -1,0 +1,133 @@
+<div class="trash-container">
+  <!-- Header avec statistiques -->
+  <div class="trash-header">
+    <div class="trash-title">
+      <i class="fa-solid fa-trash"></i>
+      <h2>Corbeille</h2>
+    </div>
+    
+    <div class="trash-stats">
+      <div class="stat-card">
+        <span class="stat-number">{{ trashStats.totalItems }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat-card warning" *ngIf="trashStats.expiringSoon > 0">
+        <span class="stat-number">{{ trashStats.expiringSoon }}</span>
+        <span class="stat-label">Expirant bientôt</span>
+      </div>
+      <div class="stat-card danger" *ngIf="trashStats.expired > 0">
+        <span class="stat-number">{{ trashStats.expired }}</span>
+        <span class="stat-label">Expirés</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions groupées -->
+  <div class="trash-actions" *ngIf="trashItems.length > 0">
+    <div class="bulk-actions">
+      <button class="btn btn-secondary" (click)="selectAll()" 
+              [disabled="trashItems.length === 0">
+        <i class="fa-solid fa-check-square"></i>
+        {{ selectedItems.length === trashItems.length ? 'Désélectionner tout' : 'Sélectionner tout' }}
+      </button>
+      
+      <button class="btn btn-primary" (click)="restoreSelected()" 
+              [disabled]="selectedItems.length === 0">
+        <i class="fa-solid fa-undo"></i>
+        Restaurer ({{ selectedItems.length }})
+      </button>
+      
+      <button class="btn btn-danger" (click)="deleteSelected()" 
+              [disabled]="selectedItems.length === 0">
+        <i class="fa-solid fa-trash"></i>
+        Supprimer définitivement ({{ selectedItems.length }})
+      </button>
+    </div>
+    
+    <div class="cleanup-actions">
+      <button class="btn btn-warning" (click)="cleanExpiredItems()" 
+              *ngIf="trashStats.expired > 0">
+        <i class="fa-solid fa-broom"></i>
+        Nettoyer les expirés
+      </button>
+      
+      <button class="btn btn-danger" (click)="emptyTrash()">
+        <i class="fa-solid fa-trash-alt"></i>
+        Vider la corbeille
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement de la corbeille...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!isLoading && trashItems.length === 0">
+    <i class="fa-solid fa-trash-alt empty-icon"></i>
+    <h3>Corbeille vide</h3>
+    <p>Aucun élément dans la corbeille</p>
+  </div>
+
+  <!-- Liste des éléments -->
+  <div class="trash-list" *ngIf="!isLoading && trashItems.length > 0">
+    <div class="trash-item" 
+         *ngFor="let item of trashItems" 
+         [class.selected]="selectedItems.includes(item.id)">
+      
+      <!-- Checkbox de sélection -->
+      <div class="item-checkbox">
+        <input type="checkbox" 
+               [checked]="selectedItems.includes(item.id)"
+               (change)="toggleItemSelection(item.id)">
+      </div>
+
+      <!-- Informations principales -->
+      <div class="item-info">
+        <div class="item-header">
+          <h4>{{ item.data.nomContribuable || 'N/A' }}</h4>
+          <span class="item-type">{{ item.type }}</span>
+        </div>
+        
+        <div class="item-details">
+          <p><strong>N° dossier:</strong> {{ item.data.numeroDossier || 'N/A' }}</p>
+          <p><strong>Type:</strong> {{ item.data.typeContribuable || 'N/A' }}</p>
+          <p><strong>Supprimé le:</strong> {{ item.deletedAt | date:'dd/MM/yyyy à HH:mm' }}</p>
+          <p><strong>Par:</strong> {{ item.deletedBy || 'N/A' }}</p>
+        </div>
+      </div>
+
+      <!-- Statut et temps restant -->
+      <div class="item-status">
+        <div class="days-remaining" 
+             [class]="getDaysRemainingClass(item.daysRemaining)">
+          <i class="fa-solid fa-clock"></i>
+          <span>{{ getDaysRemainingText(item.daysRemaining) }}</span>
+        </div>
+        
+        <div class="progress-bar">
+          <div class="progress-fill" 
+               [style.width.%]="(item.daysRemaining / 30) * 100"
+               [class]="getDaysRemainingClass(item.daysRemaining)"></div>
+        </div>
+      </div>
+
+      <!-- Actions individuelles -->
+      <div class="item-actions">
+        <button class="btn btn-sm btn-primary" 
+                (click)="restoreItem(item.id)"
+                title="Restaurer">
+          <i class="fa-solid fa-undo"></i>
+        </button>
+        
+        <button class="btn btn-sm btn-danger" 
+                (click)="permanentDeleteItem(item.id)"
+                title="Supprimer définitivement">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

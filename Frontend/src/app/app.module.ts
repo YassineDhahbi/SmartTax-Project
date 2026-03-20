@@ -35,6 +35,7 @@ import { ReclamationService } from './services/reclamation.service';
 import { NotificationService } from './services/notification.service';
 import { DashboardAgentComponent } from './AgentDGI/dashboard-agent/dashboard-agent.component';
 import { ProfileAgentComponent } from './AgentDGI/profile-agent/profile-agent.component';
+import { TrashViewComponent } from './AgentDGI/trash-view/trash-view.component';
 
 
 @NgModule({
@@ -65,7 +66,8 @@ import { ProfileAgentComponent } from './AgentDGI/profile-agent/profile-agent.co
     DossierComponent,
     NotificationComponent,
     DashboardAgentComponent,
-    ProfileAgentComponent
+    ProfileAgentComponent,
+    TrashViewComponent
 
 
   ],
