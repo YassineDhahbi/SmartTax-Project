@@ -434,6 +434,12 @@
                             aria-label="Voir les détails de l'immatriculation">
                       <i class="fa-regular fa-eye"></i>
                     </button>
+                    <button class="da__rowBtn da__rowBtn--pdf" type="button" 
+                            (click)="generatePDF(immatriculation)" 
+                            title="Générer le PDF avec QR Code" 
+                            aria-label="Générer le PDF avec QR Code">
+                      <i class="fa-solid fa-file-pdf"></i>
+                    </button>
                     <button class="da__rowBtn da__rowBtn--danger" type="button" 
                             (click)="openDeleteModal(immatriculation)" 
                             title="Supprimer l'immatriculation" 

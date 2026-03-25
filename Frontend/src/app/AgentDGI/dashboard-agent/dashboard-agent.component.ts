@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
 import { Immatriculation } from '../../models/immatriculation.model';
+import jsPDF from 'jspdf';
+import * as QRCode from 'qrcode';
 
 type Tone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger';
 
@@ -727,6 +729,95 @@ export class DashboardAgentComponent implements OnInit {
   navigateToTrash(): void {
     // Rediriger vers la page de corbeille
     window.location.href = '/trash';
+  }
+
+  // ==================== GÉNÉRATION PDF ====================
+
+  async generatePDF(immatriculation: any): Promise<void> {
+    try {
+      console.log('📄 Génération PDF pour:', immatriculation.dossierNumber);
+      
+      // Créer le document PDF
+      const doc = new jsPDF();
+      
+      // Définir les styles
+      doc.setFontSize(20);
+      doc.setTextColor(0, 0, 0);
+      
+      // Titre
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.text('DOSSIER D\'IMMATRICULATION', 105, 30, { align: 'center' });
+      
+      // Informations principales
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      let yPosition = 60;
+      
+      doc.text(`Numéro de dossier: ${immatriculation.dossierNumber || 'N/A'}`, 20, yPosition);
+      yPosition += 10;
+      
+      doc.text(`Nom: ${immatriculation.nom || 'N/A'} ${immatriculation.prenom || ''}`, 20, yPosition);
+      yPosition += 10;
+      
+      if (immatriculation.raisonSociale) {
+        doc.text(`Raison sociale: ${immatriculation.raisonSociale}`, 20, yPosition);
+        yPosition += 10;
+      }
+      
+      doc.text(`Email: ${immatriculation.email || 'N/A'}`, 20, yPosition);
+      yPosition += 10;
+      
+      doc.text(`Téléphone: ${immatriculation.telephone || 'N/A'}`, 20, yPosition);
+      yPosition += 10;
+      
+      doc.text(`Statut: ${this.getStatutKey(immatriculation.status)}`, 20, yPosition);
+      yPosition += 10;
+      
+      doc.text(`Date de création: ${this.formatDate(immatriculation.dateCreation)}`, 20, yPosition);
+      yPosition += 20;
+      
+      // Générer le QR Code
+      const qrData = JSON.stringify({
+        dossierNumber: immatriculation.dossierNumber,
+        nom: immatriculation.nom,
+        prenom: immatriculation.prenom,
+        email: immatriculation.email,
+        status: immatriculation.status,
+        dateCreation: immatriculation.dateCreation
+      });
+      
+      const qrCodeDataURL = await QRCode.toDataURL(qrData, {
+        width: 100,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      // Ajouter le QR Code
+      doc.text('QR Code - Informations du dossier:', 20, yPosition);
+      doc.addImage(qrCodeDataURL, 'PNG', 150, yPosition - 10, 50, 50);
+      
+      yPosition += 60;
+      
+      // Pied de page
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Document généré automatiquement - SmartTax System', 105, 280, { align: 'center' });
+      doc.text(`Date de génération: ${new Date().toLocaleDateString('fr-FR')}`, 105, 285, { align: 'center' });
+      
+      // Télécharger le fichier
+      const fileName = `Dossier_${immatriculation.dossierNumber}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      this.showNotification('PDF généré et téléchargé avec succès !', 'success');
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la génération PDF:', error);
+      this.showNotification('Erreur lors de la génération du PDF', 'error');
+    }
   }
 
   // ==================== MÉTHODES DE TRI ====================
