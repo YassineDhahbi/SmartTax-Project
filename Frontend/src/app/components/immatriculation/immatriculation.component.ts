@@ -1126,11 +1126,9 @@ export class ImmatriculationComponent implements OnInit {
         result = await this.immatriculationService.createImmatriculation(dto).toPromise() as Immatriculation;
       }
 
-      // Si soumission complète et non brouillon, soumettre pour validation via le backend
-      if (this.submissionMode === 'submit' && result.id) {
-        result = await this.immatriculationService.submitDossier(result.id).toPromise() as Immatriculation;
-      }
-
+      // Le dossier est déjà créé avec le statut EN_COURS_VERIFICATION
+      // Plus besoin d'appeler submitDossier() pour changer le statut
+      
       // Mettre à jour le numéro de dossier
       this.dossierNumber = result.dossierNumber;
       

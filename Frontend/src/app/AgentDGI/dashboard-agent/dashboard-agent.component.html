@@ -659,14 +659,28 @@
       </div>
 
       <div class="da__modalFooter">
-        <button class="da__btn da__btn--secondary" (click)="closeModal()">
-          <i class="fa-solid fa-times"></i>
-          Fermer
-        </button>
-        <button class="da__btn da__btn--primary" (click)="printDetails()">
-          <i class="fa-solid fa-print"></i>
-          Imprimer
-        </button>
+        <div class="da__modalFooterLeft">
+          <button class="da__btn da__btn--secondary" (click)="closeModal()">
+            <i class="fa-solid fa-times"></i>
+            Fermer
+          </button>
+          <button class="da__btn da__btn--primary" (click)="printDetails()">
+            <i class="fa-solid fa-print"></i>
+            Imprimer
+          </button>
+        </div>
+        
+        <!-- Boutons d'action pour l'agent (uniquement si statut EN_COURS_VERIFICATION) -->
+        <div class="da__modalFooterRight" *ngIf="selectedImmatriculation.status === 'EN_COURS_VERIFICATION'">
+          <button class="da__btn da__btn--success" (click)="validateImmatriculation()">
+            <i class="fa-solid fa-check"></i>
+            Valider
+          </button>
+          <button class="da__btn da__btn--danger" (click)="openRejectModal()">
+            <i class="fa-solid fa-times"></i>
+            Rejeter
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -725,6 +739,67 @@
       <button class="da__deleteModalBtn da__deleteModalBtn--confirm" (click)="confirmDelete()">
         <i class="fa-solid fa-trash"></i>
         Déplacer vers la corbeille
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de rejet -->
+<div class="da__rejectModalOverlay" *ngIf="showRejectModal" (click)="closeRejectModal()">
+  <div class="da__rejectModal" (click)="$event.stopPropagation()">
+    <div class="da__rejectModalHeader">
+      <div class="da__rejectModalIcon">
+        <i class="fa-solid fa-times-circle"></i>
+      </div>
+      <h3 class="da__rejectModalTitle">Rejeter l'immatriculation</h3>
+      <button class="da__rejectModalClose" (click)="closeRejectModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="da__rejectModalBody">
+      <div class="da__rejectModalContent">
+        <p class="da__rejectModalMessage">
+          Veuillez indiquer le motif de rejet de cette immatriculation :
+        </p>
+        
+        <div class="da__rejectModalInfo" *ngIf="selectedImmatriculation">
+          <div class="da__rejectModalItem">
+            <strong>N° Dossier:</strong>
+            <span>{{ selectedImmatriculation.dossierNumber || selectedImmatriculation.id }}</span>
+          </div>
+          <div class="da__rejectModalItem">
+            <strong>Contribuable:</strong>
+            <span>{{ getContribuableName(selectedImmatriculation) }}</span>
+          </div>
+        </div>
+        
+        <div class="da__rejectModalForm">
+          <label for="rejectReason" class="da__rejectModalLabel">
+            Motif de rejet <span class="da__required">*</span>
+          </label>
+          <textarea 
+            id="rejectReason" 
+            class="da__rejectModalTextarea"
+            [(ngModel)]="rejectReason"
+            placeholder="Veuillez saisir le motif du rejet..."
+            rows="4"
+            required>
+          </textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="da__rejectModalFooter">
+      <button class="da__rejectModalBtn da__rejectModalBtn--cancel" (click)="closeRejectModal()">
+        <i class="fa-solid fa-times"></i>
+        Annuler
+      </button>
+      <button class="da__rejectModalBtn da__rejectModalBtn--confirm" 
+              (click)="confirmReject()" 
+              [disabled]="!rejectReason || rejectReason.trim().length === 0">
+        <i class="fa-solid fa-times"></i>
+        Rejeter
       </button>
     </div>
   </div>

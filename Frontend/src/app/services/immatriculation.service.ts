@@ -389,6 +389,7 @@ export class ImmatriculationService {
 
   private handleError(error: any): Observable<never> {
     console.error('Erreur dans ImmatriculationService:', error);
+    console.error('Structure complète de l\'erreur:', JSON.stringify(error, null, 2));
     
     let errorMessage = 'Une erreur est survenue';
     
@@ -396,22 +397,40 @@ export class ImmatriculationService {
       // Erreur côté client
       errorMessage = `Erreur client: ${error.error.message}`;
     } else if (error.status) {
-      // Erreur côté serveur
-      switch (error.status) {
-        case 400:
-          errorMessage = 'Données invalides';
-          break;
-        case 404:
-          errorMessage = 'Dossier non trouvé';
-          break;
-        case 409:
-          errorMessage = 'Doublon détecté';
-          break;
-        case 500:
-          errorMessage = 'Erreur interne du serveur';
-          break;
-        default:
-          errorMessage = `Erreur serveur: ${error.status}`;
+      // Erreur côté serveur - essayer d'abord le message du backend
+      let backendMessage = null;
+      
+      // Différentes structures possibles pour l'erreur du backend
+      if (error.error) {
+        if (typeof error.error === 'string') {
+          backendMessage = error.error;
+        } else if (error.error.message) {
+          backendMessage = error.error.message;
+        } else if (error.error.error && error.error.error.message) {
+          backendMessage = error.error.error.message;
+        }
+      }
+      
+      // Utiliser le message du backend si disponible, sinon le message par défaut
+      if (backendMessage) {
+        errorMessage = backendMessage;
+      } else {
+        switch (error.status) {
+          case 400:
+            errorMessage = 'Données invalides';
+            break;
+          case 404:
+            errorMessage = 'Dossier non trouvé';
+            break;
+          case 409:
+            errorMessage = 'Doublon détecté';
+            break;
+          case 500:
+            errorMessage = 'Erreur interne du serveur';
+            break;
+          default:
+            errorMessage = `Erreur serveur: ${error.status}`;
+        }
       }
     }
     

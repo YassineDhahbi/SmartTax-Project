@@ -92,6 +92,10 @@ export class DashboardAgentComponent implements OnInit {
   showDeleteModal = false;
   immatriculationToDelete: any = null;
   
+  // Reject modal properties
+  showRejectModal = false;
+  rejectReason: string = '';
+  
   // Filter properties
   activeFilter: 'all' | 'PHYSIQUE' | 'MORALE' = 'all';
   
@@ -563,6 +567,84 @@ export class DashboardAgentComponent implements OnInit {
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.immatriculationToDelete = null;
+  }
+
+  // Validation et rejet d'immatriculation
+  validateImmatriculation(): void {
+    if (!this.selectedImmatriculation) return;
+    
+    console.log('🔍 Validation de l\'immatriculation:', this.selectedImmatriculation.id);
+    
+    this.immatriculationService.validateDossier(this.selectedImmatriculation.id).subscribe({
+      next: (response) => {
+        console.log('✅ Immatriculation validée avec succès:', response);
+        
+        // Mettre à jour le statut dans la liste locale
+        const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
+        if (index !== -1) {
+          this.immatriculations[index] = response;
+          this.applyFilter();
+        }
+        
+        // Mettre à jour l'immatriculation sélectionnée
+        this.selectedImmatriculation = response;
+        
+        // Afficher un message de succès
+        alert('L\'immatriculation a été validée avec succès !');
+        
+        // Fermer le modal après validation
+        this.closeModal();
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors de la validation:', error);
+        alert('Une erreur est survenue lors de la validation. Veuillez réessayer.');
+      }
+    });
+  }
+
+  openRejectModal(): void {
+    this.showRejectModal = true;
+    this.rejectReason = '';
+  }
+
+  closeRejectModal(): void {
+    this.showRejectModal = false;
+    this.rejectReason = '';
+  }
+
+  confirmReject(): void {
+    if (!this.selectedImmatriculation || !this.rejectReason || this.rejectReason.trim().length === 0) {
+      return;
+    }
+    
+    console.log('🔍 Rejet de l\'immatriculation:', this.selectedImmatriculation.id, 'Motif:', this.rejectReason);
+    
+    this.immatriculationService.rejectDossier(this.selectedImmatriculation.id, this.rejectReason).subscribe({
+      next: (response) => {
+        console.log('✅ Immatriculation rejetée avec succès:', response);
+        
+        // Mettre à jour le statut dans la liste locale
+        const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
+        if (index !== -1) {
+          this.immatriculations[index] = response;
+          this.applyFilter();
+        }
+        
+        // Mettre à jour l'immatriculation sélectionnée
+        this.selectedImmatriculation = response;
+        
+        // Afficher un message de succès
+        alert('L\'immatriculation a été rejetée avec succès !');
+        
+        // Fermer les modals
+        this.closeRejectModal();
+        this.closeModal();
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors du rejet:', error);
+        alert('Une erreur est survenue lors du rejet. Veuillez réessayer.');
+      }
+    });
   }
 
   // Navigation vers la corbeille
