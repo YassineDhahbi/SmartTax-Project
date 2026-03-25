@@ -36,6 +36,12 @@ export class ImmatriculationService {
     return this.http.post<Immatriculation>(`${this.apiUrl}/create`, dto).pipe(
       map(response => {
         console.log('✅ Réponse API réussie:', response);
+        console.log('🔍 Vérification autresFiles dans la réponse:', {
+          autresFiles: response.autresFiles,
+          autresFilesLength: response.autresFiles?.length || 0,
+          autresFilesType: typeof response.autresFiles,
+          fullResponse: response
+        });
         return response;
       }),
       catchError(error => {

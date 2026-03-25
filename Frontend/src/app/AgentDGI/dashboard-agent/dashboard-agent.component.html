@@ -512,6 +512,120 @@
           </div>
         </div>
 
+        <!-- Documents joints -->
+        <div class="da__section">
+          <h3 class="da__sectionTitle">Documents joints</h3>
+          
+          <!-- Grid pour les documents principaux -->
+          <div class="da__documentsGrid">
+            <!-- Pièce d'identité -->
+            <div class="da__documentItem" *ngIf="selectedImmatriculation.identiteFile">
+              <div class="da__documentHeader">
+                <i class="fa-solid fa-id-card"></i>
+                <span>Pièce d'identité</span>
+              </div>
+              <div class="da__documentPreview">
+                <img [src]="selectedImmatriculation.identiteFile" 
+                     alt="Pièce d'identité" 
+                     class="da__documentImage"
+                     (error)="handleImageError($event)">
+                <div class="da__documentActions">
+                  <button class="da__btn da__btn--sm da__btn--primary" 
+                          (click)="viewDocument(selectedImmatriculation.identiteFile, 'Pièce d\'identité')">
+                    <i class="fa-solid fa-eye"></i> Voir
+                  </button>
+                  <button class="da__btn da__btn--sm da__btn--secondary" 
+                          (click)="downloadDocument(selectedImmatriculation.identiteFile, 'piece-identite')">
+                    <i class="fa-solid fa-download"></i> Télécharger
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Document d'activité -->
+            <div class="da__documentItem" *ngIf="selectedImmatriculation.activiteFile">
+              <div class="da__documentHeader">
+                <i class="fa-solid fa-briefcase"></i>
+                <span>Document d'activité</span>
+              </div>
+              <div class="da__documentPreview">
+                <img [src]="selectedImmatriculation.activiteFile" 
+                     alt="Document d'activité" 
+                     class="da__documentImage"
+                     (error)="handleImageError($event)">
+                <div class="da__documentActions">
+                  <button class="da__btn da__btn--sm da__btn--primary" 
+                          (click)="viewDocument(selectedImmatriculation.activiteFile, 'Document d\'activité')">
+                    <i class="fa-solid fa-eye"></i> Voir
+                  </button>
+                  <button class="da__btn da__btn--sm da__btn--secondary" 
+                          (click)="downloadDocument(selectedImmatriculation.activiteFile, 'document-activite')">
+                    <i class="fa-solid fa-download"></i> Télécharger
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Photo personnelle -->
+            <div class="da__documentItem" *ngIf="selectedImmatriculation.photoFile">
+              <div class="da__documentHeader">
+                <i class="fa-solid fa-user"></i>
+                <span>Photo personnelle</span>
+              </div>
+              <div class="da__documentPreview">
+                <img [src]="selectedImmatriculation.photoFile" 
+                     alt="Photo personnelle" 
+                     class="da__documentImage"
+                     (error)="handleImageError($event)">
+                <div class="da__documentActions">
+                  <button class="da__btn da__btn--sm da__btn--primary" 
+                          (click)="viewDocument(selectedImmatriculation.photoFile, 'Photo personnelle')">
+                    <i class="fa-solid fa-eye"></i> Voir
+                  </button>
+                  <button class="da__btn da__btn--sm da__btn--secondary" 
+                          (click)="downloadDocument(selectedImmatriculation.photoFile, 'photo-personnelle')">
+                    <i class="fa-solid fa-download"></i> Télécharger
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section séparée pour les autres documents -->
+          <div class="da__otherDocumentsSection" *ngIf="selectedImmatriculation.autresFiles && selectedImmatriculation.autresFiles.length > 0" style="margin-top: 24px;">
+            <div class="da__documentItem">
+              <div class="da__documentHeader">
+                <i class="fa-solid fa-folder"></i>
+                <span>Autres documents ({{ selectedImmatriculation.autresFiles.length }})</span>
+              </div>
+              <div class="da__documentList">
+                <div class="da__otherDocument" *ngFor="let doc of selectedImmatriculation.autresFiles; let i = index">
+                  <div class="da__otherDocumentInfo">
+                    <i class="fa-solid fa-file"></i>
+                    <span>Document {{ i + 1 }}</span>
+                  </div>
+                  <div class="da__documentActions">
+                    <button class="da__btn da__btn--sm da__btn--primary" 
+                            (click)="viewDocument(doc, 'Document ' + (i + 1))">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button class="da__btn da__btn--sm da__btn--secondary" 
+                            (click)="downloadDocument(doc, 'document-' + (i + 1))">
+                      <i class="fa-solid fa-download"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aucun document -->
+          <div class="da__noDocuments" *ngIf="!hasDocuments()">
+            <i class="fa-solid fa-folder-open"></i>
+            <span>Aucun document joint</span>
+          </div>
+        </div>
+
         <!-- Scores et validation -->
         <div class="da__section" *ngIf="selectedImmatriculation.overallScore !== undefined">
           <h3 class="da__sectionTitle">Scores de validation</h3>

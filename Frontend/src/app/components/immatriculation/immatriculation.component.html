@@ -757,6 +757,10 @@
                                             <span class="label">Photo personnelle:</span>
                                             <span class="value">{{ files.photo.name }}</span>
                                         </div>
+                                        <div class="summary-item" *ngIf="files.autres && files.autres.length > 0">
+                                            <span class="label">Autres documents:</span>
+                                            <span class="value">{{ files.autres.length }} fichier(s)</span>
+                                        </div>
                                     </div>
                                 </div>
 

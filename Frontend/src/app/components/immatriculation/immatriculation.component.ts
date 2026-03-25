@@ -902,6 +902,18 @@ export class ImmatriculationComponent implements OnInit {
     this.calculateScores();
   }
 
+  private async convertFileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        console.log('🔄 Conversion fichier en base64:', file.name);
+        resolve(reader.result as string);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   private async performOCR(): Promise<void> {
     // Simulation OCR - en réalité, appeler une API OCR
     const cin = this.immatriculationForm.get('cin')?.value;
@@ -1019,6 +1031,15 @@ export class ImmatriculationComponent implements OnInit {
       const normalizedTypeContribuable = typeContribuableValue?.toUpperCase() as TypeContribuable;
       console.log('🔍 Type contribuable normalisé:', normalizedTypeContribuable);
       
+      // Ajouter les fichiers convertis en base64
+      console.log('📁 Fichiers avant conversion:', {
+        identite: !!this.files.identite,
+        activite: !!this.files.activite,
+        photo: !!this.files.photo,
+        autres: this.files.autres.length,
+        autresFiles: this.files.autres.map((f: File) => f.name)
+      });
+      
       const dto: CreateImmatriculationDto = {
         typeContribuable: normalizedTypeContribuable,
         nom: this.immatriculationForm.get('nom')?.value || undefined,
@@ -1037,6 +1058,11 @@ export class ImmatriculationComponent implements OnInit {
         adresseProfessionnelle: this.immatriculationForm.get('adresseProfessionnelle')?.value || '',
         dateDebutActivite: this.immatriculationForm.get('dateDebutActivite')?.value || '',
         descriptionActivite: this.immatriculationForm.get('descriptionActivite')?.value || '',
+        // Ajouter les fichiers convertis en base64
+        identiteFile: this.files.identite ? await this.convertFileToBase64(this.files.identite) : undefined,
+        activiteFile: this.files.activite ? await this.convertFileToBase64(this.files.activite) : undefined,
+        photoFile: this.files.photo ? await this.convertFileToBase64(this.files.photo) : undefined,
+        autresFiles: this.files.autres.length > 0 ? await Promise.all(this.files.autres.map((file: File) => this.convertFileToBase64(file))) : [],
         confirmed: this.confirmed,
         submissionMode: this.submissionMode === 'draft' ? SubmissionMode.DRAFT : SubmissionMode.SUBMIT,
         // Ajouter les scores par défaut pour éviter les erreurs de nullité
@@ -1060,7 +1086,12 @@ export class ImmatriculationComponent implements OnInit {
 
       // Utiliser l'endpoint JSON réel pour sauvegarder dans la base de données
       console.log('🔍 DTO envoyé au backend:', dto);
-      console.log('🔍 Scores calculés:', {
+      console.log('� autresFiles dans le DTO:', {
+        length: dto.autresFiles?.length || 0,
+        files: dto.autresFiles || [],
+        type: typeof dto.autresFiles
+      });
+      console.log('�🔍 Scores calculés:', {
         overallScore: this.overallScore,
         completenessScore: this.completenessScore,
         verificationScore: this.verificationScore,

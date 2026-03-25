@@ -395,6 +395,13 @@ export class DashboardAgentComponent implements OnInit {
     this.isLoadingImmatriculations = true;
     this.immatriculationService.getAllImmatriculations().subscribe({
       next: (data) => {
+        console.log('📋 Données reçues de l\'API:', data);
+        console.log('🔍 Vérification des autresFiles:', data.map(imm => ({
+          id: imm.id,
+          dossierNumber: imm.dossierNumber,
+          autresFiles: imm.autresFiles,
+          autresFilesLength: imm.autresFiles?.length || 0
+        })));
         this.immatriculations = data;
         this.applyFilter();
         this.isLoadingImmatriculations = false;
@@ -484,6 +491,15 @@ export class DashboardAgentComponent implements OnInit {
   }
 
   viewImmatriculationDetails(immatriculation: any): void {
+    console.log('🔍 Détails de l\'immatriculation sélectionnée:', {
+      id: immatriculation.id,
+      dossierNumber: immatriculation.dossierNumber,
+      autresFiles: immatriculation.autresFiles,
+      autresFilesLength: immatriculation.autresFiles?.length || 0,
+      identiteFile: !!immatriculation.identiteFile,
+      activiteFile: !!immatriculation.activiteFile,
+      photoFile: !!immatriculation.photoFile
+    });
     this.selectedImmatriculation = immatriculation;
     this.showDetailsModal = true;
   }
@@ -557,9 +573,6 @@ export class DashboardAgentComponent implements OnInit {
 
   printDetails(): void {
     if (!this.selectedImmatriculation) return;
-    
-    const printContent = document.getElementById('modalContent') || document.querySelector('.da__modalBody');
-    if (!printContent) return;
     
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -639,13 +652,157 @@ export class DashboardAgentComponent implements OnInit {
       </body>
       </html>
     `);
-    
     printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    printWindow.print();
+    printWindow.close();
+  }
+
+  // Méthodes de gestion des documents
+  hasDocuments(): boolean {
+    if (!this.selectedImmatriculation) {
+      console.log('❌ Aucune immatriculation sélectionnée');
+      return false;
+    }
+    
+    const hasIdentite = !!this.selectedImmatriculation.identiteFile;
+    const hasActivite = !!this.selectedImmatriculation.activiteFile;
+    const hasPhoto = !!this.selectedImmatriculation.photoFile;
+    const hasAutres = this.selectedImmatriculation.autresFiles && this.selectedImmatriculation.autresFiles.length > 0;
+    
+    console.log('📄 Vérification des documents:', {
+      hasIdentite,
+      hasActivite,
+      hasPhoto,
+      hasAutres,
+      autresFiles: this.selectedImmatriculation.autresFiles,
+      result: hasIdentite || hasActivite || hasPhoto || hasAutres
+    });
+    
+    return hasIdentite || hasActivite || hasPhoto || hasAutres;
+  }
+
+  viewDocument(documentData: string, title: string): void {
+    if (!documentData) return;
+    
+    // Créer une modal pour afficher le document
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+      position: relative;
+      max-width: 90%;
+      max-height: 90%;
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    `;
+    
+    modalContent.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; color: #333;">${title}</h3>
+        <button id="closeDocModal" style="
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: #666;
+        ">&times;</button>
+      </div>
+      <div style="text-align: center;">
+        <img src="${documentData}" 
+             alt="${title}" 
+             style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 4px;">
+      </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Fermer la modal
+    const closeModal = () => {
+      document.body.removeChild(modal);
+    };
+    
+    const closeBtn = document.getElementById('closeDocModal');
+    if (closeBtn) {
+      closeBtn.onclick = closeModal;
+    }
+    modal.onclick = (e) => {
+      if (e.target === modal) closeModal();
+    };
+    
+    // Fermer avec Échap
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+  }
+
+  downloadDocument(documentData: string, filename: string): void {
+    if (!documentData) return;
+    
+    // Créer un lien de téléchargement
+    const link = document.createElement('a');
+    link.href = documentData;
+    link.download = `${filename}.${this.getFileExtension(documentData)}`;
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  getFileExtension(dataUrl: string): string {
+    if (dataUrl.startsWith('data:image/')) {
+      const mime = dataUrl.split(':')[1].split(';')[0];
+      const extension = mime.split('/')[1];
+      return extension || 'jpg';
+    }
+    if (dataUrl.startsWith('data:application/pdf')) {
+      return 'pdf';
+    }
+    return 'jpg';
+  }
+
+  handleImageError(event: any): void {
+    const img = event.target;
+    img.style.display = 'none';
+    
+    // Afficher un placeholder
+    const placeholder = document.createElement('div');
+    placeholder.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 200px;
+      background: #f5f5f5;
+      border: 2px dashed #ddd;
+      border-radius: 4px;
+      color: #999;
+      font-size: 14px;
+    `;
+    placeholder.innerHTML = '<i class="fa-solid fa-file-image" style="margin-right: 8px;"></i> Image non disponible';
+    
+    if (img.parentNode) {
+      img.parentNode.insertBefore(placeholder, img);
+    }
   }
 }
 

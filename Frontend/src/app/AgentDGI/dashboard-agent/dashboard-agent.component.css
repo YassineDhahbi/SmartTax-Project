@@ -3548,3 +3548,183 @@
   color: #dc2626;
   transform: translateY(-1px);
 }
+/* Styles pour la section des documents */
+.da__documentsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.da__documentItem {
+  background: var(--card);
+  border: 1px solid var(--stroke);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.da__documentItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border-color: var(--brand);
+}
+
+.da__documentHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--card-2);
+  border-bottom: 1px solid var(--stroke);
+}
+
+.da__documentHeader i {
+  font-size: 18px;
+  color: var(--brand);
+}
+
+.da__documentHeader span {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.da__documentPreview {
+  padding: 16px;
+  text-align: center;
+}
+
+.da__documentImage {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.da__documentActions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.da__documentList {
+  padding: 16px;
+}
+
+.da__otherDocument {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--card-2);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid var(--stroke);
+  transition: all 0.2s ease;
+}
+
+.da__otherDocument:hover {
+  background: var(--card);
+  border-color: var(--brand);
+}
+
+.da__otherDocument:last-child {
+  margin-bottom: 0;
+}
+
+.da__otherDocumentInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.da__otherDocumentInfo i {
+  color: var(--brand);
+}
+
+.da__noDocuments {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--muted2);
+  text-align: center;
+  border: 2px dashed var(--stroke);
+  border-radius: var(--r-md);
+  background: var(--card);
+}
+
+.da__noDocuments i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.da__noDocuments span {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Boutons pour les documents */
+.da__btn--sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.da__btn--sm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.da__btn--primary {
+  background: var(--brand);
+  color: white;
+}
+
+.da__btn--primary:hover {
+  background: #5558e3;
+}
+
+.da__btn--secondary {
+  background: var(--card-2);
+  color: var(--text);
+  border: 1px solid var(--stroke);
+}
+
+.da__btn--secondary:hover {
+  background: var(--card);
+  border-color: var(--brand);
+}
+
+/* Responsive design pour les documents */
+@media (max-width: 768px) {
+  .da__documentsGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .da__documentActions {
+    flex-direction: column;
+  }
+  
+  .da__btn--sm {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
