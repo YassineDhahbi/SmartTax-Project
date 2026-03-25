@@ -128,6 +128,8 @@ export interface UpdateImmatriculationDto {
   adresseProfessionnelle?: string;
   dateDebutActivite?: string;
   descriptionActivite?: string;
+  status?: string;
+  motifRejet?: string;
 }
 
 // DTO pour la validation/rejet

@@ -105,6 +105,16 @@ export class ImmatriculationService {
   }
 
   /**
+   * Mettre à jour le statut d'un dossier
+   */
+  updateImmatriculationStatus(id: number, status: string): Observable<Immatriculation> {
+    const updateDto: UpdateImmatriculationDto = {
+      status: status
+    };
+    return this.updateImmatriculation(id, updateDto);
+  }
+
+  /**
    * Récupérer un dossier par ID
    */
   getImmatriculation(id: number): Observable<Immatriculation> {

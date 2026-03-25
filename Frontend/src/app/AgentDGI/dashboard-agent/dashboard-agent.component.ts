@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
+import { Immatriculation } from '../../models/immatriculation.model';
 
 type Tone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger';
 
@@ -95,6 +96,28 @@ export class DashboardAgentComponent implements OnInit {
   // Reject modal properties
   showRejectModal = false;
   rejectReason: string = '';
+  
+  // Notification properties
+  notification: { show: boolean; message: string; type: 'success' | 'error' | 'warning' | 'info' } = {
+    show: false,
+    message: '',
+    type: 'success'
+  };
+  
+  // View rejection reason properties
+  showRejectionReasonModal = false;
+  rejectionReasonToView: string = '';
+  
+  // Confirmation modal properties
+  showConfirmationModal = false;
+  confirmationData: { title: string; message: string; onConfirm: () => void } = {
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  };
+  
+  // Auto-save rejection reason properties
+  autoSaveTimeout: any = null;
   
   // Filter properties
   activeFilter: 'all' | 'PHYSIQUE' | 'MORALE' = 'all';
@@ -590,14 +613,14 @@ export class DashboardAgentComponent implements OnInit {
         this.selectedImmatriculation = response;
         
         // Afficher un message de succès
-        alert('L\'immatriculation a été validée avec succès !');
+        this.showNotification('L\'immatriculation a été validée avec succès !', 'success');
         
         // Fermer le modal après validation
         this.closeModal();
       },
       error: (error) => {
         console.error('❌ Erreur lors de la validation:', error);
-        alert('Une erreur est survenue lors de la validation. Veuillez réessayer.');
+        this.showNotification('Une erreur est survenue lors de la validation. Veuillez réessayer.', 'error');
       }
     });
   }
@@ -614,11 +637,13 @@ export class DashboardAgentComponent implements OnInit {
 
   confirmReject(): void {
     if (!this.selectedImmatriculation || !this.rejectReason || this.rejectReason.trim().length === 0) {
+      this.showNotification('Veuillez saisir un motif de rejet', 'error');
       return;
     }
     
     console.log('🔍 Rejet de l\'immatriculation:', this.selectedImmatriculation.id, 'Motif:', this.rejectReason);
     
+    // Utiliser directement rejectDossier qui gère le statut ET le motif
     this.immatriculationService.rejectDossier(this.selectedImmatriculation.id, this.rejectReason).subscribe({
       next: (response) => {
         console.log('✅ Immatriculation rejetée avec succès:', response);
@@ -634,7 +659,7 @@ export class DashboardAgentComponent implements OnInit {
         this.selectedImmatriculation = response;
         
         // Afficher un message de succès
-        alert('L\'immatriculation a été rejetée avec succès !');
+        this.showNotification('L\'immatriculation a été rejetée avec succès !', 'success');
         
         // Fermer les modals
         this.closeRejectModal();
@@ -642,7 +667,7 @@ export class DashboardAgentComponent implements OnInit {
       },
       error: (error) => {
         console.error('❌ Erreur lors du rejet:', error);
-        alert('Une erreur est survenue lors du rejet. Veuillez réessayer.');
+        this.showNotification('Une erreur est survenue lors du rejet. Veuillez réessayer.', 'error');
       }
     });
   }
@@ -740,7 +765,7 @@ export class DashboardAgentComponent implements OnInit {
   }
 
   // Méthodes de gestion des documents
-  hasDocuments(): boolean {
+  get hasDocuments(): boolean {
     if (!this.selectedImmatriculation) {
       console.log('❌ Aucune immatriculation sélectionnée');
       return false;
@@ -750,15 +775,6 @@ export class DashboardAgentComponent implements OnInit {
     const hasActivite = !!this.selectedImmatriculation.activiteFile;
     const hasPhoto = !!this.selectedImmatriculation.photoFile;
     const hasAutres = this.selectedImmatriculation.autresFiles && this.selectedImmatriculation.autresFiles.length > 0;
-    
-    console.log('📄 Vérification des documents:', {
-      hasIdentite,
-      hasActivite,
-      hasPhoto,
-      hasAutres,
-      autresFiles: this.selectedImmatriculation.autresFiles,
-      result: hasIdentite || hasActivite || hasPhoto || hasAutres
-    });
     
     return hasIdentite || hasActivite || hasPhoto || hasAutres;
   }
@@ -886,7 +902,142 @@ export class DashboardAgentComponent implements OnInit {
       img.parentNode.insertBefore(placeholder, img);
     }
   }
+
+  // ==================== MÉTHODES DE NOTIFICATION ====================
+
+  showNotification(message: string, notificationType: 'success' | 'error' | 'warning' | 'info' = 'success'): void {
+    this.notification = {
+      show: true,
+      message: message,
+      type: notificationType
+    };
+    
+    // Auto-hide après 4 secondes
+    setTimeout(() => {
+      this.hideNotification();
+    }, 4000);
+  }
+
+  hideNotification(): void {
+    this.notification.show = false;
+  }
+
+  // ==================== MÉTHODES POUR VOIR LA RAISON DE REJET ====================
+
+  viewRejectionReason(immatriculation: any): void {
+    this.rejectionReasonToView = immatriculation.motifRejet || 'Aucune raison spécifiée';
+    this.showRejectionReasonModal = true;
+  }
+
+  closeRejectionReasonModal(): void {
+    this.showRejectionReasonModal = false;
+    this.rejectionReasonToView = '';
+  }
+
+  // ==================== MÉTHODES POUR MODAL DE CONFIRMATION ====================
+
+  showConfirmation(title: string, message: string, onConfirm: () => void): void {
+    this.confirmationData = { title, message, onConfirm };
+    this.showConfirmationModal = true;
+  }
+
+  closeConfirmationModal(): void {
+    this.showConfirmationModal = false;
+    this.confirmationData = { title: '', message: '', onConfirm: () => {} };
+  }
+
+  confirmAction(): void {
+    this.confirmationData.onConfirm();
+    this.closeConfirmationModal();
+  }
+
+  // ==================== MÉTHODES POUR AUTO-SAVE RAISON REJET ====================
+
+  onRejectionReasonChange(): void {
+    // Annuler le timeout précédent
+    if (this.autoSaveTimeout) {
+      clearTimeout(this.autoSaveTimeout);
+    }
+    
+    // Démarrer un nouveau timeout de 2 secondes
+    this.autoSaveTimeout = setTimeout(() => {
+      this.autoSaveRejectionReason();
+    }, 2000);
+  }
+
+  autoSaveRejectionReason(): void {
+    if (!this.selectedImmatriculation || !this.rejectReason || this.rejectReason.trim().length === 0) {
+      return;
+    }
+    
+    // Mettre à jour SEULEMENT le motif de rejet sans changer le statut
+    const updateDto: any = {
+      motifRejet: this.rejectReason
+    };
+    
+    this.immatriculationService.updateImmatriculation(this.selectedImmatriculation.id, updateDto).subscribe({
+      next: (updatedResponse: Immatriculation) => {
+        // Mettre à jour la liste locale
+        const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
+        if (index !== -1) {
+          this.immatriculations[index] = updatedResponse;
+          this.applyFilter();
+        }
+        
+        // Mettre à jour l'immatriculation sélectionnée
+        this.selectedImmatriculation = updatedResponse;
+        
+        this.showNotification('La raison de rejet a été enregistrée avec succès !', 'success');
+      },
+      error: (error: any) => {
+        console.error('❌ Erreur lors de l\'enregistrement du motif de rejet:', error);
+        this.showNotification('Une erreur est survenue lors de l\'enregistrement du motif de rejet. Veuillez réessayer.', 'error');
+      }
+    });
+  }
+
+  // ==================== MÉTHODE POUR REMETTRE EN COURS DE VÉRIFICATION ====================
+
+  resetToEnCoursVerification(immatriculation: any): void {
+    if (!immatriculation || !immatriculation.id) {
+      this.showNotification('Sélection invalide', 'error');
+      return;
+    }
+
+    // Afficher le modal de confirmation
+    const message = `Êtes-vous sûr de vouloir remettre cette immatriculation en cours de vérification ?\n\nN° dossier: ${immatriculation.dossierNumber || immatriculation.id}\nContribuable: ${this.getContribuableName(immatriculation)}`;
+    
+    this.showConfirmation(
+      'Confirmation de réactivation',
+      message,
+      () => {
+        this.immatriculationService.updateImmatriculationStatus(immatriculation.id, 'EN_COURS_VERIFICATION').subscribe({
+          next: (response: Immatriculation) => {
+            // Mettre à jour la liste locale
+            const index = this.immatriculations.findIndex(i => i.id === immatriculation.id);
+            if (index !== -1) {
+              this.immatriculations[index] = response;
+              this.applyFilter();
+            }
+            
+            // Mettre à jour l'immatriculation sélectionnée si c'est celle-ci
+            if (this.selectedImmatriculation && this.selectedImmatriculation.id === immatriculation.id) {
+              this.selectedImmatriculation = response;
+            }
+            
+            this.showNotification('L\'immatriculation a été remise en cours de vérification avec succès !', 'success');
+          },
+          error: (error: any) => {
+            console.error('❌ Erreur lors de la mise à jour du statut:', error);
+            this.showNotification('Une erreur est survenue lors de la mise à jour du statut. Veuillez réessayer.', 'error');
+          }
+        });
+      }
+    );
+  }
 }
+
+// ==================== FONCTIONS UTILITAIRES ====================
 
 function getInitialTheme(): 'dark' | 'light' {
   try {

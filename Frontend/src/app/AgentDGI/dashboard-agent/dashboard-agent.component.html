@@ -1,3 +1,23 @@
+<!-- Notification Toast -->
+<div class="notification-toast" 
+     [class.show]="notification.show" 
+     [class.success]="notification.type === 'success'"
+     [class.error]="notification.type === 'error'"
+     [class.warning]="notification.type === 'warning'"
+     [class.info]="notification.type === 'info'">
+  <div class="notification-content">
+    <i class="notification-icon" 
+       [class.fa-check-circle]="notification.type === 'success'"
+       [class.fa-exclamation-circle]="notification.type === 'error'"
+       [class.fa-exclamation-triangle]="notification.type === 'warning'"
+       [class.fa-info-circle]="notification.type === 'info'"></i>
+    <span class="notification-message">{{ notification.message }}</span>
+    <button class="notification-close" (click)="hideNotification()" aria-label="Fermer">
+      <i class="fa-solid fa-times"></i>
+    </button>
+  </div>
+</div>
+
 <div class="da" [class.is-sidebarOpen]="sidebarOpen" [attr.data-theme]="theme">
   <button class="da__overlay" type="button" (click)="closeSidebar()" aria-label="Fermer le menu"></button>
 
@@ -620,7 +640,7 @@
           </div>
 
           <!-- Aucun document -->
-          <div class="da__noDocuments" *ngIf="!hasDocuments()">
+          <div class="da__noDocuments" *ngIf="!hasDocuments">
             <i class="fa-solid fa-folder-open"></i>
             <span>Aucun document joint</span>
           </div>
@@ -679,6 +699,26 @@
           <button class="da__btn da__btn--danger" (click)="openRejectModal()">
             <i class="fa-solid fa-times"></i>
             Rejeter
+          </button>
+        </div>
+        
+        <!-- Boutons pour les immatriculations rejetées -->
+        <div class="da__modalFooterRight" *ngIf="selectedImmatriculation.status === 'REJETE'">
+          <button class="da__btn da__btn--info" (click)="viewRejectionReason(selectedImmatriculation)">
+            <i class="fa-solid fa-info-circle"></i>
+            Voir la raison
+          </button>
+          <button class="da__btn da__btn--warning" (click)="resetToEnCoursVerification(selectedImmatriculation)">
+            <i class="fa-solid fa-undo"></i>
+            Remettre en cours
+          </button>
+        </div>
+        
+        <!-- Boutons pour les immatriculations validées -->
+        <div class="da__modalFooterRight" *ngIf="selectedImmatriculation.status === 'VALIDE'">
+          <button class="da__btn da__btn--warning" (click)="resetToEnCoursVerification(selectedImmatriculation)">
+            <i class="fa-solid fa-undo"></i>
+            Remettre en cours
           </button>
         </div>
       </div>
@@ -782,6 +822,7 @@
             id="rejectReason" 
             class="da__rejectModalTextarea"
             [(ngModel)]="rejectReason"
+            (ngModelChange)="onRejectionReasonChange()"
             placeholder="Veuillez saisir le motif du rejet..."
             rows="4"
             required>
@@ -800,6 +841,89 @@
               [disabled]="!rejectReason || rejectReason.trim().length === 0">
         <i class="fa-solid fa-times"></i>
         Rejeter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour voir la raison de rejet -->
+<div class="da__rejectModalOverlay" *ngIf="showRejectionReasonModal" (click)="closeRejectionReasonModal()">
+  <div class="da__rejectModal" (click)="$event.stopPropagation()">
+    <div class="da__rejectModalHeader">
+      <div class="da__rejectModalIcon da__rejectModalIcon--info">
+        <i class="fa-solid fa-info-circle"></i>
+      </div>
+      <h3 class="da__rejectModalTitle">Raison de rejet</h3>
+      <button class="da__rejectModalClose" (click)="closeRejectionReasonModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="da__rejectModalBody">
+      <div class="da__rejectModalContent">
+        <div class="da__rejectModalInfo" *ngIf="selectedImmatriculation">
+          <div class="da__rejectModalItem">
+            <strong>N° Dossier:</strong>
+            <span>{{ selectedImmatriculation.dossierNumber || selectedImmatriculation.id }}</span>
+          </div>
+          <div class="da__rejectModalItem">
+            <strong>Contribuable:</strong>
+            <span>{{ getContribuableName(selectedImmatriculation) }}</span>
+          </div>
+          <div class="da__rejectModalItem">
+            <strong>Statut:</strong>
+            <span class="da__status da__status--rejected">Rejeté</span>
+          </div>
+        </div>
+        
+        <div class="da__rejectReasonDisplay">
+          <label class="da__rejectModalLabel">
+            <i class="fa-solid fa-exclamation-triangle"></i>
+            Motif du rejet
+          </label>
+          <div class="da__rejectReasonText">
+            {{ rejectionReasonToView }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="da__rejectModalFooter">
+      <button class="da__rejectModalBtn da__rejectModalBtn--confirm" (click)="closeRejectionReasonModal()">
+        <i class="fa-solid fa-check"></i>
+        Fermer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation -->
+<div class="da__confirmModalOverlay" *ngIf="showConfirmationModal" (click)="closeConfirmationModal()">
+  <div class="da__confirmModal" (click)="$event.stopPropagation()">
+    <div class="da__confirmModalHeader">
+      <div class="da__confirmModalIcon">
+        <i class="fa-solid fa-question-circle"></i>
+      </div>
+      <h3 class="da__confirmModalTitle">{{ confirmationData.title }}</h3>
+      <button class="da__confirmModalClose" (click)="closeConfirmationModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="da__confirmModalBody">
+      <div class="da__confirmModalContent">
+        <p class="da__confirmModalMessage">{{ confirmationData.message }}</p>
+      </div>
+    </div>
+
+    <div class="da__confirmModalFooter">
+      <button class="da__confirmModalBtn da__confirmModalBtn--cancel" (click)="closeConfirmationModal()">
+        <i class="fa-solid fa-times"></i>
+        Annuler
+      </button>
+      <button class="da__confirmModalBtn da__confirmModalBtn--confirm" (click)="confirmAction()">
+        <i class="fa-solid fa-check"></i>
+        Confirmer
       </button>
     </div>
   </div>
