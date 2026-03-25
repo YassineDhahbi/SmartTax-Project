@@ -336,6 +336,31 @@
                 Corbeille
               </button>
             </div>
+            
+            <!-- Tri par date -->
+            <div class="da__sortGroup">
+           
+              <select class="da__sortSelect" [(ngModel)]="sortBy" (ngModelChange)="onSortChange()">
+                <option value="none">Par défaut</option>
+                <option value="date">Par date</option>
+                <option value="status">Par statut</option>
+              </select>
+              
+              <select class="da__sortOrder" [(ngModel)]="sortOrder" (ngModelChange)="onSortChange()" *ngIf="sortBy === 'date'">
+                <option value="recent">Plus récent</option>
+                <option value="ancient">Plus ancien</option>
+              </select>
+              
+              <select class="da__statusFilter" [(ngModel)]="statusFilter" (ngModelChange)="onSortChange()" *ngIf="sortBy === 'status'">
+                <option value="all">Tous les statuts</option>
+                
+                <option value="EN_COURS_VERIFICATION">En cours de vérification</option>
+                
+                <option value="VALIDE">Validé</option>
+                <option value="REJETE">Rejeté</option>
+                
+              </select>
+            </div>
           </div>
 
           <div class="da__panelBody">

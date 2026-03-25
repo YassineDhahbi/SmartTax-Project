@@ -122,6 +122,13 @@ export class DashboardAgentComponent implements OnInit {
   // Filter properties
   activeFilter: 'all' | 'PHYSIQUE' | 'MORALE' = 'all';
   
+  // Sorting properties
+  sortBy: 'date' | 'status' | 'none' = 'none';
+  sortOrder: 'recent' | 'ancient' = 'recent';
+  
+  // Status filter
+  statusFilter: string = 'all';
+  
   // Computed properties for filter counts
   get totalCount(): number {
     return this.immatriculations.length;
@@ -448,13 +455,26 @@ export class DashboardAgentComponent implements OnInit {
   }
 
   private applyFilter(): void {
+    let filtered: any[];
+    
+    // Filtrer par type de contribuable
     if (this.activeFilter === 'all') {
-      this.filteredImmatriculations = [...this.immatriculations];
+      filtered = [...this.immatriculations];
     } else {
-      this.filteredImmatriculations = this.immatriculations.filter(
+      filtered = this.immatriculations.filter(
         immatriculation => immatriculation.typeContribuable === this.activeFilter
       );
     }
+    
+    // Filtrer par statut si applicable
+    if (this.statusFilter !== 'all') {
+      filtered = filtered.filter(
+        immatriculation => immatriculation.status === this.statusFilter
+      );
+    }
+    
+    // Appliquer le tri
+    this.filteredImmatriculations = this.sortImmatriculations(filtered);
   }
 
   toggleTask(t: TaskItem): void {
@@ -676,6 +696,40 @@ export class DashboardAgentComponent implements OnInit {
   navigateToTrash(): void {
     // Rediriger vers la page de corbeille
     window.location.href = '/trash';
+  }
+
+  // ==================== MÉTHODES DE TRI ====================
+
+  onSortChange(): void {
+    this.applyFilter();
+  }
+
+  sortImmatriculations(list: any[]): any[] {
+    if (this.sortBy === 'none') {
+      return list;
+    }
+
+    const sorted = [...list].sort((a, b) => {
+      if (this.sortBy === 'date') {
+        const dateA = new Date(a.dateCreation || a.dateSoumission || 0);
+        const dateB = new Date(b.dateCreation || b.dateSoumission || 0);
+        
+        if (this.sortOrder === 'recent') {
+          return dateB.getTime() - dateA.getTime(); // Plus récent en premier
+        } else {
+          return dateA.getTime() - dateB.getTime(); // Plus ancien en premier
+        }
+      } else if (this.sortBy === 'status') {
+        // Tri par statut alphabétique
+        const statusA = a.status || '';
+        const statusB = b.status || '';
+        return statusA.localeCompare(statusB);
+      }
+      
+      return 0;
+    });
+
+    return sorted;
   }
 
   printDetails(): void {

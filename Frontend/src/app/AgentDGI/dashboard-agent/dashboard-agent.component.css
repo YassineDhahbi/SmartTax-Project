@@ -4241,6 +4241,120 @@
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
+/* ==================== STYLES POUR LE TRI ==================== */
+
+.da__sortGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-top: 16px;
+}
+
+.da__sortLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.da__sortSelect,
+.da__sortOrder {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+}
+
+.da__sortSelect:hover,
+.da__sortOrder:hover {
+  border-color: var(--primary);
+  background: var(--hover);
+  color: var(--text);
+}
+
+.da__sortSelect:focus,
+.da__sortOrder:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  color: var(--text);
+}
+
+.da__sortSelect option,
+.da__sortOrder option {
+  background: var(--background);
+  color: #000000;
+  padding: 8px;
+}
+
+.da__sortOrder {
+  min-width: 120px;
+}
+
+.da__statusFilter {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+}
+
+.da__statusFilter:hover {
+  border-color: var(--primary);
+  background: var(--hover);
+  color: var(--text);
+}
+
+.da__statusFilter:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  color: var(--text);
+}
+
+.da__statusFilter option {
+  background: var(--background);
+  color: #000000;
+  padding: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .da__sortGroup {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .da__sortLabel {
+    margin-bottom: 4px;
+  }
+  
+  .da__sortSelect,
+  .da__sortOrder,
+  .da__statusFilter {
+    width: 100%;
+  }
+}
+
 /* ==================== STYLES POUR MODAL DE CONFIRMATION ==================== */
 
 .da__confirmModalOverlay {
