@@ -337,29 +337,50 @@
               </button>
             </div>
             
-            <!-- Tri par date -->
-            <div class="da__sortGroup">
-           
-              <select class="da__sortSelect" [(ngModel)]="sortBy" (ngModelChange)="onSortChange()">
-                <option value="none">Par défaut</option>
-                <option value="date">Par date</option>
-                <option value="status">Par statut</option>
-              </select>
+            <!-- Recherche et Tri -->
+            <div class="da__controlsGroup">
               
-              <select class="da__sortOrder" [(ngModel)]="sortOrder" (ngModelChange)="onSortChange()" *ngIf="sortBy === 'date'">
-                <option value="recent">Plus récent</option>
-                <option value="ancient">Plus ancien</option>
-              </select>
               
-              <select class="da__statusFilter" [(ngModel)]="statusFilter" (ngModelChange)="onSortChange()" *ngIf="sortBy === 'status'">
-                <option value="all">Tous les statuts</option>
+              <!-- Tri par date -->
+              <div class="da__sortGroup">
+                <select class="da__sortSelect" [(ngModel)]="sortBy" (ngModelChange)="onSortChange()">
+                  <option value="none">Par défaut</option>
+                  <option value="date">Par date</option>
+                  <option value="status">Par statut</option>
+                </select>
                 
-                <option value="EN_COURS_VERIFICATION">En cours de vérification</option>
+                <select class="da__sortOrder" [(ngModel)]="sortOrder" (ngModelChange)="onSortChange()" *ngIf="sortBy === 'date'">
+                  <option value="recent">Plus récent</option>
+                  <option value="ancient">Plus ancien</option>
+                </select>
                 
-                <option value="VALIDE">Validé</option>
-                <option value="REJETE">Rejeté</option>
-                
-              </select>
+                <select class="da__statusFilter" [(ngModel)]="statusFilter" (ngModelChange)="onSortChange()" *ngIf="sortBy === 'status'">
+                  <option value="all">Tous les statuts</option>
+                  
+                  <option value="EN_COURS_VERIFICATION">En cours de vérification</option>
+                  
+                  <option value="VALIDE">Validé</option>
+                  <option value="REJETE">Rejeté</option>
+                  
+                </select>
+              </div>
+              <!-- Barre de recherche -->
+              <div class="da__searchContainer">
+                <i class="fa-solid fa-search da__searchIcon"></i>
+                <input 
+                  type="text" 
+                  class="da__searchInput"
+                  [(ngModel)]="searchTerm"
+                  (ngModelChange)="onSearchChange()"
+                  placeholder="Rechercher par nom, email, dossier, CIN..."
+                  autocomplete="off"
+                >
+                <button class="da__searchClear" 
+                        (click)="searchTerm = ''; onSearchChange()"
+                        *ngIf="searchTerm && searchTerm.length > 0">
+                  <i class="fa-solid fa-times"></i>
+                </button>
+              </div>
             </div>
           </div>
 

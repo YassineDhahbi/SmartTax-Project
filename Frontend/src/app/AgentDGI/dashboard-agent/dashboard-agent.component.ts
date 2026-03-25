@@ -129,6 +129,9 @@ export class DashboardAgentComponent implements OnInit {
   // Status filter
   statusFilter: string = 'all';
   
+  // Search properties
+  searchTerm: string = '';
+  
   // Computed properties for filter counts
   get totalCount(): number {
     return this.immatriculations.length;
@@ -473,8 +476,36 @@ export class DashboardAgentComponent implements OnInit {
       );
     }
     
+    // Filtrer par recherche
+    if (this.searchTerm && this.searchTerm.trim().length > 0) {
+      const searchLower = this.searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(
+        immatriculation => {
+          // Rechercher dans plusieurs champs
+          const searchableFields = [
+            immatriculation.dossierNumber || '',
+            immatriculation.nom || '',
+            immatriculation.prenom || '',
+            immatriculation.raisonSociale || '',
+            immatriculation.email || '',
+            immatriculation.telephone || '',
+            immatriculation.cin || '',
+            immatriculation.matriculeFiscal || ''
+          ];
+          
+          return searchableFields.some(field => 
+            field.toLowerCase().includes(searchLower)
+          );
+        }
+      );
+    }
+    
     // Appliquer le tri
     this.filteredImmatriculations = this.sortImmatriculations(filtered);
+  }
+
+  onSearchChange(): void {
+    this.applyFilter();
   }
 
   toggleTask(t: TaskItem): void {

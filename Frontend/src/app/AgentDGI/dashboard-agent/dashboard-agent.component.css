@@ -4241,6 +4241,93 @@
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
+.da__filters {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ==================== STYLES POUR LA BARRE DE RECHERCHE ==================== */
+
+.da__controlsGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.da__searchContainer {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 350px;
+}
+
+.da__searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 13px;
+  z-index: 2;
+  transition: color 0.2s ease;
+}
+
+.da__searchInput {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.da__searchInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.da__searchInput:focus + .da__searchIcon {
+  color: var(--primary);
+}
+
+.da__searchInput::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.da__searchClear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  font-size: 11px;
+  z-index: 2;
+}
+
+.da__searchClear:hover {
+  background: var(--hover);
+  color: var(--text);
+  transform: translateY(-50%) scale(1.1);
+}
+
 /* ==================== STYLES POUR LE TRI ==================== */
 
 .da__sortGroup {
@@ -4251,7 +4338,6 @@
   background: var(--card);
   border-radius: 12px;
   border: 1px solid var(--border);
-  margin-top: 16px;
 }
 
 .da__sortLabel {
@@ -4266,16 +4352,16 @@
 
 .da__sortSelect,
 .da__sortOrder {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--background);
   color: var(--text);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 140px;
+  min-width: 130px;
 }
 
 .da__sortSelect:hover,
@@ -4297,7 +4383,7 @@
 .da__sortOrder option {
   background: var(--background);
   color: #000000;
-  padding: 8px;
+  padding: 6px;
 }
 
 .da__sortOrder {
@@ -4352,6 +4438,21 @@
   .da__sortOrder,
   .da__statusFilter {
     width: 100%;
+  }
+  
+  .da__controlsGroup {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .da__searchContainer {
+    max-width: 100%;
+    order: -1; /* Mettre la recherche en premier sur mobile */
+  }
+  
+  .da__searchInput {
+    font-size: 16px; /* Empêche le zoom sur iOS */
   }
 }
 
