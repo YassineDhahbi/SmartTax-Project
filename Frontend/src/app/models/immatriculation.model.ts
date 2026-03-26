@@ -59,6 +59,7 @@ export interface Immatriculation {
   verificationScore: number;
   documentsScore: number;
   faceRecognitionScore: number;
+  identityValidationScore?: number; // Score de validation SWIN Transformer
   
   // Vérifications
   duplicateDetected: boolean;
@@ -108,6 +109,7 @@ export interface CreateImmatriculationDto {
   verificationScore?: number;
   documentsScore?: number;
   faceRecognitionScore?: number;
+  identityValidationScore?: number; // Score de validation SWIN Transformer
 }
 
 // DTO pour la mise à jour

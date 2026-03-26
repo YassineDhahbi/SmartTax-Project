@@ -726,6 +726,12 @@
                 {{ selectedImmatriculation.documentsScore }}%
               </div>
             </div>
+            <div class="da__scoreItem" *ngIf="selectedImmatriculation.identityValidationScore !== undefined">
+              <div class="da__scoreLabel">Validation Pièce (SWIN)</div>
+              <div class="da__scoreValue" [attr.data-score]="getScoreLevel(selectedImmatriculation.identityValidationScore)">
+                {{ selectedImmatriculation.identityValidationScore }}%
+              </div>
+            </div>
           </div>
         </div>
       </div>

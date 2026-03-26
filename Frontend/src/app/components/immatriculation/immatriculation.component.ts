@@ -5,6 +5,7 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { ValidationService } from '../../services/validation.service';
 import { NotificationService } from '../../services/notification.service';
+import { CinValidatorService } from '../../services/cin/cin-validator.service';
 import { 
   Immatriculation, 
   CreateImmatriculationDto, 
@@ -77,6 +78,7 @@ export class ImmatriculationComponent implements OnInit {
   completenessScore: number = 0;
   verificationScore: number = 0;
   documentsScore: number = 0;
+  identityValidationScore: number = 0; // Score de validation SWIN Transformer
 
   // Soumission
   submissionMode: 'draft' | 'submit' = 'submit';
@@ -99,12 +101,24 @@ export class ImmatriculationComponent implements OnInit {
     registreCommerce?: boolean;
   } = {};
 
+  // Validation de la pièce d'identité
+  identityValidation: {
+    status: string;
+    confidence: number;
+    valid: boolean;
+    adjusted: boolean;
+  } | null = null;
+
+  identityValidationInProgress: boolean = false;
+  identityValidationError: string = '';
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private immatriculationService: ImmatriculationService,
     private validationService: ValidationService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cinValidator: CinValidatorService
   ) {}
 
   ngOnInit(): void {
@@ -824,6 +838,90 @@ export class ImmatriculationComponent implements OnInit {
       this.identityPhoto = e.target.result;
     };
     reader.readAsDataURL(file);
+    
+    // Lancer la validation automatique de la pièce d'identité
+    this.validateIdentityDocument(file);
+  }
+
+  // Validation automatique de la pièce d'identité
+  private validateIdentityDocument(file: File): void {
+    if (!file) return;
+    
+    // Vérifier si le fichier est une image valide
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      this.identityValidationError = 'Seuls les formats JPEG, JPG et PNG sont acceptés pour la pièce d\'identité';
+      this.identityValidation = null;
+      this.identityValidationScore = 0;
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      this.identityValidationError = 'La taille de la pièce d\'identité ne doit pas dépasser 5MB';
+      this.identityValidation = null;
+      this.identityValidationScore = 0;
+      return;
+    }
+    
+    this.identityValidationInProgress = true;
+    this.identityValidationError = '';
+    
+    this.cinValidator.validateCin(file).subscribe({
+      next: (response) => {
+        this.identityValidation = {
+          status: response.status,
+          confidence: response.confidence,
+          valid: response.valid,
+          adjusted: response.adjusted
+        };
+        this.identityValidationScore = response.confidence; // Enregistrer le score de validation
+        this.identityValidationInProgress = false;
+        this.identityValidationError = '';
+        
+        // Mettre à jour le score de documents
+        this.updateDocumentScore();
+        
+        // Afficher un message de succès ou d'erreur
+        if (response.valid) {
+          this.notificationService.showSuccess('Pièce d\'identité validée avec succès !');
+        } else {
+          this.notificationService.showError('La pièce d\'identité n\'est pas valide. Veuillez vérifier le document.');
+        }
+      },
+      error: (err) => {
+        this.identityValidationError = 'Erreur lors de la validation: ' + (err.error?.message || err.message || 'Erreur inconnue');
+        this.identityValidation = null;
+        this.identityValidationScore = 0;
+        this.identityValidationInProgress = false;
+        this.notificationService.showError('Erreur lors de la validation de la pièce d\'identité');
+      }
+    });
+  }
+
+  // Mettre à jour le score des documents
+  private updateDocumentScore(): void {
+    // Calculer le score des documents basé sur la validation de la pièce d'identité
+    const identityScore = this.identityValidationScore;
+    const activityScore = this.files.activite ? 50 : 0; // 50 points si document d'activité présent
+    const photoScore = this.files.photo ? 25 : 0; // 25 points si photo présente
+    
+    this.documentsScore = Math.round(identityScore * 0.5 + activityScore + photoScore);
+    
+    // Mettre à jour le score global
+    this.updateOverallScore();
+  }
+
+  // Mettre à jour le score global
+  private updateOverallScore(): void {
+    const completenessWeight = 0.3;
+    const verificationWeight = 0.4;
+    const documentsWeight = 0.3;
+    
+    this.overallScore = Math.round(
+      this.completenessScore * completenessWeight +
+      this.verificationScore * verificationWeight +
+      this.documentsScore * documentsWeight
+    );
   }
 
   requiredFilesUploaded(): boolean {
@@ -1070,7 +1168,8 @@ export class ImmatriculationComponent implements OnInit {
         completenessScore: this.completenessScore || 0,
         verificationScore: this.verificationScore || 0,
         documentsScore: this.documentsScore || 0,
-        faceRecognitionScore: this.faceRecognitionScore || 0
+        faceRecognitionScore: this.faceRecognitionScore || 0,
+        identityValidationScore: this.identityValidationScore || 0 // Score de validation SWIN Transformer
       };
 
       // Validation préalable des données

@@ -459,6 +459,40 @@
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
+                                        
+                                        <!-- Validation de la pièce d'identité -->
+                                        <div *ngIf="identityValidation || identityValidationError || identityValidationInProgress" class="identity-validation mt-3">
+                                            <!-- Validation en cours -->
+                                            <div *ngIf="identityValidationInProgress" class="validation-loading alert alert-info">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                                Vérification de la pièce d'identité en cours...
+                                            </div>
+                                            
+                                            <!-- Erreur de validation -->
+                                            <div *ngIf="identityValidationError" class="validation-error alert alert-danger">
+                                                <i class="fas fa-exclamation-circle me-2"></i>
+                                                {{ identityValidationError }}
+                                            </div>
+                                            
+                                            <!-- Résultat de validation -->
+                                            <div *ngIf="identityValidation" class="validation-result alert"
+                                                 [class.alert-success]="identityValidation.valid"
+                                                 [class.alert-danger]="!identityValidation.valid">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span>
+                                                        <strong>Résultat :</strong>
+                                                        {{ identityValidation.valid ? 'Pièce d\'identité Valide' : 'Pièce d\'identité Invalide' }}
+                                                        ({{ identityValidation.confidence | number:'1.0-2' }}%)
+                                                        <span *ngIf="identityValidation.adjusted" class="ms-2">
+                                                            <i class="fas fa-adjust"></i> Ajustée
+                                                        </span>
+                                                    </span>
+                                                    <i class="fas"
+                                                       [class.fa-check-circle]="identityValidation.valid"
+                                                       [class.fa-times-circle]="!identityValidation.valid"></i>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
