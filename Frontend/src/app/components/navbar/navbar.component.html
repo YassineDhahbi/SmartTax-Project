@@ -72,6 +72,13 @@
                                     class="fas fa-circle-arrow-right"></i></a>
                         </div>
                         
+                        <!-- Bouton de déconnexion -->
+                        <div class="logout-btn" *ngIf="authService.isLoggedIn()">
+                            <button type="button" class="nav-right-link logout-btn-icon" (click)="logout()" title="Se déconnecter">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </div>
+                        
                         <!-- Barre de recherche moderne -->
                         <div class="search-container">
                             <div class="search-box">
