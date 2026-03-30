@@ -150,7 +150,53 @@ p.card-text {
   padding: 0.25rem 0;
 }
 
-/* Styles pour le formulaire en mode édition */
+/* Styles pour le champ email readonly */
+.readonly-field {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef) !important;
+  border: 2px solid #dee2e6 !important;
+  color: #6c757d !important;
+  cursor: not-allowed !important;
+  position: relative;
+  opacity: 0.8;
+}
+
+.readonly-field:hover {
+  background: linear-gradient(135deg, #e9ecef, #dee2e6) !important;
+  border-color: #ced4da !important;
+}
+
+.readonly-field:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: #dee2e6 !important;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef) !important;
+}
+
+.readonly-info {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.readonly-info i {
+  color: #007bff;
+  font-size: 0.75rem;
+}
+
+/* Animation subtile pour le champ readonly */
+.readonly-field::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 30px;
+  background: linear-gradient(90deg, transparent, rgba(220, 220, 220, 0.3));
+  pointer-events: none;
+  border-radius: 0 8px 8px 0;
+}
 .edit-mode .card-body {
   background-color: #f1f3f5;
 }

@@ -45,11 +45,7 @@
               <div class="card h-100 bg-light border-0">
                 <div class="card-body">
                   <h6 class="card-title text-muted">Email</h6>
-                  <input type="email" class="form-control" formControlName="email" [ngClass]="{'is-invalid': profileForm.get('email')?.invalid && (profileForm.get('email')?.touched || profileForm.get('email')?.dirty)}">
-                  <div *ngIf="profileForm.get('email')?.invalid && (profileForm.get('email')?.touched || profileForm.get('email')?.dirty)" class="invalid-feedback">
-                    <div *ngIf="profileForm.get('email')?.errors?.['required']">L'email est requis.</div>
-                    <div *ngIf="profileForm.get('email')?.errors?.['email']">Veuillez entrer un email valide.</div>
-                  </div>
+                     <p class="card-text">{{ user.email }}</p>                  
                 </div>
               </div>
             </div>

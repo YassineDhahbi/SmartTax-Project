@@ -1,2 +1,344 @@
 <app-navbar></app-navbar>
+
+<div class="dossier-container">
+  <!-- Affichage pour utilisateur simple non connecté -->
+  <div *ngIf="!isLoggedIn" class="access-denied-container">
+    <div class="card access-denied-card">
+      <div class="card-body text-center">
+        <div class="icon-container">
+          <i class="fas fa-lock"></i>
+        </div>
+        <h2 class="mb-4">Accès Restreint</h2>
+        <p class="lead mb-4">
+          Pour consulter votre dossier, vous devez d'abord remplir le formulaire d'immatriculation.
+        </p>
+        <p class="text-muted mb-4">
+          Une fois votre immatriculation acceptée, vous pourrez créer un compte et accéder à votre dossier.
+        </p>
+        <button class="btn btn-primary btn-lg" (click)="goToImmatriculation()">
+          <i class="fas fa-user-plus me-2"></i>
+          Remplir le formulaire d'immatriculation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Affichage pour utilisateur simple connecté -->
+  <div *ngIf="isSimpleUser()" class="access-denied-container">
+    <div class="card access-denied-card">
+      <div class="card-body text-center">
+        <div class="icon-container">
+          <i class="fas fa-clock"></i>
+        </div>
+        <h2 class="mb-4">Immatriculation en Cours</h2>
+        <p class="lead mb-4">
+          Votre dossier d'immatriculation est en cours de traitement.
+        </p>
+        <p class="text-muted mb-4">
+          Vous pourrez accéder à votre dossier une fois que votre immatriculation sera acceptée par l'administration.
+        </p>
+        <div class="status-info">
+          <div class="status-item">
+            <i class="fas fa-hourglass-half"></i>
+            <span>Statut: En attente de validation</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Affichage pour contribuable connecté -->
+  <div *ngIf="isContribuable()" class="contribuable-dossier">
+    <!-- Affichage de débogage temporaire -->
+  
+
+    <!-- État de chargement -->
+    <div *ngIf="isLoadingImmatriculation" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Chargement de votre dossier d'immatriculation...</p>
+    </div>
+
+    <!-- Aucune immatriculation trouvée -->
+    <div *ngIf="!isLoadingImmatriculation && !hasImmatriculation" class="no-immatriculation">
+      <div class="card access-denied-card">
+        <div class="card-body text-center">
+          <div class="icon-container">
+            <i class="fas fa-folder-open"></i>
+          </div>
+          <h2 class="mb-4">Aucune Immatriculation</h2>
+          <p class="lead mb-4">
+            Vous n'avez pas encore de dossier d'immatriculation validé.
+          </p>
+          <button class="btn btn-primary btn-lg" (click)="goToImmatriculation()">
+            <i class="fas fa-user-plus me-2"></i>
+            Faire une demande d'immatriculation
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Affichage des détails d'immatriculation -->
+    <div *ngIf="!isLoadingImmatriculation && hasImmatriculation && immatriculation" class="container">
+      <div class="row">
+        <div class="col-12">
+          <div class="dossier-header">
+            <h1 class="dossier-title">
+              <i class="fas fa-folder-open me-3"></i>
+              Mon Dossier d'Immatriculation
+            </h1>
+            <div class="status-badge" [attr.data-status]="getImmatriculationStatusKey(immatriculation.status)">
+              <span class="da__statusDot" aria-hidden="true"></span>
+              {{ formatStatus(immatriculation.status) }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations principales -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card dossier-info-card">
+            <div class="card-header">
+              <h3><i class="fas fa-info-circle me-2"></i>Informations principales</h3>
+            </div>
+            <div class="card-body">
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>N° Dossier</label>
+                  <p>{{ immatriculation.dossierNumber || immatriculation.id || 'N/A' }}</p>
+                </div>
+                <div class="info-item">
+                  <label>Type de contribuable</label>
+                  <p><span class="type-badge" [attr.data-type]="immatriculation.typeContribuable">{{ immatriculation.typeContribuable || 'N/A' }}</span></p>
+                </div>
+                <div class="info-item">
+                  <label>Date de création</label>
+                  <p>{{ formatDate(immatriculation.dateCreation) }}</p>
+                </div>
+                <div class="info-item">
+                  <label>Statut</label>
+                  <p><span class="status-badge" [attr.data-status]="getImmatriculationStatusKey(immatriculation.status)">{{ formatStatus(immatriculation.status) }}</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations du contribuable -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card dossier-info-card">
+            <div class="card-header">
+              <h3><i class="fas fa-user me-2"></i>Informations du contribuable</h3>
+            </div>
+            <div class="card-body">
+              <div class="info-grid">
+                <div class="info-item" *ngIf="immatriculation.typeContribuable === 'MORALE'">
+                  <label>Raison sociale</label>
+                  <p>{{ immatriculation.raisonSociale || 'N/A' }}</p>
+                </div>
+                <div class="info-item" *ngIf="immatriculation.typeContribuable === 'PHYSIQUE'">
+                  <label>Nom</label>
+                  <p>{{ immatriculation.nom || 'N/A' }}</p>
+                </div>
+                <div class="info-item" *ngIf="immatriculation.typeContribuable === 'PHYSIQUE'">
+                  <label>Prénom</label>
+                  <p>{{ immatriculation.prenom || 'N/A' }}</p>
+                </div>
+                <div class="info-item">
+                  <label>Email</label>
+                  <p>{{ immatriculation.email || 'N/A' }}</p>
+                </div>
+                <div class="info-item">
+                  <label>Téléphone</label>
+                  <p>{{ immatriculation.telephone || 'N/A' }}</p>
+                </div>
+                <div class="info-item">
+                  <label>Adresse</label>
+                  <p>{{ immatriculation.adresse || 'N/A' }}</p>
+                </div>
+                <div class="info-item" *ngIf="immatriculation.typeContribuable === 'PHYSIQUE'">
+                  <label>CIN</label>
+                  <p>{{ immatriculation.cin || 'N/A' }}</p>
+                </div>
+                <div class="info-item" *ngIf="immatriculation.typeContribuable === 'PHYSIQUE'">
+                  <label>Date de naissance</label>
+                  <p>{{ formatDate(immatriculation.dateNaissance) }}</p>
+                </div>
+                <div class="info-item" *ngIf="immatriculation.typeContribuable === 'MORALE'">
+                  <label>Registre de commerce</label>
+                  <p>{{ immatriculation.registreCommerce || 'N/A' }}</p>
+                </div>
+                <div class="info-item" *ngIf="immatriculation.typeContribuable === 'MORALE'">
+                  <label>Représentant légal</label>
+                  <p>{{ immatriculation.representantLegal || 'N/A' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations professionnelles -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card dossier-info-card">
+            <div class="card-header">
+              <h3><i class="fas fa-briefcase me-2"></i>Informations professionnelles</h3>
+            </div>
+            <div class="card-body">
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>Type d'activité</label>
+                  <p>{{ immatriculation.typeActivite || 'N/A' }}</p>
+                </div>
+                <div class="info-item">
+                  <label>Secteur</label>
+                  <p>{{ immatriculation.secteur || 'N/A' }}</p>
+                </div>
+                <div class="info-item">
+                  <label>Adresse professionnelle</label>
+                  <p>{{ immatriculation.adresseProfessionnelle || 'N/A' }}</p>
+                </div>
+                <div class="info-item">
+                  <label>Date début d'activité</label>
+                  <p>{{ formatDate(immatriculation.dateDebutActivite) }}</p>
+                </div>
+                <div class="info-item info-item--full">
+                  <label>Description de l'activité</label>
+                  <p>{{ immatriculation.descriptionActivite || 'N/A' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents joints -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card dossier-info-card">
+            <div class="card-header">
+              <h3><i class="fas fa-file-alt me-2"></i>Documents joints</h3>
+            </div>
+            <div class="card-body">
+              <div class="documents-grid">
+                <!-- Pièce d'identité -->
+                <div class="document-item" *ngIf="immatriculation.identiteFile">
+                  <div class="document-header">
+                    <i class="fas fa-id-card"></i>
+                    <span>Pièce d'identité</span>
+                  </div>
+                  <div class="document-preview">
+                    <img [src]="immatriculation.identiteFile" alt="Pièce d'identité" class="document-image">
+                    <div class="document-actions">
+                      <button class="btn btn-sm btn-primary" (click)="viewDocument(immatriculation.identiteFile, 'Pièce d\'identité')">
+                        <i class="fas fa-eye"></i> Voir
+                      </button>
+                      <button class="btn btn-sm btn-secondary" (click)="downloadDocument(immatriculation.identiteFile, 'piece-identite')">
+                        <i class="fas fa-download"></i> Télécharger
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Document d'activité -->
+                <div class="document-item" *ngIf="immatriculation.activiteFile">
+                  <div class="document-header">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Document d'activité</span>
+                  </div>
+                  <div class="document-preview">
+                    <img [src]="immatriculation.activiteFile" alt="Document d'activité" class="document-image">
+                    <div class="document-actions">
+                      <button class="btn btn-sm btn-primary" (click)="viewDocument(immatriculation.activiteFile, 'Document d\'activité')">
+                        <i class="fas fa-eye"></i> Voir
+                      </button>
+                      <button class="btn btn-sm btn-secondary" (click)="downloadDocument(immatriculation.activiteFile, 'document-activite')">
+                        <i class="fas fa-download"></i> Télécharger
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Photo personnelle -->
+                <div class="document-item" *ngIf="immatriculation.photoFile">
+                  <div class="document-header">
+                    <i class="fas fa-user"></i>
+                    <span>Photo personnelle</span>
+                  </div>
+                  <div class="document-preview">
+                    <img [src]="immatriculation.photoFile" alt="Photo personnelle" class="document-image">
+                    <div class="document-actions">
+                      <button class="btn btn-sm btn-primary" (click)="viewDocument(immatriculation.photoFile, 'Photo personnelle')">
+                        <i class="fas fa-eye"></i> Voir
+                      </button>
+                      <button class="btn btn-sm btn-secondary" (click)="downloadDocument(immatriculation.photoFile, 'photo-personnelle')">
+                        <i class="fas fa-download"></i> Télécharger
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Autres documents -->
+              <div class="other-documents" *ngIf="immatriculation.autresFiles && immatriculation.autresFiles.length > 0">
+                <h4>Autres documents ({{ immatriculation.autresFiles.length }})</h4>
+                <div class="other-documents-list">
+                  <div class="other-document-item" *ngFor="let doc of immatriculation.autresFiles; let i = index">
+                    <div class="other-document-info">
+                      <i class="fas fa-file"></i>
+                      <span>Document {{ i + 1 }}</span>
+                    </div>
+                    <div class="document-actions">
+                      <button class="btn btn-sm btn-primary" (click)="viewDocument(doc, 'Document ' + (i + 1))">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button class="btn btn-sm btn-secondary" (click)="downloadDocument(doc, 'document-' + (i + 1))">
+                        <i class="fas fa-download"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions disponibles -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card actions-card">
+            <div class="card-header">
+              <h3><i class="fas fa-cogs me-2"></i>Actions Disponibles</h3>
+            </div>
+            <div class="card-body">
+              <div class="actions-grid">
+                <button class="action-btn primary">
+                  <i class="fas fa-file-alt"></i>
+                  <span>Déclarer Impôts</span>
+                </button>
+                <button class="action-btn success">
+                  <i class="fas fa-receipt"></i>
+                  <span>Consulter Relevés</span>
+                </button>
+                <button class="action-btn info">
+                  <i class="fas fa-download"></i>
+                  <span>Télécharger Documents</span>
+                </button>
+                <button class="action-btn warning">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <span>Déposer Réclamation</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <app-footer></app-footer>
