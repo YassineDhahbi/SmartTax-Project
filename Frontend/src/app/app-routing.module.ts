@@ -24,7 +24,7 @@ import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
-  { path: 'home', component: HomeComponent, canActivate: [AuthGuard], data: { roles: ['CONTRIBUABLE', 'AGENT', 'ADMIN'] } },
+  { path: 'home', component: HomeComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
@@ -42,7 +42,7 @@ const routes: Routes = [
   { path: 'Dossier', component: DossierComponent },
   { path: 'Dashboard-Agent', component: DashboardAgentComponent, canActivate: [AuthGuard], data: { roles: ['AGENT'] } },
   { path: 'trash', component: TrashViewComponent, canActivate: [AuthGuard], data: { roles: ['AGENT'] } },
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }
 ];
 

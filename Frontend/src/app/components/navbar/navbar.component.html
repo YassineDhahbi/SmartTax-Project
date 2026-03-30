@@ -68,7 +68,7 @@
                             <button type="button" class="nav-right-link" (click)="logout()"><i class="fas fa-sign-out-alt"></i></button>
                         </div> -->
                         <div class="nav-btn">
-                            <a [routerLink]="['/login']" fragment="reclamation" class="theme-btn2">Espace Contribuable<i
+                            <a [routerLink]="[getButtonLink()]" class="theme-btn2">{{ getButtonText() }}<i
                                     class="fas fa-circle-arrow-right"></i></a>
                         </div>
                         

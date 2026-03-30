@@ -106,4 +106,20 @@ export class NavbarComponent implements OnInit {
       this.searchQuery = '';
     }
   }
+
+  getButtonText(): string {
+    if (this.authService.isLoggedIn()) {
+      const role = localStorage.getItem('role');
+      return role === 'CONTRIBUABLE' ? 'Mon Profile' : 'Espace Contribuable';
+    }
+    return 'Espace Contribuable';
+  }
+
+  getButtonLink(): string {
+    if (this.authService.isLoggedIn()) {
+      const role = localStorage.getItem('role');
+      return role === 'CONTRIBUABLE' ? '/profile' : '/login';
+    }
+    return '/login';
+  }
 }
