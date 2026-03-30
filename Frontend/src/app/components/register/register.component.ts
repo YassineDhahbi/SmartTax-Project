@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import * as bootstrap from 'bootstrap';
 
@@ -21,11 +21,17 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     width: '0%'
   };
   toasts: { title: string; message: string; type: string }[] = [];
+  
+  // Propriétés pour le code de sécurité
+  securityCode: string = '';
+  showSecurityCodeInput: boolean = false;
+  isFromValidationEmail: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.pattern(/^[a-zA-Z\s]*$/)]],
@@ -35,11 +41,29 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       confirmPassword: ['', Validators.required],
       dateNaissance: ['', [Validators.required, this.minimumAgeValidator(18)]],
       photo: ['', Validators.pattern(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/)],
-      role: ['CONTRIBUABLE', Validators.required]
+      role: ['CONTRIBUABLE', Validators.required],
+      securityCode: [''] // Champ pour le code de sécurité
     }, { validators: this.passwordMatchValidator });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Vérifier s'il y a un code de sécurité dans l'URL
+    this.route.queryParams.subscribe(params => {
+      if (params['code']) {
+        this.securityCode = params['code'];
+        this.isFromValidationEmail = true;
+        this.showSecurityCodeInput = true;
+        
+        // Pré-remplir le formulaire avec le code
+        this.registerForm.patchValue({
+          securityCode: this.securityCode
+        });
+        
+        console.log('🔐 Code de sécurité détecté:', this.securityCode);
+        this.addToast('Information', 'Code de sécurité détecté. Veuillez compléter le formulaire pour créer votre compte.', 'info');
+      }
+    });
+  }
 
   ngAfterViewInit(): void {
     // Initialiser les toasts après le rendu de la vue
@@ -142,6 +166,12 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       this.validateField(field);
     });
 
+    // Validation spéciale pour le code de sécurité si requis
+    if (this.isFromValidationEmail && !this.registerForm.value.securityCode) {
+      this.addToast('Erreur', 'Le code de sécurité est requis pour créer votre compte.', 'toast-error');
+      return;
+    }
+
     if (this.registerForm.valid) {
       this.isLoading = true;
       this.toasts = []; // Réinitialiser les toasts
@@ -153,7 +183,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         password: this.registerForm.value.password,
         dateNaissance: new Date(this.registerForm.value.dateNaissance).toISOString().split('T')[0],
         photo: this.registerForm.value.photo || null,
-        role: this.registerForm.value.role
+        role: this.registerForm.value.role,
+        securityCode: this.registerForm.value.securityCode || null // Inclure le code de sécurité
       };
 
       this.authService.register(user).subscribe({
@@ -164,7 +195,16 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         },
         error: (error) => {
           this.isLoading = false;
-          this.addToast('Erreur', error.error?.error || 'Échec de l\'inscription. Veuillez réessayer.', 'toast-error');
+          let errorMessage = 'Échec de l\'inscription. Veuillez réessayer.';
+          
+          // Message d'erreur spécifique pour le code de sécurité invalide
+          if (error.error?.error?.includes('code de sécurité') || error.error?.error?.includes('security code')) {
+            errorMessage = 'Code de sécurité invalide. Veuillez vérifier le code reçu par email.';
+          } else if (error.error?.error) {
+            errorMessage = error.error.error;
+          }
+          
+          this.addToast('Erreur', errorMessage, 'toast-error');
         }
       });
     }

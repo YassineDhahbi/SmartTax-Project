@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
+import { EmailService } from '../../services/email/email.service';
 import { Immatriculation } from '../../models/immatriculation.model';
 import jsPDF from 'jspdf';
 import * as QRCode from 'qrcode';
@@ -82,7 +83,7 @@ export class DashboardAgentComponent implements OnInit {
 
   theme: 'dark' | 'light' = getInitialTheme();
 
-  constructor(private http: HttpClient, private immatriculationService: ImmatriculationService, private trashService: TrashService) {}
+  constructor(private http: HttpClient, private immatriculationService: ImmatriculationService, private trashService: TrashService, private emailService: EmailService) {}
 
   // Données des immatriculations depuis PostgreSQL
   immatriculations: any[] = [];
@@ -655,21 +656,55 @@ export class DashboardAgentComponent implements OnInit {
       next: (response) => {
         console.log('✅ Immatriculation validée avec succès:', response);
         
-        // Mettre à jour le statut dans la liste locale
-        const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
-        if (index !== -1) {
-          this.immatriculations[index] = response;
-          this.applyFilter();
-        }
+        // Générer et envoyer le code de sécurité par email
+        const securityCode = this.emailService.generateSecurityCode();
+        console.log('🔐 Code de sécurité généré:', securityCode);
         
-        // Mettre à jour l'immatriculation sélectionnée
-        this.selectedImmatriculation = response;
-        
-        // Afficher un message de succès
-        this.showNotification('L\'immatriculation a été validée avec succès !', 'success');
-        
-        // Fermer le modal après validation
-        this.closeModal();
+        // Envoyer l'email au contribuable
+        this.emailService.sendValidationEmail(this.selectedImmatriculation.email, securityCode).subscribe({
+          next: (emailResponse) => {
+            console.log('📧 Email envoyé avec succès:', emailResponse);
+            
+            // Mettre à jour le statut dans la liste locale
+            const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
+            if (index !== -1) {
+              this.immatriculations[index] = response;
+              this.applyFilter();
+            }
+            
+            // Mettre à jour l'immatriculation sélectionnée
+            this.selectedImmatriculation = response;
+            
+            // Afficher un message de succès incluant l'envoi de l'email
+            this.showNotification(
+              `L'immatriculation a été validée avec succès ! Un email avec le code de sécurité a été envoyé à ${this.selectedImmatriculation.email}`, 
+              'success'
+            );
+            
+            // Fermer le modal après validation
+            this.closeModal();
+          },
+          error: (emailError) => {
+            console.error('❌ Erreur lors de l\'envoi de l\'email:', emailError);
+            
+            // Quand même valider le dossier même si l'email échoue
+            const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
+            if (index !== -1) {
+              this.immatriculations[index] = response;
+              this.applyFilter();
+            }
+            
+            this.selectedImmatriculation = response;
+            
+            // Afficher un message d'avertissement
+            this.showNotification(
+              `L'immatriculation a été validée mais l'email n'a pas pu être envoyé. Code de sécurité: ${securityCode}`, 
+              'warning'
+            );
+            
+            this.closeModal();
+          }
+        });
       },
       error: (error) => {
         console.error('❌ Erreur lors de la validation:', error);

@@ -63,6 +63,30 @@
           </div>
         </div>
 
+        <!-- Champ de code de sécurité (affiché si présent dans l'URL) -->
+        <div class="form-group" *ngIf="showSecurityCodeInput">
+          <label for="securityCode">
+            <i class="fas fa-shield-alt me-2"></i>
+            Code de sécurité
+            <span class="badge bg-info text-white ms-2">Requis</span>
+          </label>
+          <div class="form-icon">
+            <i class="fas fa-key"></i>
+            <input 
+              id="securityCode" 
+              type="text" 
+              formControlName="securityCode" 
+              class="form-control" 
+              placeholder="Entrez le code de sécurité reçu par email"
+              readonly 
+              style="background-color: #f8f9fa; font-weight: bold; color: #007bff;" />
+          </div>
+          <small class="text-info">
+            <i class="fas fa-info-circle me-1"></i>
+            Code de sécurité reçu lors de la validation de votre immatriculation
+          </small>
+        </div>
+
         <div class="form-group">
           <label for="email">Adresse Email</label>
           <div class="form-icon">
@@ -125,17 +149,7 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="role">Rôle</label>
-            <div class="form-icon">
-              <i class="far fa-user-shield"></i>
-              <select id="role" formControlName="role" class="form-control">
-                <option value="CONTRIBUABLE">Contribuable</option>
-                <option value="AGENT">Agent DGI</option>
-                <option value="ADMIN">Administrateur</option>
-              </select>
-            </div>
-          </div>
+        
         </div>
 
         <div class="auth-btn">
@@ -165,12 +179,12 @@
         </div> -->
       </form>
 
-      <div class="auth-bottom">
+      <!-- <div class="auth-bottom">
         <p class="auth-bottom-text">
           Déjà un compte ?
           <a routerLink="/login">Connectez-vous</a>
         </p>
-      </div>
+      </div> -->
     </div>
   </div>
 </div>
