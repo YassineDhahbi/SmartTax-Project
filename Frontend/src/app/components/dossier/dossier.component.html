@@ -341,4 +341,49 @@
   </div>
 </div>
 
+<!-- Modal d'affichage des documents -->
+<div class="document-modal-overlay" *ngIf="showDocumentModal" (click)="closeDocumentModal()">
+  <div class="document-modal" (click)="$event.stopPropagation()">
+    <div class="document-modal-header">
+      <h3>
+        <i class="fas fa-file-alt me-2"></i>
+        {{ selectedDocument?.title }}
+      </h3>
+      <button class="close-modal-btn" (click)="closeDocumentModal()" title="Fermer">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="document-modal-body">
+      <div class="document-viewer">
+        <div class="document-controls">
+          <button class="zoom-btn" (click)="zoomIn()" title="Zoomer">
+            <i class="fas fa-search-plus"></i>
+          </button>
+          <button class="zoom-btn" (click)="zoomOut()" title="Dézoomer">
+            <i class="fas fa-search-minus"></i>
+          </button>
+          <button class="zoom-btn" (click)="resetZoom()" title="Taille réelle">
+            <i class="fas fa-expand"></i>
+          </button>
+          <button class="download-btn" (click)="downloadDocument(selectedDocument?.url, getDocumentFileName(selectedDocument?.title))" title="Télécharger">
+            <i class="fas fa-download"></i>
+            Télécharger
+          </button>
+        </div>
+        <div class="document-container" [style]="getZoomStyle()">
+          <img [src]="selectedDocument?.url" 
+                 [alt]="selectedDocument?.title" 
+                 class="document-full-image"
+                 (load)="onImageLoad()"
+                 (error)="onImageError()">
+          <div class="loading-overlay" *ngIf="!imageLoaded">
+            <div class="loading-spinner"></div>
+            <p>Chargement du document...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <app-footer></app-footer>

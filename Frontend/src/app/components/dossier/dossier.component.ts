@@ -18,6 +18,15 @@ export class DossierComponent implements OnInit {
   immatriculation: any = null;
   isLoadingImmatriculation = false;
   hasImmatriculation = false;
+  
+  // Gestion de l'affichage des documents
+  selectedDocument: { url: string; title: string; type: string } | null = null;
+  showDocumentModal = false;
+  
+  // Gestion du zoom pour les documents
+  zoomLevel = 1;
+  imageLoaded = false;
+  imageError = false;
 
   constructor(
     private authService: AuthService,
@@ -200,7 +209,9 @@ export class DossierComponent implements OnInit {
     }
   }
 
-  downloadDocument(fileUrl: string, filename: string): void {
+  downloadDocument(fileUrl: string | undefined, filename: string | undefined): void {
+    if (!fileUrl || !filename) return;
+    
     const link = document.createElement('a');
     link.href = fileUrl;
     link.download = filename;
@@ -208,7 +219,69 @@ export class DossierComponent implements OnInit {
   }
 
   viewDocument(fileUrl: string, title: string): void {
-    window.open(fileUrl, '_blank');
+    // Afficher le document dans la page au lieu d'ouvrir un nouvel onglet
+    this.selectedDocument = {
+      url: fileUrl,
+      title: title,
+      type: this.getDocumentType(fileUrl)
+    };
+    this.showDocumentModal = true;
+    // Réinitialiser le zoom et l'état de l'image
+    this.zoomLevel = 1;
+    this.imageLoaded = false;
+    this.imageError = false;
+  }
+
+  getDocumentType(fileUrl: string): string {
+    if (fileUrl.includes('identite')) return 'identite';
+    if (fileUrl.includes('activite')) return 'activite';
+    if (fileUrl.includes('photo')) return 'photo';
+    return 'other';
+  }
+
+  closeDocumentModal(): void {
+    this.selectedDocument = null;
+    this.showDocumentModal = false;
+    this.zoomLevel = 1;
+    this.imageLoaded = false;
+    this.imageError = false;
+  }
+
+  // Méthodes pour le zoom
+  zoomIn(): void {
+    if (this.zoomLevel < 3) {
+      this.zoomLevel += 0.25;
+    }
+  }
+
+  zoomOut(): void {
+    if (this.zoomLevel > 0.5) {
+      this.zoomLevel -= 0.25;
+    }
+  }
+
+  resetZoom(): void {
+    this.zoomLevel = 1;
+  }
+
+  getZoomStyle(): string {
+    return `transform: scale(${this.zoomLevel})`;
+  }
+
+  getDocumentFileName(title: string | undefined): string {
+    if (!title) return 'document';
+    return title.replace(/\s+/g, '-').toLowerCase();
+  }
+
+  // Méthodes pour le chargement des images
+  onImageLoad(): void {
+    this.imageLoaded = true;
+    this.imageError = false;
+  }
+
+  onImageError(): void {
+    this.imageLoaded = false;
+    this.imageError = true;
   }
 
   setEmailManually(email: string): void {
