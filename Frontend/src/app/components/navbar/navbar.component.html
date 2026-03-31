@@ -79,6 +79,22 @@
                             </button>
                         </div>
                         
+                        <!-- Timer de session
+                        <div class="session-timer" *ngIf="authService.isLoggedIn() && sessionTimeRemaining">
+                            <div class="session-info" [class.session-warning]="showSessionWarning">
+                                <i class="fas fa-clock" [class.fa-pulse]="showSessionWarning"></i>
+                                <span class="session-text">
+                                    <span class="session-label">Session:</span>
+                                    <span class="session-time">{{ sessionTimeRemaining }}</span>
+                                </span>
+                            </div>
+                            <div class="session-actions" *ngIf="showSessionWarning">
+                                <button class="extend-session-btn" (click)="extendSession()" title="Prolonger la session">
+                                    <i class="fas fa-clock-rotate-left"></i>
+                                </button>
+                            </div>
+                        </div> -->
+                        
                         <!-- Barre de recherche moderne -->
                         <div class="search-container">
                             <div class="search-box">

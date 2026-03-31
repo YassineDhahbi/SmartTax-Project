@@ -1,16 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../services/auth/auth.service';
+import { interval, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   searchQuery: string = '';
   activeLink: string = 'home';
+  sessionTimeRemaining: string = '';
+  sessionTimer: Subscription | null = null;
+  showSessionWarning: boolean = false;
 
   constructor(
     public authService: AuthService,
@@ -27,6 +31,46 @@ export class NavbarComponent implements OnInit {
     ).subscribe(() => {
       this.updateActiveLink();
     });
+
+    // Démarrer le timer de session si l'utilisateur est connecté
+    if (this.authService.isLoggedIn()) {
+      this.startSessionTimer();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.sessionTimer) {
+      this.sessionTimer.unsubscribe();
+    }
+  }
+
+  private startSessionTimer(): void {
+    // Mettre à jour chaque seconde
+    this.sessionTimer = interval(1000).subscribe(() => {
+      if (this.authService.isLoggedIn()) {
+        const remaining = this.authService.getSessionTimeRemaining();
+        this.sessionTimeRemaining = this.authService.getFormattedSessionTimeRemaining();
+        
+        // Afficher un avertissement si moins de 15 minutes restantes
+        this.showSessionWarning = remaining > 0 && remaining < 15 * 60 * 1000; // 15 minutes
+        
+        // Si la session est expirée, déconnecter
+        if (remaining <= 0) {
+          this.authService.logout();
+        }
+      } else {
+        this.sessionTimeRemaining = '';
+        this.showSessionWarning = false;
+        this.stopSessionTimer();
+      }
+    });
+  }
+
+  private stopSessionTimer(): void {
+    if (this.sessionTimer) {
+      this.sessionTimer.unsubscribe();
+      this.sessionTimer = null;
+    }
   }
 
   private updateActiveLink(): void {
@@ -121,5 +165,12 @@ export class NavbarComponent implements OnInit {
       return role === 'CONTRIBUABLE' ? '/profile' : '/login';
     }
     return '/login';
+  }
+
+  extendSession(): void {
+    // Prolonger la session en réinitialisant le timer
+    // Pour l'instant, on peut simplement recharger la page ou faire une action
+    console.log('Extension de session demandée');
+    // Optionnel: implémenter une API pour étendre la session
   }
 }
