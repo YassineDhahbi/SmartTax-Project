@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { NotificationService } from '../../services/notification.service';
 import { ReclamationService } from '../../services/reclamation.service';
+import { AuthService } from '../../services/auth/auth.service';
 
 
 export interface Reclamation {
@@ -93,17 +94,71 @@ export class ReclamationComponent implements OnInit {
   selectedReclamation: Reclamation | null = null;
   showHistorique: boolean = false;
 
+  // Gestion d'authentification
+  currentUser: any = null;
+  userRole: string = '';
+  isLoggedIn: boolean = false;
+  hasAccess: boolean = false;
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private reclamationService: ReclamationService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    this.checkUserStatus();
     this.initForm();
     this.initMessageForm();
-    this.loadReclamations();
+    if (this.hasAccess) {
+      this.loadReclamations();
+    }
+  }
+
+  checkUserStatus(): void {
+    this.isLoggedIn = this.authService.isLoggedIn();
+    
+    if (this.isLoggedIn) {
+      // Récupérer les informations utilisateur depuis localStorage
+      const userInfo = localStorage.getItem('userInfo');
+      if (userInfo) {
+        try {
+          this.currentUser = JSON.parse(userInfo);
+        } catch {
+          this.currentUser = {
+            id: localStorage.getItem('userId'),
+            email: localStorage.getItem('email'),
+            role: localStorage.getItem('role'),
+            firstName: localStorage.getItem('firstName'),
+            lastName: localStorage.getItem('lastName')
+          };
+        }
+      } else {
+        this.currentUser = {
+          id: localStorage.getItem('userId'),
+          email: localStorage.getItem('email'),
+          role: localStorage.getItem('role'),
+          firstName: localStorage.getItem('firstName'),
+          lastName: localStorage.getItem('lastName')
+        };
+      }
+      this.userRole = this.currentUser?.role || '';
+      this.hasAccess = true;
+    } else {
+      this.currentUser = null;
+      this.userRole = '';
+      this.hasAccess = false;
+    }
+  }
+
+  navigateToImmatriculation(): void {
+    this.router.navigate(['/immatriculation']);
+  }
+
+  navigateToLogin(): void {
+    this.router.navigate(['/login']);
   }
 
   private initForm(): void {

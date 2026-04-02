@@ -1,6 +1,40 @@
 <app-navbar></app-navbar>
 
 <div class="reclamation-container">
+  <!-- Message d'accès restreint pour les utilisateurs non authentifiés -->
+  <div class="access-denied-container" *ngIf="!hasAccess">
+    <div class="access-denied-card">
+      <div class="icon-container">
+        <i class="fas fa-lock"></i>
+      </div>
+      <h2>Accès Restreint</h2>
+      <p class="access-message">
+        Pour déposer une réclamation, vous devez d'abord remplir le formulaire d'immatriculation.
+      </p>
+      <p class="access-submessage">
+        Une fois votre immatriculation acceptée, vous pourrez créer un compte et déposer vos réclamations.
+      </p>
+      <div class="access-actions">
+        <button class="btn btn-primary" [routerLink]="['/Immatriculation']">
+          <i class="fas fa-file-contract me-2"></i>
+          Remplir l'immatriculation
+        </button>
+        <button class="btn btn-outline-secondary" (click)="navigateToLogin()">
+          <i class="fas fa-sign-in-alt me-2"></i>
+          Se connecter
+        </button>
+      </div>
+      <div class="status-info">
+        <div class="status-item">
+          <i class="fas fa-info-circle"></i>
+          <span>Si vous avez déjà une immatriculation validée, veuillez vous connecter</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu principal pour les utilisateurs authentifiés -->
+  <div *ngIf="hasAccess">
   <!-- Header -->
   <div class="header-section">
     <div class="container">
@@ -399,6 +433,7 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <app-footer></app-footer>
