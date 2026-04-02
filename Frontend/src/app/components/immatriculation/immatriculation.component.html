@@ -870,6 +870,123 @@
     </div>
 </section>
 
+<!-- Modal de Nationalité -->
+<div class="nationality-modal-overlay" *ngIf="showNationalityModal" [@modalAnimation]>
+    <div class="nationality-modal">
+        <div class="nationality-modal-header">
+            <h3>
+                <i class="fas fa-globe me-2"></i>
+                Confirmation de Nationalité
+            </h3>
+            <button type="button" class="close-btn" (click)="closeNationalityModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="nationality-modal-body">
+            <div class="nationality-question">
+                <h4>Êtes-vous de nationalité étrangère ?</h4>
+                <p>Cette information nous permettra de déterminer les documents requis pour votre immatriculation.</p>
+            </div>
+            
+            <div class="nationality-options">
+                <div class="nationality-card" 
+                     [class.selected]="!isForeigner" 
+                     (click)="selectNationality(false)">
+                    <div class="card-icon">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <div class="card-content">
+                        <h5>Non, je suis de nationalité tunisienne</h5>
+                        <p>Je fournirai ma Carte d'Identité Nationale (CIN)</p>
+                    </div>
+                    <div class="card-check">
+                        <i class="fas fa-check-circle" *ngIf="!isForeigner"></i>
+                    </div>
+                </div>
+                
+                <div class="nationality-card" 
+                     [class.selected]="isForeigner" 
+                     (click)="selectNationality(true)">
+                    <div class="card-icon">
+                        <i class="fas fa-passport"></i>
+                    </div>
+                    <div class="card-content">
+                        <h5>Oui, je suis de nationalité étrangère</h5>
+                        <p>Je fournirai mon Passeport en cours de validité</p>
+                    </div>
+                    <div class="card-check">
+                        <i class="fas fa-check-circle" *ngIf="isForeigner"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section de téléchargement du document -->
+            <div class="document-upload-section" *ngIf="isForeigner || (!isForeigner && !files.identite)">
+                <h5>
+                    <i class="fas fa-upload me-2"></i>
+                    <span *ngIf="isForeigner">Télécharger votre Passeport</span>
+                    <span *ngIf="!isForeigner">Télécharger votre Carte d'Identité Nationale (CIN)</span>
+                </h5>
+                <div class="upload-area">
+                    <input type="file" 
+                           [id]="isForeigner ? 'passport-upload' : 'cin-upload'" 
+                           accept="image/*,.pdf" 
+                           (change)="onNationalityDocumentChange($event)"
+                           style="display: none;">
+                    <label [for]="isForeigner ? 'passport-upload' : 'cin-upload'" class="upload-label">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">
+                            <p>Cliquez pour télécharger ou glissez-déposez ici</p>
+                            <span>Formats acceptés: JPG, PNG, PDF (Max 5MB)</span>
+                            <div class="auto-redirect-info">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Aperçu du document -->
+                <div class="document-preview" *ngIf="nationalityDocumentPreview">
+                    <h6>Aperçu du document:</h6>
+                    <div class="preview-container">
+                        <img [src]="nationalityDocumentPreview" 
+                             [alt]="isForeigner ? 'Aperçu du passeport' : 'Aperçu du CIN'" 
+                             class="preview-image"
+                             *ngIf="nationalityDocumentPreview.includes('data:image')">
+                        <div class="pdf-preview" *ngIf="nationalityDocumentPreview.includes('application/pdf')">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>{{ isForeigner ? 'Passeport.pdf' : 'CIN.pdf' }}</span>
+                        </div>
+                        <button type="button" 
+                                class="remove-document" 
+                                (click)="nationalityDocument = null; nationalityDocumentPreview = ''">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nationality-modal-actions">
+                <button type="button" 
+                        class="btn-secondary" 
+                        (click)="closeNationalityModal()">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Retour
+                </button>
+                <button type="button" 
+                        class="btn-primary" 
+                        (click)="validateNationalityStep()"
+                        [disabled]="isForeigner && !nationalityDocument">
+                    <i class="fas fa-check me-2"></i>
+                    Confirmer et Continuer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Webcam Modal -->
 <div class="webcam-modal" *ngIf="showWebcamModal" [@modalAnimation]>
     <div class="modal-overlay" (click)="closeWebcam()"></div>

@@ -48,7 +48,13 @@ export class ImmatriculationComponent implements OnInit {
   // Formulaire
   immatriculationForm!: FormGroup;
   currentStep: number = 1;
-  totalSteps: number = 6;
+  totalSteps: number = 7; // Augmenté pour inclure l'étape de nationalité
+  
+  // Étape de nationalité
+  showNationalityModal: boolean = false;
+  isForeigner: boolean = false;
+  nationalityDocument: File | null = null;
+  nationalityDocumentPreview: string = '';
   
   // Progression
   get progressPercentage(): number {
@@ -124,6 +130,82 @@ export class ImmatriculationComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.generateDossierNumber();
+  }
+
+  // Gestion du modal de nationalité
+  openNationalityModal(): void {
+    this.showNationalityModal = true;
+  }
+
+  closeNationalityModal(): void {
+    this.showNationalityModal = false;
+    this.isForeigner = false;
+    this.nationalityDocument = null;
+    this.nationalityDocumentPreview = '';
+  }
+
+  selectNationality(isForeigner: boolean): void {
+    this.isForeigner = isForeigner;
+  }
+
+  validateNationalityStep(): void {
+    if (this.isForeigner && !this.nationalityDocument) {
+      this.notificationService.showError('Veuillez télécharger votre passeport');
+      return;
+    }
+    
+    if (!this.isForeigner && !this.nationalityDocument && !this.files.identite) {
+      this.notificationService.showError('Veuillez télécharger votre Carte d\'Identité Nationale (CIN)');
+      return;
+    }
+    
+    // Si l'utilisateur est tunisien et a téléchargé le CIN via le modal
+    if (!this.isForeigner && this.nationalityDocument) {
+      this.files.identite = this.nationalityDocument;
+    }
+    
+    this.closeNationalityModal();
+    this.currentStep = 2; // Passer à l'étape 2 (Informations Personnelles)
+  }
+
+  // Gestion des fichiers de nationalité
+  onNationalityDocumentChange(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.nationalityDocument = file;
+      this.previewNationalityDocument(file);
+      
+      // Redirection automatique vers les informations personnelles après le téléchargement
+      setTimeout(() => {
+        if (this.isForeigner || (!this.isForeigner && file)) {
+          // Si l'utilisateur est étranger OU si c'est un tunisien avec un document
+          if (!this.isForeigner) {
+            // Pour les Tunisiens, transférer le CIN vers les fichiers principaux
+            this.files.identite = file;
+          }
+          
+          // Fermer le modal et rediriger vers l'étape 2 (Informations Personnelles)
+          this.closeNationalityModal();
+          this.currentStep = 2;
+          this.updateProgress();
+          
+          // Message de confirmation
+          const documentType = this.isForeigner ? 'passeport' : 'CIN';
+          this.notificationService.showSuccess(
+            `Votre ${documentType} a été téléchargé avec succès. Vous pouvez maintenant remplir vos informations personnelles.`,
+            'Document téléchargé'
+          );
+        }
+      }, 1000); // Délai pour permettre à l'aperçu de s'afficher
+    }
+  }
+
+  previewNationalityDocument(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.nationalityDocumentPreview = e.target.result;
+    };
+    reader.readAsDataURL(file);
   }
 
   // Initialisation du formulaire
@@ -337,13 +419,24 @@ export class ImmatriculationComponent implements OnInit {
 
   // Navigation entre étapes
   nextStep(): void {
-    if (this.validateCurrentStep() && !this.hasValidationErrors()) {
+    if (this.validateCurrentStep()) {
+      // Cas spécial pour l'étape 1 (Type Contribuable)
+      if (this.currentStep === 1) {
+        const typeContribuable = this.immatriculationForm.get('typeContribuable')?.value;
+        if (typeContribuable === 'physique') {
+          // Ouvrir le modal de nationalité pour les personnes physiques
+          this.openNationalityModal();
+          return;
+        }
+      }
+      
+      // Navigation normale pour les autres étapes
       if (this.currentStep < this.totalSteps) {
         this.currentStep++;
         this.updateProgress();
         
-        // Déclencher les vérifications automatiques à l'étape 5
-        if (this.currentStep === 5) {
+        // Lancer la vérification automatique à l'étape 6 (anciennement 5)
+        if (this.currentStep === 6) {
           this.performAutomaticVerification();
         }
       }
@@ -369,7 +462,7 @@ export class ImmatriculationComponent implements OnInit {
       case 2:
         return this.validateInformationsPersonnellesStep(); // Inclut email, téléphone, adresse
       case 3:
-        return this.validateActiviteStep(); // CORRIGÉ: Les champs d'activité sont à l'étape 3
+        return this.validateActiviteStep(); // Les champs d'activité sont à l'étape 3
       case 4:
         return this.validateDocumentsStep(); // Pièces Jointes
       case 5:
@@ -400,7 +493,7 @@ export class ImmatriculationComponent implements OnInit {
   private validateInformationsPersonnellesStep(): boolean {
     const type = this.immatriculationForm.get('typeContribuable')?.value?.toUpperCase();
     
-    if (type === 'PHYSIQUE') {
+    if (type === 'PHYSIQUE' || type === 'physique') {
       const nom = this.immatriculationForm.get('nom');
       const prenom = this.immatriculationForm.get('prenom');
       const cin = this.immatriculationForm.get('cin');
