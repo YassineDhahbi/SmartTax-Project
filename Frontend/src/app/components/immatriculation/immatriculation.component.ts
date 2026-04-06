@@ -558,6 +558,12 @@ export class ImmatriculationComponent implements OnInit {
         return false;
       }
       
+      // Vérifier les erreurs de validation personnalisées (doublons CIN)
+      if (this.validationErrors.cin) {
+        this.notificationService.showError(this.validationErrors.cin, 'CIN déjà utilisé');
+        return false;
+      }
+      
       if (!dateNaissance?.value) {
         this.notificationService.showError('La date de naissance est obligatoire', 'Champ manquant');
         return false;
@@ -670,6 +676,12 @@ export class ImmatriculationComponent implements OnInit {
       } else {
         this.notificationService.showError('L\'email est invalide', 'Erreur de format');
       }
+      return false;
+    }
+    
+    // Vérifier les erreurs de validation personnalisées (doublons)
+    if (this.validationErrors.email) {
+      this.notificationService.showError(this.validationErrors.email, 'Email déjà utilisé');
       return false;
     }
     
@@ -1478,17 +1490,17 @@ export class ImmatriculationComponent implements OnInit {
     
     // Valider le format d'abord
     if (!this.validationService.validateCinFormat(cin)) {
-      this.validationErrors.cin = this.validationService.getErrorMessage('cin', cin);
+      this.validationErrors.cin = 'Le CIN doit contenir exactement 8 chiffres';
       return;
     }
     
-    // Vérifier le doublon
+    // Vérifier le doublon dans la base de données
     this.validationInProgress.cin = true;
     this.validationService.checkCinExists(cin).subscribe({
       next: (exists) => {
         this.validationInProgress.cin = false;
         if (exists) {
-          this.validationErrors.cin = this.validationService.getErrorMessage('cin', cin);
+          this.validationErrors.cin = 'Un dossier existe déjà avec ce CIN: ' + cin;
         }
       },
       error: () => {
@@ -1510,17 +1522,17 @@ export class ImmatriculationComponent implements OnInit {
     
     // Valider le format d'abord
     if (!this.validationService.validateEmailFormat(email)) {
-      this.validationErrors.email = this.validationService.getErrorMessage('email', email);
+      this.validationErrors.email = 'Veuillez entrer une adresse email valide (ex: nom@domaine.com)';
       return;
     }
     
-    // Vérifier le doublon
+    // Vérifier le doublon dans la base de données
     this.validationInProgress.email = true;
     this.validationService.checkEmailExists(email).subscribe({
       next: (exists) => {
         this.validationInProgress.email = false;
         if (exists) {
-          this.validationErrors.email = this.validationService.getErrorMessage('email', email);
+          this.validationErrors.email = 'Un dossier existe déjà avec cet email: ' + email;
         }
       },
       error: () => {
@@ -1540,26 +1552,15 @@ export class ImmatriculationComponent implements OnInit {
       return;
     }
     
-    // Valider le format d'abord
-    if (!this.validationService.validateRegistreCommerceFormat(rc)) {
-      this.validationErrors.registreCommerce = this.validationService.getErrorMessage('registreCommerce', rc);
-      return;
-    }
-    
-    // Vérifier le doublon
-    this.validationInProgress.registreCommerce = true;
-    this.validationService.checkRegistreCommerceExists(rc).subscribe({
-      next: (exists) => {
-        this.validationInProgress.registreCommerce = false;
-        if (exists) {
-          this.validationErrors.registreCommerce = this.validationService.getErrorMessage('registreCommerce', rc);
-        }
-      },
-      error: () => {
-        this.validationInProgress.registreCommerce = false;
-        // En cas d'erreur, on ne bloque pas la saisie
+    // Validation simple du format
+    const rcControl = this.immatriculationForm.get('registreCommerce');
+    if (rcControl && rcControl.invalid) {
+      if (rcControl.errors?.['pattern']) {
+        this.validationErrors.registreCommerce = 'Le registre de commerce doit contenir uniquement des caractères alphanumériques (1-20 caractères)';
+      } else if (rcControl.errors?.['required']) {
+        this.validationErrors.registreCommerce = 'Le registre de commerce est obligatoire';
       }
-    });
+    }
   }
 
   // Vérifier s'il y a des erreurs de validation

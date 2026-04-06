@@ -15,27 +15,30 @@ export class ValidationService {
    * Vérifie si un CIN existe déjà
    */
   checkCinExists(cin: string): Observable<boolean> {
-    const params = new HttpParams().set('cin', cin);
-    return this.http.get<{ [key: string]: boolean }>(`${this.apiUrl}/check-duplicates`, { params })
-      .pipe(map(response => response['cinExists'] || false));
+    const body = new HttpParams().set('cin', cin);
+    return this.http.post<{ [key: string]: boolean }>(`${this.apiUrl}/check-duplicates`, body.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).pipe(map(response => response['cinExists'] || false));
   }
 
   /**
    * Vérifie si un email existe déjà
    */
   checkEmailExists(email: string): Observable<boolean> {
-    const params = new HttpParams().set('email', email);
-    return this.http.get<{ [key: string]: boolean }>(`${this.apiUrl}/check-duplicates`, { params })
-      .pipe(map(response => response['emailExists'] || false));
+    const body = new HttpParams().set('email', email);
+    return this.http.post<{ [key: string]: boolean }>(`${this.apiUrl}/check-duplicates`, body.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).pipe(map(response => response['emailExists'] || false));
   }
 
   /**
    * Vérifie si un registre de commerce existe déjà
    */
   checkRegistreCommerceExists(registreCommerce: string): Observable<boolean> {
-    const params = new HttpParams().set('registreCommerce', registreCommerce);
-    return this.http.get<{ [key: string]: boolean }>(`${this.apiUrl}/check-duplicates`, { params })
-      .pipe(map(response => response['registreCommerceExists'] || false));
+    const body = new HttpParams().set('registreCommerce', registreCommerce);
+    return this.http.post<{ [key: string]: boolean }>(`${this.apiUrl}/check-duplicates`, body.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).pipe(map(response => response['registreCommerceExists'] || false));
   }
 
   /**
