@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener, Renderer2 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { trigger, state, style, transition, animate } from '@angular/animations';
@@ -6,6 +6,7 @@ import { ImmatriculationService } from '../../services/immatriculation.service';
 import { ValidationService } from '../../services/validation.service';
 import { NotificationService } from '../../services/notification.service';
 import { CinValidatorService } from '../../services/cin/cin-validator.service';
+import { OcrService, CINData } from '../../services/ocr.service';
 import { 
   Immatriculation, 
   CreateImmatriculationDto, 
@@ -42,8 +43,9 @@ import {
   ]
 })
 export class ImmatriculationComponent implements OnInit {
-  @ViewChild('videoElement') videoElement!: ElementRef;
+  @ViewChild('ocrFileInput') ocrFileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('canvas') canvas!: ElementRef;
+  @ViewChild('video') videoElement!: ElementRef<HTMLVideoElement>;
 
   // Formulaire
   immatriculationForm!: FormGroup;
@@ -118,13 +120,20 @@ export class ImmatriculationComponent implements OnInit {
   identityValidationInProgress: boolean = false;
   identityValidationError: string = '';
 
+  // OCR Integration (simplifié)
+  ocrData: any = null;
+  ocrExtracted: Partial<CINData> = {};
+  ocrProcessing: boolean = false;
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private immatriculationService: ImmatriculationService,
     private validationService: ValidationService,
     private notificationService: NotificationService,
-    private cinValidator: CinValidatorService
+    private cinValidator: CinValidatorService,
+    private ocrService: OcrService,
+    private renderer: Renderer2
   ) {}
 
   ngOnInit(): void {
@@ -1584,5 +1593,171 @@ export class ImmatriculationComponent implements OnInit {
     if (this.stream) {
       this.stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
     }
+  }
+
+  // ===== Méthodes OCR Simplifiées =====
+  
+  /**
+   * Déclenche le clic sur l'input file OCR
+   */
+  triggerOcrFileInput(): void {
+    this.ocrFileInput.nativeElement.click();
+  }
+
+  /**
+   * Gestion de la sélection de fichier OCR
+   */
+  onOcrFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.handleOcrFile(input.files[0]);
+    }
+  }
+
+  /**
+   * Traite le fichier OCR
+   */
+  private handleOcrFile(file: File): void {
+    if (!file.type.startsWith('image/')) {
+      this.notificationService.showError('Veuillez sélectionner une image valide', 'Format invalide');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB
+      this.notificationService.showError('L\'image est trop volumineuse (max 10MB)', 'Fichier trop volumineux');
+      return;
+    }
+
+    // Sauvegarder le fichier CIN pour les pièces jointes
+    this.saveCINFileForAttachments(file);
+    
+    this.extractCINData(file);
+  }
+
+  /**
+   * Sauvegarde le fichier CIN pour les pièces jointes
+   */
+  private saveCINFileForAttachments(file: File): void {
+    // Créer une copie du fichier pour les pièces jointes
+    const cinFile = new File([file], `CIN_${file.name}`, { type: file.type });
+    
+    // Ajouter le fichier CIN aux pièces jointes
+    this.files.identite = cinFile;
+    
+    console.log('📁 Fichier CIN sauvegardé pour les pièces jointes:', cinFile);
+  }
+
+  /**
+   * Extrait les données CIN via OCR
+   */
+  private extractCINData(file: File): void {
+    this.ocrProcessing = true;
+    
+    this.ocrService.extractCINInformation(file).subscribe({
+      next: (response) => {
+        this.ocrProcessing = false;
+        this.ocrData = response;
+        
+        if (response.success && response.data) {
+          this.ocrExtracted = {
+            cin: response.data.cin,
+            nom: response.data.nom,
+            prenom: response.data.prenom,
+            date_naissance: response.data.date_naissance,
+            lieu_naissance: response.data.lieu_naissance,
+            sexe: response.data.sexe
+          };
+          
+          // Appliquer automatiquement les données au formulaire
+          this.applyOcrDataToForm(response.data);
+          
+          this.notificationService.showSuccess(
+            `✅ Informations extraites avec succès ! (${(response.confidence * 100).toFixed(1)}% de confiance)\n\n🎯 Les champs "Informations Personnelles" ont été automatiquement remplis\n📁 Votre CIN a été sauvegardée dans la section "Pièces Jointes"`,
+            '🎯 OCR Réussi - CIN sauvegardée'
+          );
+          
+          // Fermer le modal de nationalité et naviguer vers la section Informations Personnelles
+          this.closeNationalityModal();
+          this.currentStep = 2; // Naviguer vers l'étape 2 (Informations Personnelles)
+        } else {
+          this.notificationService.showError(
+            response.message || 'Erreur lors de l\'extraction',
+            'OCR échoué'
+          );
+        }
+      },
+      error: (error) => {
+        this.ocrProcessing = false;
+        console.error('❌ Erreur OCR:', error);
+        this.notificationService.showError(
+          'Erreur de communication avec le service OCR',
+          'Erreur technique'
+        );
+      }
+    });
+  }
+
+  /**
+   * Applique les données OCR au formulaire
+   */
+  private applyOcrDataToForm(data: CINData): void {
+    console.log('🔍 Application des données OCR:', data);
+    
+    // Préparer toutes les données à appliquer
+    const formData: any = {};
+    
+    // Appliquer CIN
+    if (data.cin) {
+      formData.cin = data.cin;
+      this.ocrExtracted.cin = data.cin;
+    }
+    
+    // Appliquer Nom
+    if (data.nom) {
+      formData.nom = data.nom;
+      this.ocrExtracted.nom = data.nom;
+    }
+    
+    // Appliquer Prénom
+    if (data.prenom) {
+      formData.prenom = data.prenom;
+      this.ocrExtracted.prenom = data.prenom;
+    }
+    
+    // Appliquer Date de naissance
+    if (data.date_naissance) {
+      const convertedDate = this.ocrService.convertDateForInput(data.date_naissance);
+      if (convertedDate) {
+        formData.dateNaissance = convertedDate;
+        this.ocrExtracted.date_naissance = data.date_naissance;
+      }
+    }
+    
+    // Appliquer Lieu de naissance
+    if (data.lieu_naissance && this.immatriculationForm.get('lieuNaissance')) {
+      formData.lieuNaissance = data.lieu_naissance;
+      this.ocrExtracted.lieu_naissance = data.lieu_naissance;
+    }
+    
+    // Appliquer Sexe
+    if (data.sexe && this.immatriculationForm.get('sexe')) {
+      formData.sexe = data.sexe;
+      this.ocrExtracted.sexe = data.sexe;
+    }
+    
+    // Appliquer toutes les données en une seule fois
+    if (Object.keys(formData).length > 0) {
+      console.log('📋 Formulaire avant patchValue:', this.immatriculationForm.value);
+      console.log('📝 Données à appliquer:', formData);
+      
+      // Petit délai pour s'assurer que le formulaire est prêt
+      setTimeout(() => {
+        this.immatriculationForm.patchValue(formData);
+        console.log('✅ Données OCR appliquées au formulaire:', formData);
+        console.log('📋 Formulaire après patchValue:', this.immatriculationForm.value);
+      }, 100);
+    }
+    
+    console.log('✅ Données OCR appliquées au formulaire - Les informations apparaîtront dans la section "Informations Personnelles"');
   }
 }

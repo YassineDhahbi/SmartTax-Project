@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire d'Immatriculation - SmartTax</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 40px;
+        }
+        
+        .form-section {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #e8ebff;
+        }
+        
+        .form-section h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group input.auto-filled {
+            background: #e8f5e8;
+            border-color: #4caf50;
+        }
+        
+        .cin-section {
+            background: #fff3cd;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .cin-section h2 {
+            color: #856404;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+        
+        .cin-upload-area {
+            border: 3px dashed #ffc107;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #fff8e1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .cin-upload-area:hover {
+            border-color: #ff9800;
+            background: #ffecb3;
+        }
+        
+        .cin-icon {
+            font-size: 3em;
+            color: #ffc107;
+            margin-bottom: 15px;
+        }
+        
+        .cin-text {
+            font-size: 1.1em;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .cin-subtext {
+            color: #856404;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        #cinFileInput {
+            display: none;
+        }
+        
+        .extracted-preview {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #ffeaa7;
+            display: none;
+        }
+        
+        .extracted-preview h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .extracted-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .extracted-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #fff8e1;
+            border-radius: 5px;
+        }
+        
+        .extracted-label {
+            font-weight: 600;
+            color: #856404;
+        }
+        
+        .extracted-value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .action-buttons {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #856404;
+        }
+        
+        .btn-warning:hover {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ffc107;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Formulaire d'Immatriculation</h1>
+            <p>SmartTax - Service d'immatriculation automatique</p>
+        </div>
+        
+        <div class="content">
+            <!-- Section Formulaire -->
+            <div class="form-section">
+                <h2>📋 Informations du véhicule</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nom">Nom *</label>
+                        <input type="text" id="nom" name="nom" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="prenom">Prénom *</label>
+                        <input type="text" id="prenom" name="prenom" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cin">Numéro CIN *</label>
+                    <input type="text" id="cin" name="cin" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date_naissance">Date de naissance *</label>
+                        <input type="date" id="date_naissance" name="date_naissance" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lieu_naissance">Lieu de naissance *</label>
+                        <input type="text" id="lieu_naissance" name="lieu_naissance" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sexe">Sexe *</label>
+                        <select id="sexe" name="sexe" required>
+                            <option value="">Sélectionner</option>
+                            <option value="M">Masculin</option>
+                            <option value="F">Féminin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="nationalite">Nationalité *</label>
+                        <input type="text" id="nationalite" name="nationalite" value="Tunisienne" required>
+                    </div>
+                </div>
+                
+                <h2 style="margin-top: 30px; color: #667eea;">🚗 Informations du véhicule</h2>
+                
+                <div class="form-group">
+                    <label for="marque">Marque *</label>
+                    <input type="text" id="marque" name="marque" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="modele">Modèle *</label>
+                        <input type="text" id="modele" name="modele" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="immatriculation">Immatriculation *</label>
+                        <input type="text" id="immatriculation" name="immatriculation" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="categorie">Catégorie *</label>
+                    <select id="categorie" name="categorie" required>
+                        <option value="">Sélectionner</option>
+                        <option value="A">Voiture</option>
+                        <option value="B">Moto</option>
+                        <option value="C">Camion</option>
+                        <option value="D">Bus</option>
+                    </select>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">Soumettre l'immatriculation</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Réinitialiser</button>
+                </div>
+            </div>
+            
+            <!-- Section CIN -->
+            <div class="cin-section">
+                <h2>🆔 Extraction automatique CIN</h2>
+                <p style="margin-bottom: 20px; color: #856404;">
+                    Téléchargez votre carte d'identité pour remplir automatiquement les informations personnelles
+                </p>
+                
+                <div class="cin-upload-area" id="cinUploadArea">
+                    <div class="cin-icon">📷</div>
+                    <div class="cin-text">Cliquez pour télécharger votre CIN</div>
+                    <div class="cin-subtext">Formats: JPG, PNG (max 5MB)</div>
+                    <input type="file" id="cinFileInput" accept="image/*">
+                </div>
+                
+                <div class="loading" id="cinLoading">
+                    <div class="spinner"></div>
+                    <div>Extraction en cours...</div>
+                </div>
+                
+                <div class="extracted-preview" id="extractedPreview">
+                    <h3>✅ Informations extraites</h3>
+                    <div class="extracted-grid">
+                        <div class="extracted-item">
+                            <span class="extracted-label">CIN:</span>
+                            <span class="extracted-value" id="extractedCin">-</span>
+                        </div>
+                        <div class="extracted-item">
+                            <span class="extracted-label">Nom:</span>
+                            <span class="extracted-value" id="extractedNom">-</span>
+                        </div>
+                        <div class="extracted-item">
+                            <span class="extracted-label">Prénom:</span>
+                            <span class="extracted-value" id="extractedPrenom">-</span>
+                        </div>
+                        <div class="extracted-item">
+                            <span class="extracted-label">Date naissance:</span>
+                            <span class="extracted-value" id="extractedDateNaissance">-</span>
+                        </div>
+                        <div class="extracted-item">
+                            <span class="extracted-label">Lieu naissance:</span>
+                            <span class="extracted-value" id="extractedLieuNaissance">-</span>
+                        </div>
+                        <div class="extracted-item">
+                            <span class="extracted-label">Sexe:</span>
+                            <span class="extracted-value" id="extractedSexe">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-warning" onclick="useExtractedData()">
+                            ✅ Utiliser ces informations
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="clearExtractedData()">
+                            🔄 Réessayer
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="messageArea"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let extractedData = {};
+        
+        // Éléments DOM
+        const cinUploadArea = document.getElementById('cinUploadArea');
+        const cinFileInput = document.getElementById('cinFileInput');
+        const cinLoading = document.getElementById('cinLoading');
+        const extractedPreview = document.getElementById('extractedPreview');
+        const messageArea = document.getElementById('messageArea');
+        
+        // Gestion du clic sur la zone d'upload
+        cinUploadArea.addEventListener('click', () => {
+            cinFileInput.click();
+        });
+        
+        // Gestion du drag & drop
+        cinUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            cinUploadArea.style.borderColor = '#ff9800';
+            cinUploadArea.style.background = '#ffecb3';
+        });
+        
+        cinUploadArea.addEventListener('dragleave', () => {
+            cinUploadArea.style.borderColor = '#ffc107';
+            cinUploadArea.style.background = '#fff8e1';
+        });
+        
+        cinUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            cinUploadArea.style.borderColor = '#ffc107';
+            cinUploadArea.style.background = '#fff8e1';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleCINFile(files[0]);
+            }
+        });
+        
+        // Gestion du sélection de fichier
+        cinFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleCINFile(e.target.files[0]);
+            }
+        });
+        
+        // Traitement du fichier CIN
+        function handleCINFile(file) {
+            // Validation
+            if (!file.type.startsWith('image/')) {
+                showMessage('Veuillez sélectionner une image valide', 'error');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) { // 5MB
+                showMessage('Le fichier est trop volumineux (max 5MB)', 'error');
+                return;
+            }
+            
+            // Afficher le chargement
+            cinUploadArea.style.display = 'none';
+            cinLoading.style.display = 'block';
+            
+            // Envoyer au service OCR
+            extractCINData(file);
+        }
+        
+        // Extraction des données CIN
+        async function extractCINData(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('http://localhost:8000/extract-cin', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                cinLoading.style.display = 'none';
+                
+                if (response.ok && result.success) {
+                    extractedData = result.data;
+                    displayExtractedData(result.data);
+                    showMessage('Informations extraites avec succès!', 'success');
+                } else {
+                    cinUploadArea.style.display = 'block';
+                    showMessage('Aucune information détectée. Veuillez réessayer avec une image plus claire.', 'error');
+                }
+            } catch (error) {
+                cinLoading.style.display = 'none';
+                cinUploadArea.style.display = 'block';
+                showMessage('Erreur de connexion au service OCR: ' + error.message, 'error');
+            }
+        }
+        
+        // Afficher les données extraites
+        function displayExtractedData(data) {
+            // Mettre à jour l'aperçu
+            document.getElementById('extractedCin').textContent = data.cin || '-';
+            document.getElementById('extractedNom').textContent = data.nom || '-';
+            document.getElementById('extractedPrenom').textContent = data.prenom || '-';
+            document.getElementById('extractedDateNaissance').textContent = data.date_naissance || '-';
+            document.getElementById('extractedLieuNaissance').textContent = data.lieu_naissance || '-';
+            document.getElementById('extractedSexe').textContent = data.sexe || '-';
+            
+            extractedPreview.style.display = 'block';
+        }
+        
+        // Utiliser les données extraites
+        function useExtractedData() {
+            // Remplir le formulaire principal
+            if (extractedData.cin) {
+                document.getElementById('cin').value = extractedData.cin;
+                document.getElementById('cin').classList.add('auto-filled');
+            }
+            
+            if (extractedData.nom) {
+                document.getElementById('nom').value = extractedData.nom;
+                document.getElementById('nom').classList.add('auto-filled');
+            }
+            
+            if (extractedData.prenom) {
+                document.getElementById('prenom').value = extractedData.prenom;
+                document.getElementById('prenom').classList.add('auto-filled');
+            }
+            
+            if (extractedData.date_naissance) {
+                // Convertir la date si nécessaire
+                const dateStr = extractedData.date_naissance;
+                const formattedDate = formatDateForInput(dateStr);
+                document.getElementById('date_naissance').value = formattedDate;
+                document.getElementById('date_naissance').classList.add('auto-filled');
+            }
+            
+            if (extractedData.lieu_naissance) {
+                document.getElementById('lieu_naissance').value = extractedData.lieu_naissance;
+                document.getElementById('lieu_naissance').classList.add('auto-filled');
+            }
+            
+            if (extractedData.sexe) {
+                document.getElementById('sexe').value = extractedData.sexe;
+                document.getElementById('sexe').classList.add('auto-filled');
+            }
+            
+            if (extractedData.nationalite) {
+                document.getElementById('nationalite').value = extractedData.nationalite;
+                document.getElementById('nationalite').classList.add('auto-filled');
+            }
+            
+            showMessage('Formulaire rempli automatiquement! Veuillez vérifier et compléter les informations.', 'success');
+            
+            // Faire défiler vers le formulaire
+            document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Effacer les données extraites
+        function clearExtractedData() {
+            extractedPreview.style.display = 'none';
+            cinUploadArea.style.display = 'block';
+            extractedData = {};
+            cinFileInput.value = '';
+            clearMessage();
+        }
+        
+        // Réinitialiser le formulaire
+        function resetForm() {
+            document.querySelectorAll('input, select').forEach(element => {
+                element.value = '';
+                element.classList.remove('auto-filled');
+            });
+            
+            // Réinitialiser la nationalité par défaut
+            document.getElementById('nationalite').value = 'Tunisienne';
+            
+            clearExtractedData();
+            clearMessage();
+        }
+        
+        // Formater la date pour l'input
+        function formatDateForInput(dateStr) {
+            // Gérer différents formats: JJ/MM/AAAA, JJ-MM-AAAA, etc.
+            const cleanDate = dateStr.replace(/[\/\-]/g, '');
+            
+            if (cleanDate.length === 8) {
+                const day = cleanDate.substring(0, 2);
+                const month = cleanDate.substring(2, 4);
+                const year = cleanDate.substring(4, 8);
+                return `${year}-${month}-${day}`;
+            }
+            
+            return dateStr;
+        }
+        
+        // Afficher un message
+        function showMessage(text, type) {
+            messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(clearMessage, 5000);
+        }
+        
+        // Effacer le message
+        function clearMessage() {
+            messageArea.innerHTML = '';
+        }
+        
+        // Validation du formulaire
+        document.querySelector('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Validation simple
+            const requiredFields = ['nom', 'prenom', 'cin', 'date_naissance', 'lieu_naissance', 'sexe', 'marque', 'modele', 'immatriculation', 'categorie'];
+            
+            let isValid = true;
+            for (const field of requiredFields) {
+                const element = document.getElementById(field);
+                if (!element.value.trim()) {
+                    element.style.borderColor = '#dc3545';
+                    isValid = false;
+                } else {
+                    element.style.borderColor = '#ddd';
+                }
+            }
+            
+            if (isValid) {
+                showMessage('Formulaire soumis avec succès! 🎉', 'success');
+                // Ici vous pouvez envoyer les données au serveur
+                console.log('Données du formulaire:', getFormData());
+            } else {
+                showMessage('Veuillez remplir tous les champs obligatoires', 'error');
+            }
+        });
+        
+        // Récupérer les données du formulaire
+        function getFormData() {
+            const formData = {};
+            document.querySelectorAll('input, select').forEach(element => {
+                if (element.name) {
+                    formData[element.name] = element.value;
+                }
+            });
+            return formData;
+        }
+    </script>
+</body>
+</html>

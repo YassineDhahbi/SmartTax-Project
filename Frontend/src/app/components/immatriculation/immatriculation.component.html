@@ -156,10 +156,16 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="nom">Nom <span class="required">*</span></label>
-                                            <input type="text" id="nom" class="form-control" 
-                                                   formControlName="nom" placeholder="Votre nom"
-                                                   [class.is-invalid]="immatriculationForm.get('nom')?.invalid && immatriculationForm.get('nom')?.touched"
-                                                   [class.is-valid]="immatriculationForm.get('nom')?.valid && immatriculationForm.get('nom')?.touched">
+                                            <div class="input-with-indicator">
+                                                <input type="text" id="nom" class="form-control" 
+                                                       formControlName="nom" placeholder="Votre nom"
+                                                       [class.is-invalid]="immatriculationForm.get('nom')?.invalid && immatriculationForm.get('nom')?.touched"
+                                                       [class.is-valid]="immatriculationForm.get('nom')?.valid && immatriculationForm.get('nom')?.touched">
+                                                <span class="ocr-indicator" *ngIf="ocrExtracted.nom">
+                                                    <i class="fas fa-magic"></i>
+                                                    OCR
+                                                </span>
+                                            </div>
                                             <div class="error-message" *ngIf="immatriculationForm.get('nom')?.invalid && immatriculationForm.get('nom')?.touched">
                                                 <span *ngIf="immatriculationForm.get('nom')?.errors?.['required']">Le nom est obligatoire</span>
                                                 <span *ngIf="immatriculationForm.get('nom')?.errors?.['minlength']">Le nom doit contenir au moins 2 caractères</span>
@@ -171,8 +177,14 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="prenom">Prénom <span class="required">*</span></label>
-                                            <input type="text" id="prenom" class="form-control" 
-                                                   formControlName="prenom" placeholder="Votre prénom">
+                                            <div class="input-with-indicator">
+                                                <input type="text" id="prenom" class="form-control" 
+                                                       formControlName="prenom" placeholder="Votre prénom">
+                                                <span class="ocr-indicator" *ngIf="ocrExtracted.prenom">
+                                                    <i class="fas fa-magic"></i>
+                                                    OCR
+                                                </span>
+                                            </div>
                                             <div class="error-message" *ngIf="immatriculationForm.get('prenom')?.invalid && immatriculationForm.get('prenom')?.touched">
                                                 <span *ngIf="immatriculationForm.get('prenom')?.errors?.['required']">Le prénom est obligatoire</span>
                                                 <span *ngIf="immatriculationForm.get('prenom')?.errors?.['minlength']">Le prénom doit contenir au moins 2 caractères</span>
@@ -184,20 +196,26 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="cin">CIN / Passeport <span class="required">*</span></label>
-                                            <div class="input-group">
-                                                <input type="text" id="cin" class="form-control" 
-                                                       formControlName="cin" placeholder="Numéro CIN (8 chiffres)"
-                                                       (input)="onCinChange($event)"
-                                                       [ngClass]="{'is-invalid': validationErrors.cin, 'is-valid': immatriculationForm.get('cin')?.value && !validationErrors.cin && !validationInProgress.cin}">
-                                                <span class="input-group-text" *ngIf="validationInProgress.cin">
-                                                    <i class="fas fa-spinner fa-spin"></i>
-                                                </span>
-                                                <span class="input-group-text text-success" *ngIf="immatriculationForm.get('cin')?.value && !validationErrors.cin && !validationInProgress.cin">
-                                                    <i class="fas fa-check-circle"></i>
-                                                </span>
-                                                <span class="input-group-text text-danger" *ngIf="validationErrors.cin">
-                                                    <i class="fas fa-exclamation-circle"></i>
-                                                </span>
+                                            <div class="input-with-indicator">
+                                                <div class="input-group">
+                                                    <input type="text" id="cin" class="form-control" 
+                                                           formControlName="cin" placeholder="Numéro CIN (8 chiffres)"
+                                                           (input)="onCinChange($event)"
+                                                           [ngClass]="{'is-invalid': validationErrors.cin, 'is-valid': immatriculationForm.get('cin')?.value && !validationErrors.cin && !validationInProgress.cin}">
+                                                    <span class="input-group-text" *ngIf="validationInProgress.cin">
+                                                        <i class="fas fa-spinner fa-spin"></i>
+                                                    </span>
+                                                    <span class="input-group-text text-success" *ngIf="immatriculationForm.get('cin')?.value && !validationErrors.cin && !validationInProgress.cin">
+                                                        <i class="fas fa-check-circle"></i>
+                                                    </span>
+                                                    <span class="input-group-text text-danger" *ngIf="validationErrors.cin">
+                                                        <i class="fas fa-exclamation-circle"></i>
+                                                    </span>
+                                                    <span class="ocr-indicator" *ngIf="ocrExtracted.cin">
+                                                        <i class="fas fa-magic"></i>
+                                                        OCR
+                                                    </span>
+                                                </div>
                                             </div>
                                             <div class="error-message" *ngIf="immatriculationForm.get('cin')?.invalid && immatriculationForm.get('cin')?.touched">
                                                 <span *ngIf="immatriculationForm.get('cin')?.errors?.['required']">Le CIN est obligatoire</span>
@@ -206,13 +224,29 @@
                                             <div class="error-message" *ngIf="validationErrors.cin">
                                                 <i class="fas fa-exclamation-triangle"></i> {{ validationErrors.cin }}
                                             </div>
+                                            
+                                            <!-- Message OCR -->
+                                            <div class="ocr-status" *ngIf="ocrProcessing">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                                Extraction OCR en cours...
+                                            </div>
+                                            <div class="ocr-success" *ngIf="ocrData && ocrData.success">
+                                                <i class="fas fa-check-circle"></i>
+                                                Informations extraites avec succès ({{(ocrData.confidence * 100).toFixed(1)}}% de confiance)
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="dateNaissance">Date de Naissance <span class="required">*</span></label>
-                                            <input type="date" id="dateNaissance" class="form-control" 
-                                                   formControlName="dateNaissance">
+                                            <div class="input-with-indicator">
+                                                <input type="date" id="dateNaissance" class="form-control" 
+                                                       formControlName="dateNaissance">
+                                                <span class="ocr-indicator" *ngIf="ocrExtracted.date_naissance">
+                                                    <i class="fas fa-magic"></i>
+                                                    OCR
+                                                </span>
+                                            </div>
                                             <div class="error-message" *ngIf="immatriculationForm.get('dateNaissance')?.invalid && immatriculationForm.get('dateNaissance')?.touched">
                                                 <span *ngIf="immatriculationForm.get('dateNaissance')?.errors?.['required']">La date de naissance est obligatoire</span>
                                                 <span *ngIf="immatriculationForm.get('dateNaissance')?.errors?.['tooYoung']?.message">{{ immatriculationForm.get('dateNaissance')?.errors?.['tooYoung']?.message }}</span>
@@ -458,6 +492,11 @@
                                             <button type="button" class="btn-remove" (click)="removeFile('identite')">
                                                 <i class="fas fa-times"></i>
                                             </button>
+                                            <!-- Indicateur OCR -->
+                                            <div *ngIf="files.identite.name.startsWith('CIN_')" class="ocr-indicator-badge">
+                                                <i class="fas fa-magic"></i>
+                                                <span>OCR</span>
+                                            </div>
                                         </div>
                                         
                                         <!-- Validation de la pièce d'identité -->
@@ -927,6 +966,45 @@
                     <span *ngIf="isForeigner">Télécharger votre Passeport</span>
                     <span *ngIf="!isForeigner">Télécharger votre Carte d'Identité Nationale (CIN)</span>
                 </h5>
+                
+                <!-- Option OCR pour Tunisien -->
+                <div class="ocr-option-section" *ngIf="!isForeigner">
+                    <div class="ocr-choice">
+                        <p class="ocr-intro">
+                            <i class="fas fa-magic"></i>
+                            Vous pouvez scanner votre CIN pour remplir automatiquement vos informations personnelles
+                        </p>
+                        <div class="ocr-buttons">
+                            <button type="button" class="btn-ocr-scan-modal" (click)="triggerOcrFileInput()">
+                                <i class="fas fa-camera"></i>
+                                Scanner ma CIN avec OCR
+                            </button>
+                            <span class="or-separator">ou</span>
+                            <label [for]="'cin-upload'" class="btn-manual-upload">
+                                <i class="fas fa-file-upload"></i>
+                                Télécharger manuellement
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Input OCR caché -->
+                    <input type="file" 
+                           #ocrFileInput
+                           accept="image/*" 
+                           (change)="onOcrFileSelected($event)"
+                           style="display: none;">
+                    
+                    <!-- Messages OCR -->
+                    <div class="ocr-status-modal" *ngIf="ocrProcessing">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Extraction OCR en cours...
+                    </div>
+                    <div class="ocr-success-modal" *ngIf="ocrData && ocrData.success">
+                        <i class="fas fa-check-circle"></i>
+                        Informations extraites avec succès ! Elles apparaîtront dans la section "Informations Personnelles" ({{(ocrData.confidence * 100).toFixed(1)}}% de confiance)
+                    </div>
+                </div>
+                
                 <div class="upload-area">
                     <input type="file" 
                            [id]="isForeigner ? 'passport-upload' : 'cin-upload'" 

@@ -7,6 +7,259 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
+/* OCR Integration Styles (simplifié) */
+.btn-ocr-scan {
+  background: #007bff !important;
+  color: white !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  border-radius: 0 4px 4px 0 !important;
+}
+
+.btn-ocr-scan:hover {
+  background: #0056b3 !important;
+  transform: scale(1.05);
+}
+
+.ocr-status {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ocr-success {
+  background: #e8f5e8;
+  color: #2e7d32;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* OCR Section dans Modal de Nationalité */
+.ocr-option-section {
+  background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+  border: 1px solid #b3d9ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+}
+
+.ocr-choice {
+  text-align: center;
+}
+
+.ocr-intro {
+  color: #495057;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.ocr-intro i {
+  color: #007bff;
+  font-size: 1.1rem;
+}
+
+.ocr-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-ocr-scan-modal {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-ocr-scan-modal:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.or-separator {
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.btn-manual-upload {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.btn-manual-upload:hover {
+  background: #545b62;
+  transform: translateY(-2px);
+}
+
+.ocr-status-modal {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  animation: fadeIn 0.5s ease;
+}
+
+.ocr-success-modal {
+  background: #e8f5e8;
+  color: #2e7d32;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  animation: fadeIn 0.5s ease;
+}
+
+/* OCR Indicator Badge */
+.ocr-indicator-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+  z-index: 10;
+}
+
+.ocr-indicator-badge i {
+  font-size: 0.6rem;
+}
+
+.uploaded-file {
+  position: relative;
+}
+
+/* Input with OCR indicator */
+.input-with-indicator {
+  position: relative;
+}
+
+.ocr-indicator {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: #28a745;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: fadeIn 0.5s ease;
+  z-index: 10;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ocr-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .ocr-content .upload-area {
+    padding: 1.5rem;
+    min-height: 150px;
+  }
+  
+  .upload-icon {
+    font-size: 36px;
+    margin-bottom: 0.75rem;
+  }
+  
+  .upload-text h5 {
+    font-size: 1rem;
+  }
+  
+  .data-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .ocr-actions {
+    flex-direction: column;
+  }
+  
+  .btn-retry-ocr {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .results-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
+
 /* Identity Validation Styles */
 .identity-validation {
   margin-top: 1rem;
