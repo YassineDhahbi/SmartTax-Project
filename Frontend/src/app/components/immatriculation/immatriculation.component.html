@@ -201,17 +201,17 @@
                                                     <input type="text" id="cin" class="form-control" 
                                                            formControlName="cin" placeholder="Numéro CIN (8 chiffres)"
                                                            (input)="onCinChange($event)"
-                                                           [ngClass]="{'is-invalid': validationErrors.cin, 'is-valid': immatriculationForm.get('cin')?.value && !validationErrors.cin && !validationInProgress.cin}">
+                                                           [ngClass]="{'is-invalid': validationErrors['cin'], 'is-valid': immatriculationForm.get('cin')?.value && !validationErrors['cin'] && !validationInProgress.cin}">
                                                     <span class="input-group-text" *ngIf="validationInProgress.cin">
                                                         <i class="fas fa-spinner fa-spin"></i>
                                                     </span>
-                                                    <span class="input-group-text text-success" *ngIf="immatriculationForm.get('cin')?.value && !validationErrors.cin && !validationInProgress.cin">
+                                                    <span class="input-group-text text-success" *ngIf="immatriculationForm.get('cin')?.value && !validationErrors['cin'] && !validationInProgress.cin">
                                                         <i class="fas fa-check-circle"></i>
                                                     </span>
-                                                    <span class="input-group-text text-danger" *ngIf="validationErrors.cin">
+                                                    <span class="input-group-text text-danger" *ngIf="validationErrors['cin']">
                                                         <i class="fas fa-exclamation-circle"></i>
                                                     </span>
-                                                    <span class="ocr-indicator" *ngIf="ocrExtracted.cin">
+                                                    <span class="ocr-indicator" *ngIf="ocrExtracted['cin']">
                                                         <i class="fas fa-magic"></i>
                                                         OCR
                                                     </span>
@@ -221,8 +221,8 @@
                                                 <span *ngIf="immatriculationForm.get('cin')?.errors?.['required']">Le CIN est obligatoire</span>
                                                 <span *ngIf="immatriculationForm.get('cin')?.errors?.['pattern']">Le CIN doit contenir exactement 8 chiffres</span>
                                             </div>
-                                            <div class="error-message" *ngIf="validationErrors.cin">
-                                                <i class="fas fa-exclamation-triangle"></i> {{ validationErrors.cin }}
+                                            <div class="error-message" *ngIf="validationErrors['cin']">
+                                                <i class="fas fa-exclamation-triangle"></i> {{ validationErrors['cin'] }}
                                             </div>
                                             
                                             <!-- Message OCR -->
@@ -235,7 +235,7 @@
                                             <div class="input-with-indicator">
                                                 <input type="date" id="dateNaissance" class="form-control" 
                                                        formControlName="dateNaissance">
-                                                <span class="ocr-indicator" *ngIf="ocrExtracted.date_naissance">
+                                                <span class="ocr-indicator" *ngIf="ocrExtracted['date_naissance']">
                                                     <i class="fas fa-magic"></i>
                                                     OCR
                                                 </span>
@@ -276,22 +276,22 @@
                                                 <input type="text" id="registreCommerce" class="form-control" 
                                                        formControlName="registreCommerce" placeholder="Numéro RC"
                                                        (input)="onRegistreCommerceChange($event)"
-                                                       [ngClass]="{'is-invalid': validationErrors.registreCommerce, 'is-valid': immatriculationForm.get('registreCommerce')?.value && !validationErrors.registreCommerce && !validationInProgress.registreCommerce}">
+                                                       [ngClass]="{'is-invalid': validationErrors['registreCommerce'], 'is-valid': immatriculationForm.get('registreCommerce')?.value && !validationErrors['registreCommerce'] && !validationInProgress.registreCommerce}">
                                                 <span class="input-group-text" *ngIf="validationInProgress.registreCommerce">
                                                     <i class="fas fa-spinner fa-spin"></i>
                                                 </span>
-                                                <span class="input-group-text text-success" *ngIf="immatriculationForm.get('registreCommerce')?.value && !validationErrors.registreCommerce && !validationInProgress.registreCommerce">
+                                                <span class="input-group-text text-success" *ngIf="immatriculationForm.get('registreCommerce')?.value && !validationErrors['registreCommerce'] && !validationInProgress.registreCommerce">
                                                     <i class="fas fa-check-circle"></i>
                                                 </span>
-                                                <span class="input-group-text text-danger" *ngIf="validationErrors.registreCommerce">
+                                                <span class="input-group-text text-danger" *ngIf="validationErrors['registreCommerce']">
                                                     <i class="fas fa-exclamation-circle"></i>
                                                 </span>
                                             </div>
                                             <div class="error-message" *ngIf="immatriculationForm.get('registreCommerce')?.invalid && immatriculationForm.get('registreCommerce')?.touched">
                                                 Le registre de commerce est requis
                                             </div>
-                                            <div class="error-message" *ngIf="validationErrors.registreCommerce">
-                                                <i class="fas fa-exclamation-triangle"></i> {{ validationErrors.registreCommerce }}
+                                            <div class="error-message" *ngIf="validationErrors['registreCommerce']">
+                                                <i class="fas fa-exclamation-triangle"></i> {{ validationErrors['registreCommerce'] }}
                                             </div>
                                         </div>
                                     </div>
@@ -315,32 +315,66 @@
                                             <input type="email" id="email" class="form-control" 
                                                    formControlName="email" placeholder="votre@email.com"
                                                    (input)="onEmailChange($event)"
-                                                   [ngClass]="{'is-invalid': validationErrors.email, 'is-valid': immatriculationForm.get('email')?.value && !validationErrors.email && !validationInProgress.email}">
+                                                   [ngClass]="{'is-invalid': validationErrors['email'], 'is-valid': immatriculationForm.get('email')?.value && !validationErrors['email'] && !validationInProgress.email}">
                                             <span class="input-group-text" *ngIf="validationInProgress.email">
                                                 <i class="fas fa-spinner fa-spin"></i>
                                             </span>
-                                            <span class="input-group-text text-success" *ngIf="immatriculationForm.get('email')?.value && !validationErrors.email && !validationInProgress.email">
+                                            <span class="input-group-text text-success" *ngIf="immatriculationForm.get('email')?.value && !validationErrors['email'] && !validationInProgress.email && !emailVerification.isVerified">
                                                 <i class="fas fa-check-circle"></i>
                                             </span>
-                                            <span class="input-group-text text-danger" *ngIf="validationErrors.email">
+                                            <span class="input-group-text text-success" *ngIf="emailVerification.isVerified">
+                                                <i class="fas fa-shield-alt"></i>
+                                            </span>
+                                            <span class="input-group-text text-danger" *ngIf="validationErrors['email']">
                                                 <i class="fas fa-exclamation-circle"></i>
                                             </span>
+                                            <button type="button" 
+                                                    class="btn-verify-email" 
+                                                    (click)="showEmailVerificationModal()"
+                                                    [disabled]="!emailVerification.isVerificationSent || emailVerification.isVerified || validationInProgress.email">
+                                                <i class="fas fa-envelope"></i> Vérifier
+                                            </button>
+                                        </div>
+                                        <div class="email-verified-indicator" *ngIf="emailVerification.isVerified">
+                                            <i class="fas fa-check-circle"></i> Email vérifié
                                         </div>
                                         <div class="error-message" *ngIf="immatriculationForm.get('email')?.invalid && immatriculationForm.get('email')?.touched">
                                             <span *ngIf="immatriculationForm.get('email')?.errors?.['required']">L'email est obligatoire</span>
                                             <span *ngIf="immatriculationForm.get('email')?.errors?.['email']">Veuillez entrer une adresse email valide</span>
                                             <span *ngIf="immatriculationForm.get('email')?.errors?.['maxlength']">L'email ne peut pas dépasser 100 caractères</span>
                                         </div>
-                                        <div class="error-message" *ngIf="validationErrors.email">
-                                            <i class="fas fa-exclamation-triangle"></i> {{ validationErrors.email }}
+                                        <div class="error-message" *ngIf="validationErrors['email']">
+                                            <i class="fas fa-exclamation-triangle"></i> {{ validationErrors['email'] }}
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="telephone">Téléphone <span class="required">*</span></label>
-                                        <input type="tel" id="telephone" class="form-control" 
-                                               formControlName="telephone" placeholder="+216 XX XXX XXX">
+                                        <div class="input-group">
+                                            <input type="tel" id="telephone" class="form-control" 
+                                                   formControlName="telephone" placeholder="22xxxxxx ou +21622xxxxxx"
+                                                   (input)="onTelephoneChange($event)"
+                                                   [ngClass]="{'is-invalid': validationErrors['telephone'], 'is-valid': immatriculationForm.get('telephone')?.value && !validationErrors['telephone']}">
+                                            <span class="input-group-text text-success" *ngIf="immatriculationForm.get('telephone')?.value && !validationErrors['telephone'] && !smsVerification.isVerified">
+                                                <i class="fas fa-check-circle"></i>
+                                            </span>
+                                            <span class="input-group-text text-success" *ngIf="smsVerification.isVerified">
+                                                <i class="fas fa-shield-alt"></i>
+                                            </span>
+                                            <span class="input-group-text text-danger" *ngIf="validationErrors['telephone']">
+                                                <i class="fas fa-exclamation-circle"></i>
+                                            </span>
+                                            <button type="button" 
+                                                    class="btn-verify-sms" 
+                                                    (click)="showSMSVerificationModal()"
+                                                    [disabled]="!smsVerification.isVerificationSent || smsVerification.isVerified">
+                                                <i class="fas fa-sms"></i> Vérifier
+                                            </button>
+                                        </div>
+                                        <div class="sms-verified-indicator" *ngIf="smsVerification.isVerified">
+                                            <i class="fas fa-check-circle"></i> Téléphone vérifié
+                                        </div>
                                         <div class="error-message" *ngIf="immatriculationForm.get('telephone')?.invalid && immatriculationForm.get('telephone')?.touched">
                                             <span *ngIf="immatriculationForm.get('telephone')?.errors?.['required']">Le téléphone est obligatoire</span>
                                             <span *ngIf="immatriculationForm.get('telephone')?.errors?.['pattern']">Le téléphone doit être au format tunisien (ex: 21612345678)</span>
@@ -1150,6 +1184,124 @@
                 <button type="button" class="btn-primary" (click)="goToDashboard()">
                     Accéder au Tableau de Bord
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Verification Modal -->
+<div class="email-verification-modal" *ngIf="emailVerification.showVerificationModal" [@modalAnimation]>
+    <div class="modal-overlay" (click)="closeEmailVerificationModal()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-envelope"></i> Vérification de l'Email</h3>
+            <button type="button" class="btn-close" (click)="closeEmailVerificationModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="verification-info">
+                <p><strong>Email:</strong> {{ emailVerification.emailToVerify }}</p>
+                <p>Un code de vérification à 6 chiffres a été envoyé à votre adresse email.</p>
+                <p>Veuillez entrer ce code ci-dessous pour vérifier votre email.</p>
+                <p class="code-expiry-info">
+                    <i class="fas fa-clock"></i> 
+                    Le code expire dans 10 minutes.
+                </p>
+            </div>
+            
+            <div class="verification-input">
+                <label for="verificationCode">Code de Vérification:</label>
+                <div class="code-input-group">
+                    <input 
+                        type="text" 
+                        id="verificationCode" 
+                        class="form-control" 
+                        [(ngModel)]="emailVerification.enteredCode"
+                        (keyup.enter)="verifyEmailCode()"
+                        placeholder="000000"
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        #codeInput>
+                    <button 
+                        type="button" 
+                        class="btn-verify" 
+                        (click)="verifyEmailCode()"
+                        [disabled]="!emailVerification.enteredCode || emailVerification.enteredCode.length !== 6">
+                        <i class="fas fa-check"></i> Vérifier
+                    </button>
+                </div>
+                
+                <div class="verification-actions">
+                    <button type="button" class="btn-resend" (click)="resendVerificationCode()">
+                        <i class="fas fa-redo"></i> Renvoyer le code
+                    </button>
+                </div>
+                
+                <div class="attempts-info" *ngIf="emailVerification.verificationAttempts > 0">
+                    <small>
+                        Tentatives restantes: {{ emailVerification.maxAttempts - emailVerification.verificationAttempts }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SMS Verification Modal -->
+<div class="sms-verification-modal" *ngIf="smsVerification.showVerificationModal" [@modalAnimation]>
+    <div class="modal-overlay" (click)="closeSMSVerificationModal()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-sms"></i> Vérification par SMS</h3>
+            <button type="button" class="btn-close" (click)="closeSMSVerificationModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="verification-info">
+                <p><strong>Téléphone:</strong> {{ smsVerification.phoneNumberToVerify }}</p>
+                <p>Un code de vérification à 6 chiffres a été envoyé par SMS à votre numéro.</p>
+                <p>Veuillez entrer ce code ci-dessous pour vérifier votre numéro de téléphone.</p>
+                <p class="code-expiry-info">
+                    <i class="fas fa-clock"></i> 
+                    Le code expire dans 10 minutes.
+                </p>
+            </div>
+            
+            <div class="verification-input">
+                <label for="smsVerificationCode">Code de Vérification SMS:</label>
+                <div class="code-input-group">
+                    <input 
+                        type="text" 
+                        id="smsVerificationCode" 
+                        class="form-control" 
+                        [(ngModel)]="smsVerification.enteredCode"
+                        (keyup.enter)="verifySMSCode()"
+                        placeholder="000000"
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        #smsCodeInput>
+                    <button 
+                        type="button" 
+                        class="btn-verify" 
+                        (click)="verifySMSCode()"
+                        [disabled]="!smsVerification.enteredCode || smsVerification.enteredCode.length !== 6">
+                        <i class="fas fa-check"></i> Vérifier
+                    </button>
+                </div>
+                
+                <div class="verification-actions">
+                    <button type="button" class="btn-resend" (click)="resendSMSVerificationCode()">
+                        <i class="fas fa-redo"></i> Renvoyer le code
+                    </button>
+                </div>
+                
+                <div class="attempts-info" *ngIf="smsVerification.verificationAttempts > 0">
+                    <small>
+                        Tentatives restantes: {{ smsVerification.maxAttempts - smsVerification.verificationAttempts }}
+                    </small>
+                </div>
             </div>
         </div>
     </div>

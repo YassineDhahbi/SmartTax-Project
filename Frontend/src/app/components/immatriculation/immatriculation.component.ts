@@ -99,10 +99,13 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
 
   // Messages d'erreur de validation
   validationErrors: {
-    cin?: string;
-    email?: string;
-    registreCommerce?: string;
-  } = {};
+    [key: string]: string;
+  } = {
+    cin: '',
+    email: '',
+    telephone: '',
+    registreCommerce: ''
+  };
 
   // États de validation en cours
   validationInProgress: {
@@ -110,6 +113,64 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     email?: boolean;
     registreCommerce?: boolean;
   } = {};
+
+  // Vérification par email
+  emailVerification: {
+    isVerified: boolean;
+    isVerificationSent: boolean;
+    verificationCode: string;
+    enteredCode: string;
+    showVerificationModal: boolean;
+    emailToVerify: string;
+    verificationAttempts: number;
+    maxAttempts: number;
+    isCodeExpired: boolean;
+    codeExpiryTime: Date | null;
+    debounceTimer: any;
+    lastEmailChecked: string;
+  } = {
+    isVerified: false,
+    isVerificationSent: false,
+    verificationCode: '',
+    enteredCode: '',
+    showVerificationModal: false,
+    emailToVerify: '',
+    verificationAttempts: 0,
+    maxAttempts: 3,
+    isCodeExpired: false,
+    codeExpiryTime: null,
+    debounceTimer: null,
+    lastEmailChecked: ''
+  };
+
+  // Vérification par SMS
+  smsVerification: {
+    isVerified: boolean;
+    isVerificationSent: boolean;
+    verificationCode: string;
+    enteredCode: string;
+    showVerificationModal: boolean;
+    phoneNumberToVerify: string;
+    verificationAttempts: number;
+    maxAttempts: number;
+    isCodeExpired: boolean;
+    codeExpiryTime: Date | null;
+    debounceTimer: any;
+    lastPhoneChecked: string;
+  } = {
+    isVerified: false,
+    isVerificationSent: false,
+    verificationCode: '',
+    enteredCode: '',
+    showVerificationModal: false,
+    phoneNumberToVerify: '',
+    verificationAttempts: 0,
+    maxAttempts: 3,
+    isCodeExpired: false,
+    codeExpiryTime: null,
+    debounceTimer: null,
+    lastPhoneChecked: ''
+  };
 
   // Validation de la pièce d'identité
   identityValidation: {
@@ -567,8 +628,8 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       }
       
       // Vérifier les erreurs de validation personnalisées (doublons CIN)
-      if (this.validationErrors.cin) {
-        this.notificationService.showError(this.validationErrors.cin, 'CIN déjà utilisé');
+      if (this.validationErrors['cin']) {
+        this.notificationService.showError(this.validationErrors['cin'], 'CIN déjà utilisé');
         return false;
       }
       
@@ -688,8 +749,8 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     }
     
     // Vérifier les erreurs de validation personnalisées (doublons)
-    if (this.validationErrors.email) {
-      this.notificationService.showError(this.validationErrors.email, 'Email déjà utilisé');
+    if (this.validationErrors['email']) {
+      this.notificationService.showError(this.validationErrors['email'], 'Email déjà utilisé');
       return false;
     }
     
@@ -1635,7 +1696,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     const cin = event.target.value;
     
     // Effacer l'erreur précédente
-    delete this.validationErrors.cin;
+    delete this.validationErrors['cin'];
     
     if (!cin) {
       return;
@@ -1643,7 +1704,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     
     // Valider le format d'abord
     if (!this.validationService.validateCinFormat(cin)) {
-      this.validationErrors.cin = 'Le CIN doit contenir exactement 8 chiffres';
+      this.validationErrors['cin'] = 'Le CIN doit contenir exactement 8 chiffres';
       return;
     }
     
@@ -1653,7 +1714,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       next: (exists) => {
         this.validationInProgress.cin = false;
         if (exists) {
-          this.validationErrors.cin = 'Un dossier existe déjà avec ce CIN: ' + cin;
+          this.validationErrors['cin'] = 'Un dossier existe déjà avec ce CIN: ' + cin;
         }
       },
       error: () => {
@@ -1667,7 +1728,12 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     const email = event.target.value;
     
     // Effacer l'erreur précédente
-    delete this.validationErrors.email;
+    delete this.validationErrors['email'];
+    
+    // Annuler le timer précédent
+    if (this.emailVerification.debounceTimer) {
+      clearTimeout(this.emailVerification.debounceTimer);
+    }
     
     if (!email) {
       return;
@@ -1675,31 +1741,79 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     
     // Valider le format d'abord
     if (!this.validationService.validateEmailFormat(email)) {
-      this.validationErrors.email = 'Veuillez entrer une adresse email valide (ex: nom@domaine.com)';
+      this.validationErrors['email'] = 'Veuillez entrer une adresse email valide (ex: nom@domaine.com)';
       return;
     }
     
-    // Vérifier le doublon dans la base de données
-    this.validationInProgress.email = true;
-    this.validationService.checkEmailExists(email).subscribe({
-      next: (exists) => {
-        this.validationInProgress.email = false;
-        if (exists) {
-          this.validationErrors.email = 'Un dossier existe déjà avec cet email: ' + email;
+    // Ne vérifier que si l'email est différent du dernier vérifié
+    if (email === this.emailVerification.lastEmailChecked) {
+      return;
+    }
+    
+    // Ajouter un délai de 2 secondes avant de vérifier
+    this.emailVerification.debounceTimer = setTimeout(() => {
+      this.emailVerification.lastEmailChecked = email;
+      
+      // Vérifier le doublon dans la base de données
+      this.validationInProgress.email = true;
+      this.validationService.checkEmailExists(email).subscribe({
+        next: (exists) => {
+          this.validationInProgress.email = false;
+          if (exists) {
+            this.validationErrors['email'] = 'Un dossier existe déjà avec cet email: ' + email;
+          } else {
+            // Si l'email est valide et n'existe pas, envoyer le code de vérification
+            this.sendEmailVerificationCode(email);
+          }
+        },
+        error: () => {
+          this.validationInProgress.email = false;
+          // En cas d'erreur, on ne bloque pas la saisie
         }
-      },
-      error: () => {
-        this.validationInProgress.email = false;
-        // En cas d'erreur, on ne bloque pas la saisie
-      }
-    });
+      });
+    }, 2000); // 2 secondes de délai
+  }
+
+  onTelephoneChange(event: any): void {
+    const telephone = event.target.value;
+    
+    // Effacer l'erreur précédente
+    delete this.validationErrors['telephone'];
+    
+    // Annuler le timer précédent
+    if (this.smsVerification.debounceTimer) {
+      clearTimeout(this.smsVerification.debounceTimer);
+    }
+    
+    if (!telephone) {
+      return;
+    }
+    
+    // Valider le format du téléphone
+    if (!this.validationService.validatePhoneFormat(telephone)) {
+      this.validationErrors['telephone'] = 'Veuillez entrer un numéro de téléphone valide (ex: 22xxxxxx ou +21622xxxxxx)';
+      return;
+    }
+    
+    // Ne vérifier que si le téléphone est différent du dernier vérifié
+    if (telephone === this.smsVerification.lastPhoneChecked) {
+      return;
+    }
+    
+    // Ajouter un délai de 2 secondes avant de vérifier
+    this.smsVerification.debounceTimer = setTimeout(() => {
+      this.smsVerification.lastPhoneChecked = telephone;
+      
+      // Envoyer le code de vérification par SMS
+      this.sendSMSVerificationCode(telephone);
+    }, 2000); // 2 secondes de délai
   }
 
   onRegistreCommerceChange(event: any): void {
     const rc = event.target.value;
     
     // Effacer l'erreur précédente
-    delete this.validationErrors.registreCommerce;
+    delete this.validationErrors['registreCommerce'];
     
     if (!rc) {
       return;
@@ -1709,9 +1823,9 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     const rcControl = this.immatriculationForm.get('registreCommerce');
     if (rcControl && rcControl.invalid) {
       if (rcControl.errors?.['pattern']) {
-        this.validationErrors.registreCommerce = 'Le registre de commerce doit contenir uniquement des caractères alphanumériques (1-20 caractères)';
+        this.validationErrors['registreCommerce'] = 'Le registre de commerce doit contenir uniquement des caractères alphanumériques (1-20 caractères)';
       } else if (rcControl.errors?.['required']) {
-        this.validationErrors.registreCommerce = 'Le registre de commerce est obligatoire';
+        this.validationErrors['registreCommerce'] = 'Le registre de commerce est obligatoire';
       }
     }
   }
@@ -1913,5 +2027,225 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     }
     
     console.log('✅ Données OCR appliquées au formulaire - Les informations apparaîtront dans la section "Informations Personnelles"');
+  }
+
+  // Méthodes de vérification par email
+  sendEmailVerificationCode(email: string): void {
+    // Générer un code à 6 chiffres
+    this.emailVerification.verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    this.emailVerification.emailToVerify = email;
+    this.emailVerification.isCodeExpired = false;
+    this.emailVerification.codeExpiryTime = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    
+    console.log('Code de vérification généré:', this.emailVerification.verificationCode);
+    
+    // Appeler le backend pour envoyer l'email
+    const emailRequest = {
+      to: email,
+      subject: 'Code de Vérification - SmartTax',
+      body: `
+        <h2 style="color: #2c3e50;">Vérification de votre adresse email</h2>
+        <p>Bonjour,</p>
+        <p>Vous avez demandé la vérification de votre adresse email pour votre dossier d'immatriculation fiscale sur SmartTax.</p>
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+          <h3 style="color: #007bff; margin-bottom: 10px;">Votre code de vérification est:</h3>
+          <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #28a745; background-color: #d4edda; padding: 15px; border-radius: 5px; display: inline-block;">
+            ${this.emailVerification.verificationCode}
+          </div>
+        </div>
+        <p><strong>Ce code expirera dans 10 minutes.</strong></p>
+        <p>Si vous n'avez pas demandé cette vérification, veuillez ignorer cet email.</p>
+        <hr style="margin: 30px 0;">
+        <p style="color: #6c757d; font-size: 14px;">
+          Cordialement,<br>
+          L'équipe SmartTax<br>
+          Direction Générale des Impôts
+        </p>
+      `,
+      securityCode: this.emailVerification.verificationCode,
+      registrationLink: 'http://localhost:4200/register'
+    };
+    
+    // Appel au backend pour envoyer l'email
+    fetch('http://localhost:8080/api/email/send-validation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emailRequest)
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Réponse du backend:', data);
+      
+      if (data.success && data.emailSent) {
+        this.notificationService.showSuccess(`Code de vérification envoyé à ${email}`);
+        this.emailVerification.isVerificationSent = true;
+      } else {
+        this.notificationService.showError(`Échec de l'envoi: ${data.message}`);
+        console.error('Erreur envoi email:', data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur appel backend:', error);
+      this.notificationService.showError('Erreur technique lors de l\'envoi du code');
+      
+      // En cas d'erreur, on garde le code généré localement pour les tests
+      this.notificationService.showWarning(`Mode test: Code généré localement - ${this.emailVerification.verificationCode}`);
+      this.emailVerification.isVerificationSent = true;
+    });
+  }
+
+  showEmailVerificationModal(): void {
+    this.emailVerification.showVerificationModal = true;
+    this.emailVerification.verificationAttempts = 0;
+    this.emailVerification.enteredCode = '';
+  }
+
+  // Méthodes de vérification par SMS
+  sendSMSVerificationCode(phoneNumber: string): void {
+    // Générer un code à 6 chiffres
+    this.smsVerification.verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    this.smsVerification.phoneNumberToVerify = phoneNumber;
+    this.smsVerification.isCodeExpired = false;
+    this.smsVerification.codeExpiryTime = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    
+    console.log('Code SMS généré:', this.smsVerification.verificationCode);
+    
+    // Appeler le backend pour envoyer le SMS
+    const params = new URLSearchParams({
+      phoneNumber: phoneNumber,
+      verificationCode: this.smsVerification.verificationCode
+    });
+    
+    fetch(`http://localhost:8080/api/sms/send-verification?${params}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Réponse du backend SMS:', data);
+      
+      if (data.success && data.smsSent) {
+        this.notificationService.showSuccess(`Code de vérification envoyé par SMS à ${phoneNumber}`);
+        this.smsVerification.isVerificationSent = true;
+      } else {
+        this.notificationService.showError(`Échec de l'envoi SMS: ${data.message}`);
+        console.error('Erreur envoi SMS:', data.message);
+        
+        // En cas d'erreur, on garde le code généré localement pour les tests
+        this.notificationService.showWarning(`Mode test: Code SMS généré localement - ${this.smsVerification.verificationCode}`);
+        this.smsVerification.isVerificationSent = true;
+      }
+    })
+    .catch(error => {
+      console.error('Erreur appel backend SMS:', error);
+      this.notificationService.showError('Erreur technique lors de l\'envoi du SMS');
+      
+      // En cas d'erreur, on garde le code généré localement pour les tests
+      this.notificationService.showWarning(`Mode test: Code SMS généré localement - ${this.smsVerification.verificationCode}`);
+      this.smsVerification.isVerificationSent = true;
+    });
+  }
+
+  showSMSVerificationModal(): void {
+    this.smsVerification.showVerificationModal = true;
+    this.smsVerification.verificationAttempts = 0;
+    this.smsVerification.enteredCode = '';
+  }
+
+  verifySMSCode(): void {
+    if (this.smsVerification.enteredCode === this.smsVerification.verificationCode) {
+      if (this.smsVerification.isCodeExpired) {
+        this.notificationService.showError('Le code SMS a expiré. Veuillez demander un nouveau code.');
+        return;
+      }
+      
+      this.smsVerification.isVerified = true;
+      this.smsVerification.showVerificationModal = false;
+      this.notificationService.showSuccess('Numéro de téléphone vérifié avec succès!');
+    } else {
+      this.smsVerification.verificationAttempts++;
+      
+      if (this.smsVerification.verificationAttempts >= this.smsVerification.maxAttempts) {
+        this.notificationService.showError('Nombre maximum de tentatives atteint. Veuillez demander un nouveau code.');
+        this.smsVerification.showVerificationModal = false;
+      } else {
+        const remainingAttempts = this.smsVerification.maxAttempts - this.smsVerification.verificationAttempts;
+        this.notificationService.showError(`Code SMS incorrect. ${remainingAttempts} tentative(s) restante(s).`);
+      }
+    }
+  }
+
+  resendSMSVerificationCode(): void {
+    const phoneNumber = this.smsVerification.phoneNumberToVerify;
+    this.sendSMSVerificationCode(phoneNumber);
+    this.notificationService.showInfo('Un nouveau code de vérification a été envoyé par SMS.');
+  }
+
+  closeSMSVerificationModal(): void {
+    this.smsVerification.showVerificationModal = false;
+    this.smsVerification.enteredCode = '';
+  }
+
+  checkSMSCodeExpiry(): void {
+    if (this.smsVerification.codeExpiryTime && new Date() > this.smsVerification.codeExpiryTime) {
+      this.smsVerification.isCodeExpired = true;
+    }
+  }
+
+  // Vérifier si le téléphone est vérifié avant de soumettre
+  isPhoneVerified(): boolean {
+    return this.smsVerification.isVerified;
+  }
+
+  verifyEmailCode(): void {
+    if (this.emailVerification.enteredCode === this.emailVerification.verificationCode) {
+      if (this.emailVerification.isCodeExpired) {
+        this.notificationService.showError('Le code a expiré. Veuillez demander un nouveau code.');
+        return;
+      }
+      
+      this.emailVerification.isVerified = true;
+      this.emailVerification.showVerificationModal = false;
+      this.notificationService.showSuccess('Email vérifié avec succès!');
+      
+      // Ajouter une indication visuelle dans le formulaire
+      this.immatriculationForm.get('email')?.setErrors(null);
+    } else {
+      this.emailVerification.verificationAttempts++;
+      
+      if (this.emailVerification.verificationAttempts >= this.emailVerification.maxAttempts) {
+        this.notificationService.showError('Nombre maximum de tentatives atteint. Veuillez demander un nouveau code.');
+        this.emailVerification.showVerificationModal = false;
+      } else {
+        const remainingAttempts = this.emailVerification.maxAttempts - this.emailVerification.verificationAttempts;
+        this.notificationService.showError(`Code incorrect. ${remainingAttempts} tentative(s) restante(s).`);
+      }
+    }
+  }
+
+  resendVerificationCode(): void {
+    const email = this.emailVerification.emailToVerify;
+    this.sendEmailVerificationCode(email);
+    this.notificationService.showInfo('Un nouveau code de vérification a été envoyé.');
+  }
+
+  closeEmailVerificationModal(): void {
+    this.emailVerification.showVerificationModal = false;
+    this.emailVerification.enteredCode = '';
+  }
+
+  checkCodeExpiry(): void {
+    if (this.emailVerification.codeExpiryTime && new Date() > this.emailVerification.codeExpiryTime) {
+      this.emailVerification.isCodeExpired = true;
+    }
+  }
+
+  // Vérifier si l'email est vérifié avant de soumettre
+  isEmailVerified(): boolean {
+    return this.emailVerification.isVerified;
   }
 }
