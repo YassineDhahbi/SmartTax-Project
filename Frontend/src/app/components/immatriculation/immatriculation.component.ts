@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener, Renderer2 } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener, Renderer2, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { trigger, state, style, transition, animate } from '@angular/animations';
@@ -42,10 +42,10 @@ import {
     ])
   ]
 })
-export class ImmatriculationComponent implements OnInit {
+export class ImmatriculationComponent implements OnInit, AfterViewInit {
   @ViewChild('ocrFileInput') ocrFileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('canvas') canvas!: ElementRef;
-  @ViewChild('video') videoElement!: ElementRef<HTMLVideoElement>;
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
 
   // Formulaire
   immatriculationForm!: FormGroup;
@@ -77,6 +77,8 @@ export class ImmatriculationComponent implements OnInit {
   capturedPhoto: boolean = false;
   photoPreview: string = '';
   identityPhoto: string = '';
+  capturedPhotoDataUrl: string = '';
+  tempPhotoFile: File | null = null;
 
   // Vérification
   ocrResults: any[] = [];
@@ -139,6 +141,12 @@ export class ImmatriculationComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.generateDossierNumber();
+  }
+
+  ngAfterViewInit(): void {
+    console.log('ngAfterViewInit - Éléments ViewChild initialisés');
+    console.log('videoElement:', this.videoElement);
+    console.log('canvas:', this.canvas);
   }
 
   // Gestion du modal de nationalité
@@ -1043,58 +1051,203 @@ export class ImmatriculationComponent implements OnInit {
   }
 
   // Webcam
-  async openWebcam(): Promise<void> {
+  openWebcamModal(): void {
     this.showWebcamModal = true;
-    this.capturedPhoto = false;
-    
+    // Attendre que le modal soit visible avant d'initialiser la webcam
+    setTimeout(() => {
+      this.initializeWebcam();
+    }, 100);
+  }
+
+  async initializeWebcam(): Promise<void> {
     try {
+      console.log('Tentative d\'initialisation de la webcam...');
+      console.log('showWebcamModal:', this.showWebcamModal);
+      
+      // Attendre un peu plus pour s'assurer que le DOM est prêt
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Vérifier si l'élément vidéo existe
+      if (!this.videoElement || !this.videoElement.nativeElement) {
+        console.error('Erreur: Élément vidéo non trouvé');
+        console.log('videoElement:', this.videoElement);
+        alert('Erreur: Élément vidéo non disponible. Veuillez réessayer.');
+        return;
+      }
+
+      // Vérifier si le navigateur supporte la webcam
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('Erreur: Webcam non supportée par le navigateur');
+        alert('Votre navigateur ne supporte pas la webcam. Veuillez utiliser Chrome ou Firefox.');
+        return;
+      }
+
+      console.log('Demande d\'accès à la webcam...');
+      
+      // Demander l'accès à la webcam
       this.stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user' } 
+        video: { 
+          facingMode: 'user',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
       });
-      this.videoElement.nativeElement.srcObject = this.stream;
-    } catch (error) {
+
+      // Assigner le stream à l'élément vidéo
+      const video = this.videoElement.nativeElement;
+      video.srcObject = this.stream;
+      
+      // Attendre que la vidéo soit chargée
+      video.onloadedmetadata = () => {
+        console.log('Webcam initialisée avec succès');
+        video.play().catch(err => {
+          console.error('Erreur lors de la lecture de la vidéo:', err);
+        });
+      };
+
+      video.onerror = (error) => {
+        console.error('Erreur vidéo:', error);
+        alert('Erreur lors de l\'initialisation de la webcam.');
+      };
+
+    } catch (error: any) {
       console.error('Erreur webcam:', error);
-      alert('Impossible d\'accéder à la webcam. Veuillez vérifier les permissions.');
+      
+      // Messages d'erreur spécifiques
+      if (error.name === 'NotAllowedError') {
+        alert('Accès à la webcam refusé. Veuillez autoriser l\'utilisation de la webcam dans les paramètres de votre navigateur.');
+      } else if (error.name === 'NotFoundError') {
+        alert('Aucune webcam détectée. Veuillez vérifier que votre webcam est bien connectée.');
+      } else if (error.name === 'NotReadableError') {
+        alert('La webcam est déjà utilisée par une autre application.');
+      } else {
+        alert('Impossible d\'accéder à la webcam. Veuillez vérifier les permissions et votre matériel.');
+      }
     }
   }
 
   closeWebcam(): void {
-    this.showWebcamModal = false;
+    console.log('Fermeture de la webcam...');
+    
+    // Arrêter tous les tracks du stream
     if (this.stream) {
-      this.stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
+      this.stream.getTracks().forEach((track: MediaStreamTrack) => {
+        track.stop();
+        console.log('Track arrêté:', track.kind);
+      });
       this.stream = null;
     }
+
+    // Nettoyer l'élément vidéo
+    if (this.videoElement && this.videoElement.nativeElement) {
+      const video = this.videoElement.nativeElement;
+      video.srcObject = null;
+      video.pause();
+      console.log('Élément vidéo nettoyé');
+    }
+
+    this.showWebcamModal = false;
   }
 
   capturePhoto(): void {
-    const video = this.videoElement.nativeElement;
-    const canvas = this.canvas.nativeElement;
-    const context = canvas.getContext('2d');
-    
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0);
-    
-    this.capturedPhoto = true;
+    try {
+      // Vérifier si les éléments existent
+      if (!this.videoElement || !this.videoElement.nativeElement) {
+        console.error('Erreur: Élément vidéo non trouvé pour la capture');
+        alert('Erreur: Impossible de capturer la photo. Élément vidéo non disponible.');
+        return;
+      }
+
+      if (!this.canvas || !this.canvas.nativeElement) {
+        console.error('Erreur: Élément canvas non trouvé pour la capture');
+        alert('Erreur: Impossible de capturer la photo. Canvas non disponible.');
+        return;
+      }
+
+      const video = this.videoElement.nativeElement;
+      const canvas = this.canvas.nativeElement;
+      const context = canvas.getContext('2d');
+      
+      if (!context) {
+        console.error('Erreur: Impossible d\'obtenir le contexte 2D du canvas');
+        alert('Erreur: Impossible de capturer la photo.');
+        return;
+      }
+      
+      // Vérifier si la vidéo est prête
+      if (video.readyState !== 4) { // HAVE_FUTURE_DATA = 4
+        console.error('Erreur: La vidéo n\'est pas encore chargée');
+        alert('Veuillez attendre que la webcam soit correctement initialisée.');
+        return;
+      }
+      
+      // Configurer les dimensions du canvas
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      
+      // Dessiner l'image de la vidéo sur le canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Sauvegarder la capture dans une variable temporaire
+      this.capturedPhotoDataUrl = canvas.toDataURL('image/jpeg');
+      
+      // Convertir le canvas en blob
+      canvas.toBlob((blob: Blob | null) => {
+        if (blob) {
+          // Créer un fichier temporaire
+          this.tempPhotoFile = new File([blob], 'photo-personnelle.jpg', { type: 'image/jpeg' });
+          
+          // Indiquer que la photo a été capturée
+          this.capturedPhoto = true;
+          
+          // Afficher le canvas et cacher la vidéo
+          video.style.display = 'none';
+          canvas.style.display = 'block';
+          
+          console.log('Photo capturée avec succès:', this.tempPhotoFile);
+        } else {
+          console.error('Erreur: Impossible de créer le blob de l\'image');
+          alert('Erreur lors de la capture de la photo.');
+        }
+      }, 'image/jpeg', 0.9);
+      
+    } catch (error) {
+      console.error('Erreur lors de la capture de la photo:', error);
+      alert('Erreur lors de la capture de la photo. Veuillez réessayer.');
+    }
   }
 
   retakePhoto(): void {
     this.capturedPhoto = false;
+    this.capturedPhotoDataUrl = '';
+    this.tempPhotoFile = null;
+    
+    // Réafficher la vidéo et cacher le canvas
+    if (this.videoElement && this.videoElement.nativeElement) {
+      this.videoElement.nativeElement.style.display = 'block';
+    }
+    if (this.canvas && this.canvas.nativeElement) {
+      this.canvas.nativeElement.style.display = 'none';
+    }
   }
 
   usePhoto(): void {
-    const canvas = this.canvas.nativeElement;
-    const dataUrl = canvas.toDataURL('image/jpeg');
-    
-    // Convertir en fichier
-    fetch(dataUrl)
-      .then(res => res.blob())
-      .then(blob => {
-        const file = new File([blob], 'webcam-photo.jpg', { type: 'image/jpeg' });
-        this.files.photo = file;
-        this.photoPreview = dataUrl;
-        this.closeWebcam();
-      });
+    if (this.tempPhotoFile && this.capturedPhotoDataUrl) {
+      // Enregistrer la photo dans files.photo et photoPreview
+      this.files.photo = this.tempPhotoFile;
+      this.photoPreview = this.capturedPhotoDataUrl;
+      
+      // Fermer la webcam
+      this.closeWebcam();
+      
+      // Réinitialiser les variables temporaires
+      this.capturedPhoto = false;
+      this.capturedPhotoDataUrl = '';
+      this.tempPhotoFile = null;
+      
+      console.log('Photo personnelle enregistrée avec succès!');
+      alert('Photo personnelle enregistrée avec succès!');
+    }
   }
 
   // Vérification automatique

@@ -226,14 +226,7 @@
                                             </div>
                                             
                                             <!-- Message OCR -->
-                                            <div class="ocr-status" *ngIf="ocrProcessing">
-                                                <i class="fas fa-spinner fa-spin"></i>
-                                                Extraction OCR en cours...
-                                            </div>
-                                            <div class="ocr-success" *ngIf="ocrData && ocrData.success">
-                                                <i class="fas fa-check-circle"></i>
-                                                Informations extraites avec succès ({{(ocrData.confidence * 100).toFixed(1)}}% de confiance)
-                                            </div>
+                                        
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -581,7 +574,7 @@
                                             </div>
                                         </div>
                                         <div class="webcam-section">
-                                            <button type="button" class="btn-webcam" (click)="openWebcam()">
+                                            <button type="button" class="btn-webcam" (click)="openWebcamModal()">
                                                 <i class="fas fa-camera"></i> Prendre une photo
                                             </button>
                                         </div>
@@ -977,10 +970,48 @@
                         <div class="ocr-buttons">
                             <button type="button" class="btn-ocr-scan-modal" (click)="triggerOcrFileInput()">
                                 <i class="fas fa-camera"></i>
-                                Scanner ma CIN avec OCR
+                                Télécharger Votre CIN 
                             </button>
                             <span class="or-separator">ou</span>
                             <label [for]="'cin-upload'" class="btn-manual-upload">
+                                <i class="fas fa-file-upload"></i>
+                                Télécharger manuellement
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Input OCR caché -->
+                    <input type="file" 
+                           #ocrFileInput
+                           accept="image/*" 
+                           (change)="onOcrFileSelected($event)"
+                           style="display: none;">
+                    
+                    <!-- Messages OCR -->
+                    <div class="ocr-status-modal" *ngIf="ocrProcessing">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Extraction OCR en cours...
+                    </div>
+                    <div class="ocr-success-modal" *ngIf="ocrData && ocrData.success">
+                        <i class="fas fa-check-circle"></i>
+                        Informations extraites avec succès ! Elles apparaîtront dans la section "Informations Personnelles" ({{(ocrData.confidence * 100).toFixed(1)}}% de confiance)
+                    </div>
+                </div>
+                
+                <!-- Option OCR pour Étranger -->
+                <div class="ocr-option-section" *ngIf="isForeigner">
+                    <div class="ocr-choice">
+                        <p class="ocr-intro">
+                            <i class="fas fa-magic"></i>
+                            Vous pouvez scanner votre Passeport pour remplir automatiquement vos informations personnelles
+                        </p>
+                        <div class="ocr-buttons">
+                            <button type="button" class="btn-ocr-scan-modal" (click)="triggerOcrFileInput()">
+                                <i class="fas fa-camera"></i>
+                                Télécharger mon Passeport 
+                            </button>
+                            <span class="or-separator">ou</span>
+                            <label [for]="'passport-upload'" class="btn-manual-upload">
                                 <i class="fas fa-file-upload"></i>
                                 Télécharger manuellement
                             </label>
@@ -1080,14 +1111,14 @@
                 <video #videoElement id="webcam" autoplay playsinline></video>
                 <canvas #canvas id="canvas" style="display: none;"></canvas>
                 <div class="webcam-controls">
-                    <button type="button" class="btn-capture" (click)="capturePhoto()">
+                    <button type="button" class="btn-capture" (click)="capturePhoto()" *ngIf="!capturedPhoto">
                         <i class="fas fa-camera"></i> Capturer
                     </button>
                     <button type="button" class="btn-retake" (click)="retakePhoto()" *ngIf="capturedPhoto">
                         <i class="fas fa-redo"></i> Reprendre
                     </button>
                     <button type="button" class="btn-use-photo" (click)="usePhoto()" *ngIf="capturedPhoto">
-                        <i class="fas fa-check"></i> Utiliser cette photo
+                        <i class="fas fa-check"></i> Utiliser cette image
                     </button>
                 </div>
             </div>
