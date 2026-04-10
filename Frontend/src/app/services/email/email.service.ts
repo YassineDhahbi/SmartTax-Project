@@ -50,6 +50,27 @@ export class EmailService {
   }
 
   /**
+   * Envoyer un email avec le TIN généré
+   */
+  sendTINEmail(to: string, subject: string, body: string, tin: string): Observable<EmailResponse> {
+    const emailRequest: EmailRequest = {
+      to: to,
+      subject: subject,
+      body: body,
+      registrationLink: 'http://localhost:4200/register'
+    };
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    console.log('📧 Envoi email avec TIN:', tin);
+    console.log('📧 EmailRequest:', emailRequest);
+
+    return this.http.post<EmailResponse>(`${this.apiUrl}/send-tin-email`, emailRequest, { headers });
+  }
+
+  /**
    * Générer le corps de l'email de validation
    */
   private generateValidationEmailBody(securityCode: string): string {

@@ -653,62 +653,45 @@ export class DashboardAgentComponent implements OnInit {
     console.log('🔍 Validation de l\'immatriculation:', this.selectedImmatriculation.id);
     
     this.immatriculationService.validateDossier(this.selectedImmatriculation.id).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         console.log('✅ Immatriculation validée avec succès:', response);
         
-        // Générer et envoyer le code de sécurité par email
-        const securityCode = this.emailService.generateSecurityCode();
-        console.log('🔐 Code de sécurité généré:', securityCode);
+        // Vérifier si la réponse contient une notification personnalisée
+        if (response.notification) {
+          // Afficher la notification du backend (verte)
+          this.showNotification(
+            response.notification.text || 'Dossier validé avec succès !',
+            response.notification.type || 'success'
+          );
+        } else {
+          // Notification par défaut si pas de notification personnalisée
+          this.showNotification(
+            'Dossier validé avec succès ! Un email avec le TIN a été envoyé.',
+            'success'
+          );
+        }
         
-        // Envoyer l'email au contribuable
-        this.emailService.sendValidationEmail(this.selectedImmatriculation.email, securityCode).subscribe({
-          next: (emailResponse) => {
-            console.log('📧 Email envoyé avec succès:', emailResponse);
-            
-            // Mettre à jour le statut dans la liste locale
-            const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
-            if (index !== -1) {
-              this.immatriculations[index] = response;
-              this.applyFilter();
-            }
-            
-            // Mettre à jour l'immatriculation sélectionnée
-            this.selectedImmatriculation = response;
-            
-            // Afficher un message de succès incluant l'envoi de l'email
-            this.showNotification(
-              `L'immatriculation a été validée avec succès ! Un email avec le code de sécurité a été envoyé à ${this.selectedImmatriculation.email}`, 
-              'success'
-            );
-            
-            // Fermer le modal après validation
-            this.closeModal();
-          },
-          error: (emailError) => {
-            console.error('❌ Erreur lors de l\'envoi de l\'email:', emailError);
-            
-            // Quand même valider le dossier même si l'email échoue
-            const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
-            if (index !== -1) {
-              this.immatriculations[index] = response;
-              this.applyFilter();
-            }
-            
-            this.selectedImmatriculation = response;
-            
-            // Afficher un message d'avertissement
-            this.showNotification(
-              `L'immatriculation a été validée mais l'email n'a pas pu être envoyé. Code de sécurité: ${securityCode}`, 
-              'warning'
-            );
-            
-            this.closeModal();
-          }
-        });
+        // Mettre à jour le statut dans la liste locale
+        const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
+        if (index !== -1) {
+          this.immatriculations[index] = response.data || response;
+          this.applyFilter();
+        }
+        
+        // Mettre à jour l'immatriculation sélectionnée
+        this.selectedImmatriculation = response.data || response;
+        
+        // Fermer le modal après validation
+        this.closeModal();
       },
       error: (error) => {
         console.error('❌ Erreur lors de la validation:', error);
-        this.showNotification('Une erreur est survenue lors de la validation. Veuillez réessayer.', 'error');
+        
+        // Afficher un message d'erreur
+        this.showNotification(
+          'Erreur lors de la validation du dossier',
+          'error'
+        );
       }
     });
   }

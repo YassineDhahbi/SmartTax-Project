@@ -396,7 +396,7 @@
             <table class="da__table" aria-label="Liste des immatriculations">
               <thead>
                 <tr>
-                  <th>N° Dossier</th>
+                  <th>TIN</th>
                   <th>Contribuable</th>
                   <th>Type</th>
                   <th>Statut</th>
@@ -406,11 +406,11 @@
               </thead>
               <tbody>
                 <tr *ngFor="let immatriculation of filteredImmatriculations">
-                  <td class="da__mono">{{ immatriculation.dossierNumber || immatriculation.id }}</td>
+                  <td class="da__mono">{{ immatriculation.matriculeFiscal || immatriculation.dossierNumber || immatriculation.id }}</td>
                   <td>
                     <div class="da__contribuableInfo">
                       <div class="da__strong">
-                        {{ getContribuableName(immatriculation) }}
+                        {{ immatriculation.matriculeFiscal || getContribuableName(immatriculation) }}
                       </div>
                       <div class="da__small">{{ immatriculation.email || 'N/A' }}</div>
                     </div>

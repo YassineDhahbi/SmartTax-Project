@@ -121,7 +121,7 @@ export class UserService {
   }
 
   forgotPassword(email: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/forgot-password`, { email }).pipe(
+    return this.http.post('http://localhost:8080/api/auth/forgot-password', { email }).pipe(
       catchError(error => {
         console.error('Error sending forgot password email:', error);
         return throwError(() => new Error('Failed to send reset email'));
@@ -130,7 +130,7 @@ export class UserService {
   }
 
   resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reset-password`, { token, newPassword }).pipe(
+    return this.http.post('http://localhost:8080/api/auth/reset-password', { token, newPassword }).pipe(
       catchError(error => {
         console.error('Error resetting password:', error);
         return throwError(() => new Error('Failed to reset password'));

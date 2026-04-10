@@ -1667,9 +1667,12 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
 
   private generateDossierNumber(): void {
     const now = new Date();
-    const year = now.getFullYear();
-    const random = Math.floor(Math.random() * 999999).toString().padStart(6, '0');
-    this.dossierNumber = `TN-DG-${year}-${random}`;
+    const year = now.getFullYear().toString().slice(-2); // 2 derniers chiffres
+    const random = Math.floor(Math.random() * 99999).toString().padStart(5, '0'); // 5 chiffres avec zéros
+    
+    // Générer le TIN : Status(1) + Year(2) + Sequence(5) + LegalForm(1) + CheckLetter(1)
+    // Pour l'instant, on utilise "2" pour nouveau contribuable et "P" pour personne physique
+    this.dossierNumber = `2${year}${random}P`; // Exemple: 22600045PK
   }
 
   // Navigation

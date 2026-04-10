@@ -63,28 +63,34 @@
           </div>
         </div>
 
-        <!-- Champ de code de sécurité (affiché si présent dans l'URL) -->
-        <div class="form-group" *ngIf="showSecurityCodeInput">
-          <label for="securityCode">
-            <i class="fas fa-shield-alt me-2"></i>
-            Code de sécurité
-            <span class="badge bg-info text-white ms-2">Requis</span>
+        <!-- Champ TIN (vérification du numéro d'immatriculation fiscale) -->
+        <div class="form-group">
+          <label for="tin">
+            <i class="fas fa-id-badge me-2"></i>
+            TIN (Tax Identification Number)
+            <span class="badge bg-danger text-white ms-2">*</span>
           </label>
           <div class="form-icon">
-            <i class="fas fa-key"></i>
+            <i class="fas fa-fingerprint"></i>
             <input 
-              id="securityCode" 
+              id="tin" 
               type="text" 
-              formControlName="securityCode" 
+              formControlName="tin" 
               class="form-control" 
-              placeholder="Entrez le code de sécurité reçu par email"
-              readonly 
-              style="background-color: #f8f9fa; font-weight: bold; color: #007bff;" />
+              placeholder="Entrez votre TIN (ex: 22600045PK)"
+              (blur)="validateTIN()" />
           </div>
-          <small class="text-info">
+          <small class="text-muted">
             <i class="fas fa-info-circle me-1"></i>
-            Code de sécurité reçu lors de la validation de votre immatriculation
+            Le TIN est obligatoire pour créer un compte. Un email de vérification a déjà été envoyé. Veuillez vérifier votre boîte email.
           </small>
+        </div>
+
+        <div class="form-group" *ngIf="tinVerificationMessage">
+          <div class="alert" [ngClass]="tinVerificationSuccess ? 'alert-success' : 'alert-danger'">
+            <i class="fas" [ngClass]="tinVerificationSuccess ? 'fa-check-circle' : 'fa-exclamation-circle'"></i>
+            {{ tinVerificationMessage }}
+          </div>
         </div>
 
         <div class="form-group">
@@ -189,12 +195,12 @@
         </div> -->
       </form>
 
-      <!-- <div class="auth-bottom">
+      <div class="auth-bottom">
         <p class="auth-bottom-text">
           Déjà un compte ?
           <a routerLink="/login">Connectez-vous</a>
         </p>
-      </div> -->
+      </div>
     </div>
   </div>
 </div>

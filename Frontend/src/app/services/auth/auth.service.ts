@@ -211,4 +211,9 @@ export class AuthService {
       return `${seconds}s`;
     }
   }
+
+  // Méthode pour vérifier un TIN
+  verifyTIN(tin: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/verify-tin`, { tin });
+  }
 }

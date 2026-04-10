@@ -22,7 +22,13 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   };
   toasts: { title: string; message: string; type: string }[] = [];
   
-  // Propriétés pour le code de sécurité
+  // Propriétés pour le TIN
+  tin: string = '';
+  tinVerificationMessage: string = '';
+  tinVerificationSuccess: boolean = false;
+  tinVerified: boolean = false;
+  
+  // Propriétés pour le code de sécurité (gardé pour compatibilité)
   securityCode: string = '';
   showSecurityCodeInput: boolean = false;
   isFromValidationEmail: boolean = false;
@@ -42,12 +48,13 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       dateNaissance: ['', [Validators.required, this.minimumAgeValidator(18)]],
       photo: ['', Validators.pattern(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/)],
       role: ['CONTRIBUABLE', Validators.required],
-      securityCode: [''] // Champ pour le code de sécurité
+      tin: ['', [Validators.required, Validators.pattern(/^[12]\d{7}[A-Z]{2}$/)]], // Champ pour le TIN (obligatoire)
+      securityCode: [''] // Champ pour le code de sécurité (gardé pour compatibilité)
     }, { validators: this.passwordMatchValidator });
   }
 
   ngOnInit(): void {
-    // Vérifier s'il y a un code de sécurité dans l'URL
+    // Vérifier s'il y a des paramètres dans l'URL (pour pré-remplissage automatique)
     this.route.queryParams.subscribe(params => {
       if (params['code']) {
         this.securityCode = params['code'];
@@ -59,8 +66,34 @@ export class RegisterComponent implements OnInit, AfterViewInit {
           securityCode: this.securityCode
         });
         
-        console.log('🔐 Code de sécurité détecté:', this.securityCode);
+        console.log(' Code de sécurité détecté:', this.securityCode);
         this.addToast('Information', 'Code de sécurité détecté. Veuillez compléter le formulaire pour créer votre compte.', 'info');
+      }
+      
+      // Pré-remplir automatiquement les champs depuis l'email de validation TIN
+      if (params['nom'] || params['prenom'] || params['email'] || params['tin'] || params['dateNaissance']) {
+        const formData: any = {};
+        
+        if (params['nom']) {
+          formData.lastName = decodeURIComponent(params['nom']);
+        }
+        if (params['prenom']) {
+          formData.firstName = decodeURIComponent(params['prenom']);
+        }
+        if (params['email']) {
+          formData.email = decodeURIComponent(params['email']);
+        }
+        if (params['tin']) {
+          formData.tin = decodeURIComponent(params['tin']);
+        }
+        if (params['dateNaissance']) {
+          formData.dateNaissance = decodeURIComponent(params['dateNaissance']);
+        }
+        
+        this.registerForm.patchValue(formData);
+        
+        console.log(' Formulaire pré-rempli avec:', formData);
+        console.log(' Email de validation TIN détecté');
       }
     });
   }
@@ -151,6 +184,10 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         case 'photo':
           if (control.errors?.['pattern']) message = 'Veuillez entrer une URL valide pour la photo.';
           break;
+        case 'tin':
+          if (control.errors?.['required']) message = 'Le TIN est requis pour créer un compte.';
+          else if (control.errors?.['pattern']) message = 'Format TIN invalide. Exemple: 22600001PU';
+          break;
       }
       if (message) {
         this.addToast(title, message, 'toast-error');
@@ -169,6 +206,12 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     // Validation spéciale pour le code de sécurité si requis
     if (this.isFromValidationEmail && !this.registerForm.value.securityCode) {
       this.addToast('Erreur', 'Le code de sécurité est requis pour créer votre compte.', 'toast-error');
+      return;
+    }
+
+    // Vérifier que le TIN est valide avant de permettre l'inscription
+    if (!this.tinVerificationSuccess) {
+      this.addToast('Erreur', 'Veuillez vérifier votre TIN avant de créer votre compte.', 'toast-error');
       return;
     }
 
@@ -235,7 +278,76 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   }
 
   removeToast(index: number): void {
-    this.toasts.splice(index, 1);
+    this.toasts.shift();
+  }
+
+  // Méthode de validation du TIN
+  validateTIN(): void {
+    const tinValue = this.registerForm.get('tin')?.value;
+    
+    if (!tinValue || tinValue.trim().length === 0) {
+      // Si le champ TIN est vide, on cache le message de vérification
+      this.tinVerificationMessage = '';
+      this.tinVerified = false;
+      return;
+    }
+
+    // Valider le format du TIN (ex: 22600001PU)
+    const tinPattern = /^[12]\d{7}[A-Z]{2}$/;
+    if (!tinPattern.test(tinValue)) {
+      this.tinVerificationMessage = 'TIN non trouvé. Veuillez vérifier votre numéro ou contacter le support.';
+      this.tinVerificationSuccess = false;
+      this.tinVerified = false;
+      return;
+    }
+
+    // Appeler le backend pour vérifier le TIN
+    this.isLoading = true;
+    this.authService.verifyTIN(tinValue).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        
+        if (response.success && response.exists) {
+          // TIN trouvé - pré-remplir automatiquement tous les champs
+          this.tinVerificationMessage = `TIN valide !`;
+          this.tinVerificationSuccess = true;
+          this.tinVerified = true;
+          
+          // Pré-remplir tous les champs disponibles
+          const formData: any = {};
+          
+          if (response.email && !this.registerForm.get('email')?.value) {
+            formData.email = response.email;
+          }
+          if (response.nom && !this.registerForm.get('lastName')?.value) {
+            formData.lastName = response.nom;
+          }
+          if (response.prenom && !this.registerForm.get('firstName')?.value) {
+            formData.firstName = response.prenom;
+          }
+          if (response.dateNaissance && !this.registerForm.get('dateNaissance')?.value) {
+            formData.dateNaissance = response.dateNaissance;
+          }
+          
+          // Appliquer les pré-remplissages
+          if (Object.keys(formData).length > 0) {
+            this.registerForm.patchValue(formData);
+            console.log(' Champs pré-remplis depuis le TIN:', formData);
+          }
+        } else {
+          // TIN non trouvé
+          this.tinVerificationMessage = 'TIN non trouvé. Veuillez vérifier votre numéro ou contacter le support.';
+          this.tinVerificationSuccess = false;
+          this.tinVerified = false;
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.tinVerificationMessage = 'Erreur lors de la vérification du TIN. Veuillez réessayer.';
+        this.tinVerificationSuccess = false;
+        this.tinVerified = false;
+      }
+    });
   }
 
   initializeToasts(): void {

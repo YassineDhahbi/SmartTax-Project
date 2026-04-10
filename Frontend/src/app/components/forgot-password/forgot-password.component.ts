@@ -18,10 +18,10 @@ export class ForgotPasswordComponent {
     this.errorMessage = null;
     this.userService.forgotPassword(this.email).subscribe({
       next: (response) => {
-        this.successMessage = response.success;
+        this.successMessage = response.message;
       },
       error: (err) => {
-        this.errorMessage = err.error.error || 'Erreur lors de l\'envoi du lien de réinitialisation';
+        this.errorMessage = err.error?.message || 'Erreur lors de l\'envoi du lien de réinitialisation';
       }
     });
   }
