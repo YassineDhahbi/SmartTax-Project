@@ -39,6 +39,9 @@ export interface Immatriculation {
   email: string;
   telephone: string;
   adresse: string;
+  ville?: string;
+  autreVille?: string;
+  nationalite?: string;
   
   // Activité
   typeActivite: string;
@@ -92,6 +95,9 @@ export interface CreateImmatriculationDto {
   email: string;
   telephone: string;
   adresse: string;
+  ville?: string;
+  autreVille?: string;
+  nationalite?: string;
   typeActivite: string;
   secteur: string;
   adresseProfessionnelle: string;
@@ -125,6 +131,9 @@ export interface UpdateImmatriculationDto {
   email?: string;
   telephone?: string;
   adresse?: string;
+  ville?: string;
+  autreVille?: string;
+  nationalite?: string;
   typeActivite?: string;
   secteur?: string;
   adresseProfessionnelle?: string;

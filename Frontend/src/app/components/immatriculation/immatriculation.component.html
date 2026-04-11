@@ -382,19 +382,47 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="adresse">Adresse Complète <span class="required">*</span></label>
-                                        <textarea id="adresse" class="form-control" rows="3"
-                                                  formControlName="adresse" placeholder="Votre adresse complète"></textarea>
+                                        <label for="adresse">Gouvernorat <span class="required">*</span></label>
+                                        <select id="adresse" class="form-control" formControlName="adresse" (change)="onGouvernoratChange($event)">
+                                            <option value="">Sélectionnez un gouvernorat...</option>
+                                            <option *ngFor="let gouvernorat of gouvernoratsTunisie" [value]="gouvernorat">
+                                                {{ gouvernorat }}
+                                            </option>
+                                        </select>
                                         <div class="error-message" *ngIf="immatriculationForm.get('adresse')?.invalid && immatriculationForm.get('adresse')?.touched">
-                                            <span *ngIf="immatriculationForm.get('adresse')?.errors?.['required']">L'adresse est obligatoire</span>
-                                            <span *ngIf="immatriculationForm.get('adresse')?.errors?.['minlength']">L'adresse doit contenir au moins 10 caractères</span>
-                                            <span *ngIf="immatriculationForm.get('adresse')?.errors?.['maxlength']">L'adresse ne peut pas dépasser 200 caractères</span>
-                                        </div>
+                                            <span *ngIf="immatriculationForm.get('adresse')?.errors?.['required']">Le gouvernorat est obligatoire</span>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="ville">Ville/Délégation</label>
+                                        <select id="ville" class="form-control" formControlName="ville" (change)="onVilleChange($event)" [disabled]="!immatriculationForm.get('adresse')?.value">
+                                            <option value="">Sélectionnez une ville...</option>
+                                            <option *ngFor="let ville of villesDisponibles" [value]="ville">
+                                                {{ ville }}
+                                            </option>
+                                            <option value="autre">Autre (spécifier)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-12" *ngIf="showAutreVille">
+                                    <div class="form-group">
+                                        <label for="autreVille">Spécifiez votre ville <span class="required">*</span></label>
+                                        <input type="text" id="autreVille" class="form-control" 
+                                               formControlName="autreVille" 
+                                               placeholder="Entrez le nom de votre ville ou délégation">
+                                        <div class="error-message" *ngIf="immatriculationForm.get('autreVille')?.invalid && immatriculationForm.get('autreVille')?.touched">
+                                            <span *ngIf="immatriculationForm.get('autreVille')?.errors?.['required']">Veuillez spécifier votre ville</span>
+                                            <span *ngIf="immatriculationForm.get('autreVille')?.errors?.['minlength']">Le nom doit contenir au moins 2 caractères</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Champ caché pour la nationalité -->
+                                <input type="hidden" formControlName="nationalite">
                             </div>
                             
                             <div class="form-navigation">
@@ -406,6 +434,7 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
 
                     <!-- Étape 3: Informations sur l'Activité -->
                     <div class="form-step" *ngIf="currentStep === 3" [@stepAnimation]>

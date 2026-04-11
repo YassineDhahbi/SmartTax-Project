@@ -85,10 +85,43 @@ export class DashboardAgentComponent implements OnInit {
 
   constructor(private http: HttpClient, private immatriculationService: ImmatriculationService, private trashService: TrashService, private emailService: EmailService) {}
 
+  // Méthode pour formater l'adresse avec gouvernorat et ville
+  formatAdresse(immatriculation: any): string {
+    const gouvernorat = immatriculation.adresse || '';
+    const ville = immatriculation.ville || '';
+    const autreVille = immatriculation.autreVille || '';
+    
+    // Si une ville est spécifiée
+    if (ville && ville !== 'autre') {
+      return `${gouvernorat}, ${ville}`;
+    }
+    // Si "autre" est sélectionné et une valeur est saisie
+    else if (ville === 'autre' && autreVille) {
+      return `${gouvernorat}, ${autreVille}`;
+    }
+    // Si seul le gouvernorat est disponible
+    else if (gouvernorat) {
+      return gouvernorat;
+    }
+    // Valeur par défaut
+    else {
+      return 'N/A';
+    }
+  }
+
+  // Méthode pour filtrer par nationalité
+  filterByNationalite(nationalite: string): void {
+    this.nationaliteFilter = nationalite;
+    this.applyFilter();
+  }
+
   // Données des immatriculations depuis PostgreSQL
   immatriculations: any[] = [];
   filteredImmatriculations: any[] = [];
   isLoadingImmatriculations = false;
+  
+  // Filtre par nationalité
+  nationaliteFilter: string = 'tous'; // 'tous', 'tunisien', 'etranger'
   
   // Modal properties
   showDetailsModal = false;
@@ -470,6 +503,19 @@ export class DashboardAgentComponent implements OnInit {
       filtered = this.immatriculations.filter(
         immatriculation => immatriculation.typeContribuable === this.activeFilter
       );
+    }
+    
+    // Filtrer par nationalité
+    if (this.nationaliteFilter !== 'tous') {
+      filtered = filtered.filter(imm => {
+        const immNationalite = imm.nationalite || 'tunisienne'; // Par défaut tunisien
+        if (this.nationaliteFilter === 'tunisien') {
+          return immNationalite === 'tunisienne';
+        } else if (this.nationaliteFilter === 'etranger') {
+          return immNationalite !== 'tunisienne';
+        }
+        return true;
+      });
     }
     
     // Filtrer par statut si applicable

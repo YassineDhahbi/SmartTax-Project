@@ -47,6 +47,110 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
   @ViewChild('canvas') canvas!: ElementRef;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
 
+  // Liste des gouvernorats de Tunisie
+  gouvernoratsTunisie = [
+    'Tunis',
+    'Ariana',
+    'Ben Arous',
+    'Manouba',
+    'Nabeul',
+    'Zaghouan',
+    'Bizerte',
+    'Béja',
+    'Jendouba',
+    'Le Kef',
+    'Siliana',
+    'Sousse',
+    'Monastir',
+    'Mahdia',
+    'Sfax',
+    'Kairouan',
+    'Kasserine',
+    'Sidi Bouzid',
+    'Gabès',
+    'Médenine',
+    'Tataouine',
+    'Gafsa',
+    'Tozeur',
+    'Kébili'
+  ];
+
+  // Liste des villes par gouvernorat
+  villesParGouvernorat: { [key: string]: string[] } = {
+    'Tunis': ['Tunis', 'Le Bardo', 'La Marsa', 'Carthage', 'Sidi Bou Said', 'El Menzah', 'El Manar'],
+    'Ariana': ['Ariana', 'Ettadhamen', 'Kalaat El Andalous', 'Mnihla', 'Raoued', 'Sidi Thabet'],
+    'Ben Arous': ['Ben Arous', 'Mornag', 'Ezzahra', 'Rades', 'Bou Mhel el-Bassatine', 'Fouchana', 'Mégrine'],
+    'Manouba': ['Manouba', 'Den Den', 'Douar Hicher', 'El Menara', 'Oued Ellil', 'Tebourba'],
+    'Nabeul': ['Nabeul', 'Hammamet', 'Kelibia', 'Dar Chichan', 'Menzel Temime', 'Soliman', 'Korba', 'Takelsa'],
+    'Zaghouan': ['Zaghouan', 'Zriba', 'Fahs', 'Bir Mcherga', 'Nadhour'],
+    'Bizerte': ['Bizerte', 'Menzel Bourguiba', 'Mateur', 'Jefna', 'Sejnane', 'El Alia', 'Ras Jebel'],
+    'Béja': ['Béja', 'Testour', 'Nefza', 'Téboursouk', 'Amdoun', 'Ghardimaou'],
+    'Jendouba': ['Jendouba', 'Tabarka', 'Aïn Draham', 'Fernana', 'Bou Salem', 'Ghardimaou'],
+    'Le Kef': ['Le Kef', 'Sakiet Sidi Youssef', 'Tajerouine', 'Meknassy', 'Kalaa Khasba', 'Nebeur'],
+    'Siliana': ['Siliana', 'Bou Arada', 'El Ksar', 'Maktar', 'Rouhia', 'Kesra'],
+    'Sousse': ['Sousse', 'Hammam Sousse', 'Msaken', 'Ksibet Thameur', 'Enfidha', 'Sidi Bou Ali', 'Akouda'],
+    'Monastir': ['Monastir', 'Ksar Hellal', 'Sahline', 'Jemmel', 'Bembla', 'Bekalta', 'Moknine'],
+    'Mahdia': ['Mahdia', 'Bou Mhel el-Bassatine', 'Chorbane', 'El Jem', 'Ksour Essef', 'Ouled Chamekh', 'Sidi Alouane'],
+    'Sfax': ['Sfax', 'Sakiet Ezzit', 'Sakiet Eddaier', 'Mahrès', 'Kerkennah', 'Thyna', 'El Hencha'],
+    'Kairouan': ['Kairouan', 'Chebika', 'Sbikha', 'Oueslatia', 'Echrarda', 'Nasrallah', 'Haffouz'],
+    'Kasserine': ['Kasserine', 'Sbeitla', 'Thala', 'Fériana', 'Foussana', 'Sidi Bou Zid'],
+    'Sidi Bouzid': ['Sidi Bouzid', 'Meknassy', 'Menzel Bouzaiane', 'Regueb', 'Ouled Haffouz', 'Bir El Hafey'],
+    'Gabès': ['Gabès', 'Mareth', 'Métouia', 'Ghannouch', 'El Hamma', 'Matmata', 'Nouvelle Matmata'],
+    'Médenine': ['Médenine', 'Djerba', 'Zarzis', 'Ben Gardane', 'Tataouine', 'Sidi Makhlouf'],
+    'Tataouine': ['Tataouine', 'Ghomrassen', 'Bir Lahmar', 'Dehiba', 'Remada'],
+    'Gafsa': ['Gafsa', 'Métlaoui', 'Redeyef', 'Moularès', 'El Guettar', 'Sidi Aïch'],
+    'Tozeur': ['Tozeur', 'Degache', 'Hamma', 'Nefta', 'Tamerza'],
+    'Kébili': ['Kébili', 'Douz', 'Souk Lahad', 'El Faouar', 'Jemna']
+  };
+
+  // Propriétés pour la gestion de la sélection en cascade
+  villesDisponibles: string[] = [];
+  showAutreVille: boolean = false;
+  villeSelectionnee: string = '';
+  autreVille: string = '';
+
+  // Méthode pour gérer le changement de gouvernorat
+  onGouvernoratChange(event: any): void {
+    const gouvernorat = event.target.value;
+    
+    if (gouvernorat) {
+      // Récupérer les villes du gouvernorat sélectionné
+      this.villesDisponibles = this.villesParGouvernorat[gouvernorat] || [];
+      this.showAutreVille = false;
+      this.villeSelectionnee = '';
+      this.autreVille = '';
+      
+      // Réinitialiser le champ ville dans le formulaire
+      this.immatriculationForm.get('ville')?.setValue('');
+      this.immatriculationForm.get('autreVille')?.setValue('');
+    } else {
+      // Réinitialiser tout si aucun gouvernorat n'est sélectionné
+      this.villesDisponibles = [];
+      this.showAutreVille = false;
+      this.villeSelectionnee = '';
+      this.autreVille = '';
+      this.immatriculationForm.get('ville')?.setValue('');
+      this.immatriculationForm.get('autreVille')?.setValue('');
+    }
+  }
+
+  // Méthode pour gérer le changement de ville
+  onVilleChange(event: any): void {
+    const ville = event.target.value;
+    
+    if (ville === 'autre') {
+      this.showAutreVille = true;
+      this.villeSelectionnee = '';
+      this.immatriculationForm.get('ville')?.setValue('autre');
+    } else {
+      this.showAutreVille = false;
+      this.villeSelectionnee = ville;
+      this.autreVille = '';
+      this.immatriculationForm.get('ville')?.setValue(ville);
+      this.immatriculationForm.get('autreVille')?.setValue('');
+    }
+  }
+
   // Formulaire
   immatriculationForm!: FormGroup;
   currentStep: number = 1;
@@ -224,6 +328,10 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
 
   selectNationality(isForeigner: boolean): void {
     this.isForeigner = isForeigner;
+    
+    // Mettre à jour le champ nationalite dans le formulaire
+    const nationaliteValue = isForeigner ? 'etrangere' : 'tunisienne';
+    this.immatriculationForm.get('nationalite')?.setValue(nationaliteValue);
   }
 
   validateNationalityStep(): void {
@@ -346,9 +454,12 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       ]],
       adresse: ['', [
         Validators.required,
-        Validators.minLength(10),
+        Validators.minLength(2),
         Validators.maxLength(200)
       ]],
+      ville: [''],
+      autreVille: [''],
+      nationalite: ['tunisienne'], // Par défaut tunisien
       
       // Activité
       typeActivite: ['', [
@@ -1453,6 +1564,15 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       console.log('🔍 Type contribuable brut du formulaire:', typeContribuableValue);
       console.log('🔍 Type contribuable typeof:', typeof typeContribuableValue);
       
+      // Logs de débogage pour les nouveaux champs
+      console.log('🔍 Valeurs des champs adresse:', {
+        adresse: this.immatriculationForm.get('adresse')?.value,
+        ville: this.immatriculationForm.get('ville')?.value,
+        autreVille: this.immatriculationForm.get('autreVille')?.value,
+        nationalite: this.immatriculationForm.get('nationalite')?.value,
+        isForeigner: this.isForeigner
+      });
+      
       // Convertir en majuscules pour le backend
       const normalizedTypeContribuable = typeContribuableValue?.toUpperCase() as TypeContribuable;
       console.log('🔍 Type contribuable normalisé:', normalizedTypeContribuable);
@@ -1479,6 +1599,9 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
         email: this.immatriculationForm.get('email')?.value || '',
         telephone: this.immatriculationForm.get('telephone')?.value || '',
         adresse: this.immatriculationForm.get('adresse')?.value || '',
+        ville: this.immatriculationForm.get('ville')?.value || undefined,
+        autreVille: this.immatriculationForm.get('autreVille')?.value || undefined,
+        nationalite: this.immatriculationForm.get('nationalite')?.value || 'tunisienne',
         typeActivite: this.immatriculationForm.get('typeActivite')?.value || '',
         secteur: this.immatriculationForm.get('secteur')?.value || '',
         adresseProfessionnelle: this.immatriculationForm.get('adresseProfessionnelle')?.value || '',
