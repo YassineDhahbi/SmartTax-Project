@@ -765,11 +765,38 @@ export class DashboardAgentComponent implements OnInit {
       next: (response) => {
         console.log('✅ Immatriculation rejetée avec succès:', response);
         
-        // Mettre à jour le statut dans la liste locale
+        // Envoyer un email de rejet au contribuable
+        this.sendRejectionEmail(response);
+        
+        // Mettre à jour le statut dans la liste locale de manière immédiate
+        console.log('🔍 Recherche de l\'immatriculation dans la liste:', this.selectedImmatriculation.id);
+        console.log('📋 Liste actuelle:', this.immatriculations.map(i => ({ id: i.id, status: i.status })));
+        
         const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
+        console.log('📍 Index trouvé:', index);
+        
         if (index !== -1) {
-          this.immatriculations[index] = response;
+          console.log('🔄 Mise à jour de l\'immatriculation à l\'index:', index);
+          console.log('✅ Ancien statut:', this.immatriculations[index].status);
+          console.log('🆕 Nouveau statut:', response.status);
+          
+          // Créer une nouvelle copie pour forcer la détection de changement
+          const updatedList = [...this.immatriculations];
+          updatedList[index] = { ...response }; // Copie profonde pour forcer le changement
+          this.immatriculations = updatedList;
+          
+          console.log('📋 Liste après mise à jour:', this.immatriculations.map(i => ({ id: i.id, status: i.status })));
+          
+          // Forcer la détection de changement avec setTimeout
+          setTimeout(() => {
+            this.immatriculations = [...this.immatriculations];
+            console.log('⚡ Forçage de la détection de changement effectué');
+          }, 0);
+          
+          // Appliquer le filtre pour forcer le rafraîchissement (comme dans la validation)
           this.applyFilter();
+        } else {
+          console.error('❌ Immatriculation non trouvée dans la liste locale');
         }
         
         // Mettre à jour l'immatriculation sélectionnée
@@ -785,6 +812,28 @@ export class DashboardAgentComponent implements OnInit {
       error: (error) => {
         console.error('❌ Erreur lors du rejet:', error);
         this.showNotification('Une erreur est survenue lors du rejet. Veuillez réessayer.', 'error');
+      }
+    });
+  }
+
+  sendRejectionEmail(immatriculation: any): void {
+    if (!immatriculation.email) {
+      console.log('⚠️ Aucune adresse email disponible pour le contribuable');
+      return;
+    }
+
+    this.emailService.sendRejectionEmail(
+      immatriculation.email,
+      this.rejectReason,
+      immatriculation.dossierNumber || 'N/A'
+    ).subscribe({
+      next: (response) => {
+        console.log('✅ Email de rejet envoyé avec succès:', response);
+        this.showNotification('Un email de notification a été envoyé au contribuable.', 'success');
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors de l\'envoi de l\'email de rejet:', error);
+        this.showNotification('L\'email de notification n\'a pas pu être envoyé.', 'warning');
       }
     });
   }

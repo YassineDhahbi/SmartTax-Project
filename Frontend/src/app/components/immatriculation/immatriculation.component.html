@@ -382,7 +382,24 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <!-- Champ pour les étrangers -->
+                                <div class="col-md-6" *ngIf="isUserForeigner">
+                                    <div class="form-group">
+                                        <label for="pays">Pays <span class="required">*</span></label>
+                                        <select id="pays" class="form-control" formControlName="adresse">
+                                            <option value="">Sélectionnez un pays...</option>
+                                            <option *ngFor="let pays of paysListe" [value]="pays">
+                                                {{ pays }}
+                                            </option>
+                                        </select>
+                                        <div class="error-message" *ngIf="immatriculationForm.get('adresse')?.invalid && immatriculationForm.get('adresse')?.touched">
+                                            <span *ngIf="immatriculationForm.get('adresse')?.errors?.['required']">Le pays est obligatoire</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Champs pour les Tunisiens -->
+                                <div class="col-md-6" *ngIf="!isUserForeigner">
                                     <div class="form-group">
                                         <label for="adresse">Gouvernorat <span class="required">*</span></label>
                                         <select id="adresse" class="form-control" formControlName="adresse" (change)="onGouvernoratChange($event)">
@@ -396,7 +413,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6" *ngIf="!isUserForeigner">
                                     <div class="form-group">
                                         <label for="ville">Ville/Délégation</label>
                                         <select id="ville" class="form-control" formControlName="ville" (change)="onVilleChange($event)" [disabled]="!immatriculationForm.get('adresse')?.value">
@@ -408,7 +425,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-12" *ngIf="showAutreVille">
+                                <div class="col-12" *ngIf="showAutreVille && !isUserForeigner">
                                     <div class="form-group">
                                         <label for="autreVille">Spécifiez votre ville <span class="required">*</span></label>
                                         <input type="text" id="autreVille" class="form-control" 
