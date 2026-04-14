@@ -527,6 +527,14 @@
               <label>Raison sociale</label>
               <span>{{ selectedImmatriculation.raisonSociale || 'N/A' }}</span>
             </div>
+            <div class="da__infoItem" *ngIf="selectedImmatriculation.typeContribuable === 'MORALE'">
+              <label>Forme juridique</label>
+              <span>{{ selectedImmatriculation.formeJuridique || 'N/A' }}</span>
+            </div>
+            <div class="da__infoItem" *ngIf="selectedImmatriculation.typeContribuable === 'MORALE'">
+              <label>Actionnaire</label>
+              <span>{{ selectedImmatriculation.actionnaire || 'N/A' }}</span>
+            </div>
             <div class="da__infoItem" *ngIf="selectedImmatriculation.typeContribuable === 'PHYSIQUE'">
               <label>Nom</label>
               <span>{{ selectedImmatriculation.nom || 'N/A' }}</span>

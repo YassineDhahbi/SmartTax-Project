@@ -264,9 +264,22 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="matriculeFiscal">Matricule Fiscal Existant</label>
-                                            <input type="text" id="matriculeFiscal" class="form-control" 
-                                                   formControlName="matriculeFiscal" placeholder="Si applicable">
+                                            <label for="formeJuridique">Forme Juridique <span class="required">*</span></label>
+                                            <select id="formeJuridique" class="form-control" formControlName="formeJuridique">
+                                                <option value="">Sélectionnez une forme juridique...</option>
+                                                <option value="SARL">SARL</option>
+                                                <option value="EURL">EURL</option>
+                                                <option value="SA">SA</option>
+                                                <option value="SNC">SNC</option>
+                                                <option value="SAS">SAS</option>
+                                                <option value="SUARL">SUARL</option>
+                                                <option value="EIRL">EIRL</option>
+                                                <option value="Auto-entrepreneur">Auto-entrepreneur</option>
+                                                <option value="Autre">Autre</option>
+                                            </select>
+                                            <div class="error-message" *ngIf="immatriculationForm.get('formeJuridique')?.invalid && immatriculationForm.get('formeJuridique')?.touched">
+                                                La forme juridique est requise
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -292,6 +305,16 @@
                                             </div>
                                             <div class="error-message" *ngIf="validationErrors['registreCommerce']">
                                                 <i class="fas fa-exclamation-triangle"></i> {{ validationErrors['registreCommerce'] }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="actionnaire">Actionnaire <span class="required">*</span></label>
+                                            <input type="text" id="actionnaire" class="form-control" 
+                                                   formControlName="actionnaire" placeholder="Nom de l'actionnaire principal">
+                                            <div class="error-message" *ngIf="immatriculationForm.get('actionnaire')?.invalid && immatriculationForm.get('actionnaire')?.touched">
+                                                Le nom de l'actionnaire est requis
                                             </div>
                                         </div>
                                     </div>

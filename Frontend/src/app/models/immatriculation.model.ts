@@ -89,7 +89,8 @@ export interface CreateImmatriculationDto {
   cin?: string;
   dateNaissance?: string;
   raisonSociale?: string;
-  matriculeFiscalExistant?: string;
+  formeJuridique?: string;
+  actionnaire?: string;
   registreCommerce?: string;
   representantLegal?: string;
   email: string;

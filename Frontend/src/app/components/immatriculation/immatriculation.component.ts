@@ -459,8 +459,13 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
         Validators.minLength(3),
         Validators.maxLength(100)
       ]],
-      matriculeFiscal: ['', [
-        Validators.pattern(/^\d{7,8}$/), // 7 ou 8 chiffres
+      formeJuridique: ['', [
+        Validators.required
+      ]],
+      actionnaire: ['', [
+        Validators.pattern(/^[A-Za-z\u00C0-\u017F\s'-]{3,50}$/),
+        Validators.minLength(3),
+        Validators.maxLength(50),
         Validators.required
       ]],
       registreCommerce: ['', [
@@ -798,7 +803,8 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       
     } else if (type === 'MORALE') {
       const raisonSociale = this.immatriculationForm.get('raisonSociale');
-      const matriculeFiscal = this.immatriculationForm.get('matriculeFiscal');
+      const formeJuridique = this.immatriculationForm.get('formeJuridique');
+      const actionnaire = this.immatriculationForm.get('actionnaire');
       const registreCommerce = this.immatriculationForm.get('registreCommerce');
       const representantLegal = this.immatriculationForm.get('representantLegal');
       
@@ -807,32 +813,38 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
         return false;
       }
       
-      if (raisonSociale?.invalid) {
-        if (raisonSociale?.errors?.['minlength']) {
-          this.notificationService.showError('La raison sociale doit contenir au moins 3 caractères', 'Raison sociale trop courte');
-        } else if (raisonSociale?.errors?.['maxlength']) {
-          this.notificationService.showError('La raison sociale ne peut pas dépasser 100 caractères', 'Raison sociale trop longue');
-        } else if (raisonSociale?.errors?.['pattern']) {
-          this.notificationService.showError('La raison sociale ne peut contenir que des lettres, chiffres, espaces et tirets', 'Format invalide');
+      if (!formeJuridique?.value) {
+        this.notificationService.showError('La forme juridique est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (!actionnaire?.value) {
+        this.notificationService.showError('Le nom de l\'actionnaire est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (!registreCommerce?.value) {
+        this.notificationService.showError('Le registre de commerce est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (!representantLegal?.value) {
+        this.notificationService.showError('Le représentant légal est obligatoire', 'Champ manquant');
+        return false;
+      }
+      
+      if (actionnaire?.invalid) {
+        if (actionnaire?.errors?.['pattern']) {
+          this.notificationService.showError('Le nom de l\'actionnaire contient des caractères invalides', 'Format invalide');
+        } else if (actionnaire?.errors?.['minlength']) {
+          this.notificationService.showError('Le nom de l\'actionnaire doit contenir au moins 3 caractères', 'Format invalide');
         } else {
-          this.notificationService.showError('La raison sociale est invalide', 'Erreur de format');
+          this.notificationService.showError('Le nom de l\'actionnaire est invalide', 'Erreur de format');
         }
         return false;
       }
       
-      if (!matriculeFiscal?.value) {
-        this.notificationService.showError('Le matricule fiscal est obligatoire', 'Champ manquant');
-        return false;
-      }
-      
-      if (matriculeFiscal?.invalid) {
-        if (matriculeFiscal?.errors?.['pattern']) {
-          this.notificationService.showError('Le matricule fiscal doit contenir 7 ou 8 chiffres', 'Format invalide');
-        } else {
-          this.notificationService.showError('Le matricule fiscal est invalide', 'Erreur de format');
-        }
-        return false;
-      }
+      // Le matricule fiscal a été remplacé par forme juridique, donc plus de validation nécessaire
       
       if (!registreCommerce?.value) {
         this.notificationService.showError('Le registre de commerce est obligatoire', 'Champ manquant');
@@ -1626,7 +1638,8 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
         cin: this.immatriculationForm.get('cin')?.value || undefined,
         dateNaissance: this.immatriculationForm.get('dateNaissance')?.value || undefined,
         raisonSociale: this.immatriculationForm.get('raisonSociale')?.value || undefined,
-        matriculeFiscalExistant: this.immatriculationForm.get('matriculeFiscal')?.value || undefined,
+        formeJuridique: this.immatriculationForm.get('formeJuridique')?.value || undefined,
+        actionnaire: this.immatriculationForm.get('actionnaire')?.value || undefined,
         registreCommerce: this.immatriculationForm.get('registreCommerce')?.value || undefined,
         representantLegal: this.immatriculationForm.get('representantLegal')?.value || undefined,
         email: this.immatriculationForm.get('email')?.value || '',
