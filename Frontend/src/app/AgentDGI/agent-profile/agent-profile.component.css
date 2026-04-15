@@ -433,10 +433,504 @@
 
 .ap__statLabel {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-2);
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.5px;
+}
+
+/* Styles pour le modal de changement de mot de passe */
+.modal {
+  z-index: 1050;
+}
+
+.modal-dialog {
+  max-width: 500px;
+  margin: 1.75rem auto;
+}
+
+.modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  background: var(--card);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--stroke);
+  padding: 1.5rem;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-title {
+  color: var(--text);
   font-weight: 600;
+  margin: 0;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  color: var(--text);
+}
+
+.form-label {
+  color: var(--text-2);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  background: var(--input);
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: var(--text);
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  background: var(--input);
+}
+
+.form-control.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.btn {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--text-2);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Styles pour les toasts */
+.toast-container {
+  z-index: 1060;
+}
+
+.toast {
+  min-width: 300px;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast-success {
+  background: #28a745;
+}
+
+.toast-error {
+  background: #dc3545;
+}
+
+.toast-warning {
+  background: #ffc107;
+  color: #212529;
+}
+
+.toast-body {
+  padding: 1rem;
+}
+
+.toast-body strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.btn-close-white {
+  filter: invert(1);
+}
+
+/* Styles pour les toasts personnalisés */
+.ap__toastContainer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1060;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.ap__toast {
+  min-width: 300px;
+  max-width: 400px;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: slideInRight 0.3s ease;
+  pointer-events: auto;
+}
+
+.ap__toast.toast-success {
+  background: #28a745;
+  border-left: 4px solid #1e7e34;
+}
+
+.ap__toast.toast-error {
+  background: #dc3545;
+  border-left: 4px solid #c82333;
+}
+
+.ap__toast.toast-warning {
+  background: #ffc107;
+  color: #212529;
+  border-left: 4px solid #e0a800;
+}
+
+.ap__toastContent {
+  display: flex;
+  align-items: flex-start;
+  padding: 1rem;
+  color: white;
+}
+
+.ap__toast.toast-warning .ap__toastContent {
+  color: #212529;
+}
+
+.ap__toastBody {
+  flex: 1;
+}
+
+.ap__toastTitle {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.ap__toastMessage {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.ap__toastAction {
+  margin-top: 0.75rem;
+}
+
+.ap__toastButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ap__toastButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.ap__toastClose {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  margin-left: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.ap__toastClose:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Animation pour les toasts */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Responsive pour les toasts */
+@media (max-width: 768px) {
+  .ap__toastContainer {
+    left: 0;
+    right: auto;
+    top: auto;
+    bottom: 0;
+    padding: 0.5rem;
+  }
+  
+  .ap__toast {
+    min-width: 280px;
+    max-width: calc(100vw - 1rem);
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* Modal personnalisé pour changement de mot de passe */
+.ap__modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  animation: fadeIn 0.3s ease;
+}
+
+.ap__modalBackdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.ap__modalContainer {
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease;
+  overflow: hidden;
+}
+
+.ap__modalContent {
+  width: 100%;
+}
+
+.ap__modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--stroke);
+  background: var(--card-2);
+}
+
+.ap__modalTitle {
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.ap__modalClose {
+  background: none;
+  border: none;
+  color: var(--text-2);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.ap__modalClose:hover {
+  color: var(--text);
+  background: var(--input);
+}
+
+.ap__modalBody {
+  padding: 1.5rem;
+  color: var(--text);
+}
+
+.ap__formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.ap__formLabel {
+  display: block;
+  color: var(--text-2);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.ap__formInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--stroke);
+  border-radius: 8px;
+  background: var(--input);
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.ap__formInput:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  background: var(--card);
+}
+
+.ap__formInput--error {
+  border-color: #dc3545;
+  background: rgba(220, 53, 69, 0.05);
+}
+
+.ap__errorMessage {
+  color: #dc3545;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(220, 53, 69, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid #dc3545;
+}
+
+.ap__modalActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+  background: var(--card-2);
+}
+
+.ap__btn--primary {
+  background: var(--brand);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ap__btn--primary:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.ap__btn--primary:disabled {
+  background: var(--text-2);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ap__btn--secondary {
+  background: var(--text-2);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ap__btn--secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ap__modalContainer {
+    width: 95%;
+    margin: 0 1rem;
+  }
+  
+  .ap__modalActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .ap__btn--primary,
+  .ap__btn--secondary {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 1024px) {

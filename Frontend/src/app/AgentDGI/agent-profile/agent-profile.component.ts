@@ -4,6 +4,7 @@ import { UserService } from '../../services/user/user.service';
 import { Utilisateur } from '../../models/utilisateur';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import * as bootstrap from 'bootstrap';
 
 @Component({
   selector: 'app-agent-profile',
@@ -22,6 +23,10 @@ export class AgentProfileComponent implements OnInit {
   selectedPhoto: File | null = null;
   photoPreview: string | null = null;
   isUploadingPhoto = false;
+  passwordForm: FormGroup;
+  toasts: { title: string; message: string; type: string; action?: { label: string; callback: () => void } }[] = [];
+  private passwordModal: bootstrap.Modal | undefined;
+  showPasswordModal = false;
 
   agentAdditionalInfo = {
    
@@ -78,6 +83,11 @@ export class AgentProfileComponent implements OnInit {
       telephone: [''],
       adresse: ['']
     });
+
+    this.passwordForm = this.fb.group({
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required]
+    }, { validators: this.passwordMatchValidator });
   }
 
   ngOnInit(): void {
@@ -188,11 +198,7 @@ export class AgentProfileComponent implements OnInit {
     });
   }
 
-  changePassword(): void {
-    // TODO: Implémenter la fonction de changement de mot de passe
-    console.log('Changement de mot de passe');
-  }
-
+  
   exportData(): void {
     // TODO: Implémenter la fonction d'export des données
     console.log('Export des données');
@@ -295,11 +301,73 @@ export class AgentProfileComponent implements OnInit {
       if (this.agentInfo.photo.startsWith('http')) {
         return this.agentInfo.photo;
       }
-      // Si c'est un chemin relatif, construire l'URL complète
-      return `http://localhost:8080/${this.agentInfo.photo}`;
+      // Si la photo est un chemin relatif
+      return `http://localhost:8080${this.agentInfo.photo}`;
     }
     
-    // Photo par défaut
-    return 'assets/images/default-avatar.png';
+    // Image par défaut si aucune photo
+    return '/assets/img/team/icondefaut.webp';
+  }
+
+  passwordMatchValidator(form: FormGroup) {
+    const newPassword = form.get('newPassword')?.value;
+    const confirmPassword = form.get('confirmPassword')?.value;
+    return newPassword === confirmPassword ? null : { mismatch: true };
+  }
+
+  openChangePasswordModal(): void {
+    this.passwordForm.reset();
+    this.showPasswordModal = true;
+  }
+
+  closePasswordModal(): void {
+    this.showPasswordModal = false;
+  }
+
+  changePasswordSubmit(): void {
+    if (this.passwordForm.valid && this.agentInfo) {
+      const newPassword = this.passwordForm.get('newPassword')?.value;
+      const updatedUser = new Utilisateur({
+        idUtilisateur: this.agentInfo.idUtilisateur,
+        firstName: this.agentInfo.firstName,
+        lastName: this.agentInfo.lastName,
+        email: this.agentInfo.email,
+        dateNaissance: this.agentInfo.dateNaissance,
+        password: newPassword,
+        photo: this.agentInfo.photo,
+        role: this.agentInfo.role,
+        status: this.agentInfo.status,
+        dateInscription: this.agentInfo.dateInscription,
+        telephone: this.agentInfo.telephone,
+        adresse: this.agentInfo.adresse
+      });
+
+      this.userService.updateUserDetails(updatedUser).subscribe({
+        next: (data) => {
+          this.agentInfo = data;
+          this.addToast('Validation', 'Votre mot de passe a été modifié avec succès !', 'toast-success');
+          this.passwordForm.reset();
+          this.closePasswordModal();
+        },
+        error: (err) => {
+          console.error('Erreur lors de la mise à jour du mot de passe:', err);
+          this.addToast('Erreur', 'Échec de la modification du mot de passe. Veuillez réessayer.', 'toast-error');
+          this.closePasswordModal();
+        }
+      });
+    } else {
+      Object.keys(this.passwordForm.controls).forEach(field => {
+        const control = this.passwordForm.get(field);
+        control?.markAsTouched();
+      });
+    }
+  }
+
+  addToast(title: string, message: string, type: string, ...actions: { label: string; callback: () => void }[]): void {
+    this.toasts.push({ title, message, type, action: actions.length > 0 ? actions[0] : undefined });
+  }
+
+  removeToast(index: number): void {
+    this.toasts.splice(index, 1);
   }
 }

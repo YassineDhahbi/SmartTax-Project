@@ -55,7 +55,7 @@
           <i class="fa-solid fa-edit"></i>
           Modifier le profil
         </button>
-        <button class="ap__btn" type="button" (click)="changePassword()">
+        <button class="ap__btn" type="button" (click)="openChangePasswordModal()" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
           <i class="fa-solid fa-key"></i>
           Changer mot de passe
         </button>
@@ -297,7 +297,7 @@
             <i class="fa-solid fa-edit"></i>
             <span>Modifier profil</span>
           </button>
-          <button class="ap__quickAction" type="button" (click)="changePassword()">
+          <button class="ap__quickAction" type="button" (click)="openChangePasswordModal()">
             <i class="fa-solid fa-key"></i>
             <span>Changer mot de passe</span>
           </button>
@@ -329,6 +329,73 @@
           </div>
         </div>
       </section>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de changement de mot de passe - Version personnalisée -->
+<div class="ap__modalOverlay" id="changePasswordModal" *ngIf="showPasswordModal">
+  <div class="ap__modalBackdrop" (click)="closePasswordModal()"></div>
+  <div class="ap__modalContainer">
+    <div class="ap__modalContent">
+      <div class="ap__modalHeader">
+        <h3 class="ap__modalTitle">Changer le mot de passe</h3>
+        <button type="button" class="ap__modalClose" (click)="closePasswordModal()" aria-label="Fermer">
+          <i class="fa-solid fa-times"></i>
+        </button>
+      </div>
+      <div class="ap__modalBody">
+        <form [formGroup]="passwordForm" (ngSubmit)="changePasswordSubmit()">
+          <div class="ap__formGroup">
+            <label for="newPassword" class="ap__formLabel">Nouveau mot de passe</label>
+            <input type="password" class="ap__formInput" id="newPassword" formControlName="newPassword" 
+                   [class.ap__formInput--error]="passwordForm.get('newPassword')?.invalid && (passwordForm.get('newPassword')?.touched || passwordForm.get('newPassword')?.dirty)">
+            <div *ngIf="passwordForm.get('newPassword')?.invalid && (passwordForm.get('newPassword')?.touched || passwordForm.get('newPassword')?.dirty)" class="ap__errorMessage">
+              <div *ngIf="passwordForm.get('newPassword')?.errors?.['required']">Le mot de passe est requis.</div>
+              <div *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères.</div>
+            </div>
+          </div>
+          
+          <div class="ap__formGroup">
+            <label for="confirmPassword" class="ap__formLabel">Confirmer le mot de passe</label>
+            <input type="password" class="ap__formInput" id="confirmPassword" formControlName="confirmPassword" 
+                   [class.ap__formInput--error]="passwordForm.get('confirmPassword')?.invalid && (passwordForm.get('confirmPassword')?.touched || passwordForm.get('confirmPassword')?.dirty)">
+            <div *ngIf="passwordForm.get('confirmPassword')?.invalid && (passwordForm.get('confirmPassword')?.touched || passwordForm.get('confirmPassword')?.dirty)" class="ap__errorMessage">
+              <div *ngIf="passwordForm.get('confirmPassword')?.errors?.['required']">La confirmation est requise.</div>
+              <div *ngIf="passwordForm.errors?.['mismatch']">Les mots de passe ne correspondent pas.</div>
+            </div>
+          </div>
+          
+          <div class="ap__modalActions">
+            <button type="submit" class="ap__btn ap__btn--primary" [disabled]="passwordForm.invalid">
+              <i class="fa-solid fa-save"></i>
+              Enregistrer
+            </button>
+            <button type="button" class="ap__btn ap__btn--secondary" (click)="closePasswordModal()">
+              <i class="fa-solid fa-times"></i>
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Conteneur de toasts -->
+<div class="ap__toastContainer">
+  <div *ngFor="let toast of toasts; let i = index" class="ap__toast" [ngClass]="toast.type" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="ap__toastContent">
+      <div class="ap__toastBody">
+        <strong class="ap__toastTitle">{{ toast.title }}</strong>
+        <p class="ap__toastMessage">{{ toast.message }}</p>
+        <div *ngIf="toast.action" class="ap__toastAction">
+          <button type="button" class="ap__toastButton" (click)="toast.action.callback(); $event.stopPropagation()">{{ toast.action.label }}</button>
+        </div>
+      </div>
+      <button type="button" class="ap__toastClose" (click)="removeToast(i)" aria-label="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
     </div>
   </div>
 </div>
