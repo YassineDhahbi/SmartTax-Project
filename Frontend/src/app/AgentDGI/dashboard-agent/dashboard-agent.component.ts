@@ -496,9 +496,26 @@ export class DashboardAgentComponent implements OnInit {
       this.loadImmatriculations();
     } else if (key === 'settings') {
       this.currentView = 'profile';
+    } else if (key === 'logout') {
+      this.logout();
     } else {
       this.currentView = 'overview';
     }
+  }
+
+  logout(): void {
+    // Supprimer les informations de session du localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userName');
+    
+    // Afficher une notification de déconnexion
+    this.showNotification('Vous avez été déconnecté avec succès', 'success');
+    
+    // Rediriger vers la page de connexion après un court délai
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 1500);
   }
 
   private loadImmatriculations(): void {
