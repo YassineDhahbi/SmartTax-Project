@@ -30,7 +30,10 @@ export class ProfileComponent implements OnInit, AfterViewInit {
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.pattern(/^[a-zA-Z\s]*$/)]],
       lastName: ['', [Validators.required, Validators.minLength(2), Validators.pattern(/^[a-zA-Z\s]*$/)]],
       email: ['', [Validators.required, Validators.email]],
-      dateNaissance: ['', [Validators.required, this.minimumAgeValidator(18)]]
+      dateNaissance: ['', [Validators.required, this.minimumAgeValidator(18)]],
+      cin: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
+      telephone: ['', [Validators.required, Validators.pattern(/^[2-9]\d{7}$/)]],
+      adresse: ['', Validators.required]
     });
 
     this.passwordForm = this.fb.group({
@@ -73,7 +76,10 @@ export class ProfileComponent implements OnInit, AfterViewInit {
             firstName: this.user.firstName,
             lastName: this.user.lastName,
             email: this.user.email,
-            dateNaissance: this.user.dateNaissance
+            dateNaissance: this.user.dateNaissance,
+            cin: this.user.cin,
+            telephone: this.user.telephone,
+            adresse: this.user.adresse
           });
         }
         this.error = null;
@@ -98,6 +104,9 @@ export class ProfileComponent implements OnInit, AfterViewInit {
         lastName: this.profileForm.value.lastName,
         email: this.profileForm.value.email,
         dateNaissance: this.profileForm.value.dateNaissance,
+        cin: this.profileForm.value.cin,
+        telephone: this.profileForm.value.telephone,
+        adresse: this.profileForm.value.adresse,
         password: this.user.password,
         photo: this.user.photo,
         role: this.user.role,
@@ -281,6 +290,17 @@ export class ProfileComponent implements OnInit, AfterViewInit {
         case 'dateNaissance':
           if (control.errors?.['required']) message = 'La date de naissance est requise.';
           else if (control.errors?.['underage']) message = 'Vous devez avoir au moins 18 ans.';
+          break;
+        case 'cin':
+          if (control.errors?.['required']) message = 'Le CIN est requis.';
+          else if (control.errors?.['pattern']) message = 'Le CIN doit contenir 8 chiffres.';
+          break;
+        case 'telephone':
+          if (control.errors?.['required']) message = 'Le téléphone est requis.';
+          else if (control.errors?.['pattern']) message = 'Le téléphone doit commencer par 2-9 et contenir 8 chiffres.';
+          break;
+        case 'adresse':
+          if (control.errors?.['required']) message = 'L\'adresse est requise.';
           break;
       }
       if (message) {

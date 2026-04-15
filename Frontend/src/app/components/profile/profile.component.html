@@ -64,6 +64,37 @@
             <div class="col">
               <div class="card h-100 bg-light border-0">
                 <div class="card-body">
+                  <h6 class="card-title text-muted">CIN</h6>
+                     <p class="card-text">{{ user.cin }}</p>                  
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
+                  <h6 class="card-title text-muted">Téléphone</h6>
+                  <input type="text" class="form-control" formControlName="telephone" [ngClass]="{'is-invalid': profileForm.get('telephone')?.invalid && (profileForm.get('telephone')?.touched || profileForm.get('telephone')?.dirty)}">
+                  <div *ngIf="profileForm.get('telephone')?.invalid && (profileForm.get('telephone')?.touched || profileForm.get('telephone')?.dirty)" class="invalid-feedback">
+                    <div *ngIf="profileForm.get('telephone')?.errors?.['required']">Le téléphone est requis.</div>
+                    <div *ngIf="profileForm.get('telephone')?.errors?.['pattern']">Le téléphone doit commencer par 2-9 et contenir 8 chiffres.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
+                  <h6 class="card-title text-muted">Adresse</h6>
+                  <input type="text" class="form-control" formControlName="adresse" [ngClass]="{'is-invalid': profileForm.get('adresse')?.invalid && (profileForm.get('adresse')?.touched || profileForm.get('adresse')?.dirty)}">
+                  <div *ngIf="profileForm.get('adresse')?.invalid && (profileForm.get('adresse')?.touched || profileForm.get('adresse')?.dirty)" class="invalid-feedback">
+                    <div *ngIf="profileForm.get('adresse')?.errors?.['required']">L'adresse est requise.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card h-100 bg-light border-0">
+                <div class="card-body">
                   <h6 class="card-title text-muted">Date d'inscription</h6>
                   <p class="card-text">{{ user.dateInscription }}</p>
                 </div>
@@ -121,6 +152,30 @@
               <div class="card-body">
                 <h6 class="card-title text-muted">Date of Birth</h6>
                 <p class="card-text">{{ user.dateNaissance }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100 bg-light border-0">
+              <div class="card-body">
+                <h6 class="card-title text-muted">CIN</h6>
+                <p class="card-text">{{ user.cin }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100 bg-light border-0">
+              <div class="card-body">
+                <h6 class="card-title text-muted">Téléphone</h6>
+                <p class="card-text">{{ user.telephone }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100 bg-light border-0">
+              <div class="card-body">
+                <h6 class="card-title text-muted">Adresse</h6>
+                <p class="card-text">{{ user.adresse }}</p>
               </div>
             </div>
           </div>

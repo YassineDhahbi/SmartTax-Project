@@ -40,13 +40,16 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     private route: ActivatedRoute
   ) {
     this.registerForm = this.fb.group({
+      cin: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]], // CIN : 8 chiffres obligatoires
+      telephone: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]], // Téléphone : 8 chiffres obligatoires
+      adresse: ['', [Validators.required, Validators.minLength(10)]], // Adresse : obligatoire, minimum 10 caractères
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.pattern(/^[a-zA-Z\s]*$/)]],
       lastName: ['', [Validators.required, Validators.minLength(2), Validators.pattern(/^[a-zA-Z\s]*$/)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
       dateNaissance: ['', [Validators.required, this.minimumAgeValidator(18)]],
-      photo: ['', Validators.pattern(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/)],
+      photo: ['', Validators.pattern(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/)],
       role: ['CONTRIBUABLE', Validators.required],
       tin: ['', [Validators.required, Validators.pattern(/^[12]\d{7}[A-Z]{2}$/)]], // Champ pour le TIN (obligatoire)
       securityCode: [''] // Champ pour le code de sécurité (gardé pour compatibilité)
@@ -71,7 +74,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       }
       
       // Pré-remplir automatiquement les champs depuis l'email de validation TIN
-      if (params['nom'] || params['prenom'] || params['email'] || params['tin'] || params['dateNaissance']) {
+      if (params['nom'] || params['prenom'] || params['email'] || params['tin'] || params['dateNaissance'] || params['cin'] || params['telephone'] || params['adresse']) {
         const formData: any = {};
         
         if (params['nom']) {
@@ -88,6 +91,16 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         }
         if (params['dateNaissance']) {
           formData.dateNaissance = decodeURIComponent(params['dateNaissance']);
+        }
+        // Ajout des nouveaux champs depuis les paramètres URL
+        if (params['cin']) {
+          formData.cin = decodeURIComponent(params['cin']);
+        }
+        if (params['telephone']) {
+          formData.telephone = decodeURIComponent(params['telephone']);
+        }
+        if (params['adresse']) {
+          formData.adresse = decodeURIComponent(params['adresse']);
         }
         
         this.registerForm.patchValue(formData);
@@ -155,6 +168,18 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       let message = '';
       let title = 'Erreur de validation';
       switch (field) {
+        case 'cin':
+          if (control.errors?.['required']) message = 'Le CIN est requis.';
+          else if (control.errors?.['pattern']) message = 'Le CIN doit contenir 8 chiffres.';
+          break;
+        case 'telephone':
+          if (control.errors?.['required']) message = 'Le numéro de téléphone est requis.';
+          else if (control.errors?.['pattern']) message = 'Le numéro de téléphone doit contenir 8 chiffres.';
+          break;
+        case 'adresse':
+          if (control.errors?.['required']) message = 'L\'adresse est requise.';
+          else if (control.errors?.['minlength']) message = 'L\'adresse doit contenir au moins 10 caractères.';
+          break;
         case 'firstName':
           if (control.errors?.['required']) message = 'Le prénom est requis.';
           else if (control.errors?.['minlength']) message = 'Le prénom doit contenir au moins 2 caractères.';
@@ -220,6 +245,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       this.toasts = []; // Réinitialiser les toasts
 
       const user = {
+        cin: this.registerForm.value.cin,
+        telephone: this.registerForm.value.telephone,
+        adresse: this.registerForm.value.adresse,
         firstName: this.registerForm.value.firstName,
         lastName: this.registerForm.value.lastName,
         email: this.registerForm.value.email,
@@ -313,6 +341,18 @@ export class RegisterComponent implements OnInit, AfterViewInit {
           this.tinVerificationSuccess = true;
           this.tinVerified = true;
           
+          // Debug : Afficher toutes les données retournées par le backend
+          console.log('🔍 Réponse complète du backend:', response);
+          console.log('📋 Données disponibles pour pré-remplissage:', {
+            email: response.email,
+            nom: response.nom,
+            prenom: response.prenom,
+            dateNaissance: response.dateNaissance,
+            cin: response.cin,
+            telephone: response.telephone,
+            adresse: response.adresse
+          });
+          
           // Pré-remplir tous les champs disponibles
           const formData: any = {};
           
@@ -328,11 +368,42 @@ export class RegisterComponent implements OnInit, AfterViewInit {
           if (response.dateNaissance && !this.registerForm.get('dateNaissance')?.value) {
             formData.dateNaissance = response.dateNaissance;
           }
+          // Ajout des nouveaux champs CIN, téléphone et adresse
+          if (response.cin && !this.registerForm.get('cin')?.value) {
+            formData.cin = response.cin;
+          }
+          if (response.telephone && !this.registerForm.get('telephone')?.value) {
+            formData.telephone = response.telephone;
+          }
+          if (response.adresse && !this.registerForm.get('adresse')?.value) {
+            formData.adresse = response.adresse;
+          }
           
           // Appliquer les pré-remplissages
           if (Object.keys(formData).length > 0) {
+            console.log('📝 FormData avant patchValue:', formData);
+            console.log('🔍 État actuel du formulaire avant patchValue:', {
+              cin: this.registerForm.get('cin')?.value,
+              telephone: this.registerForm.get('telephone')?.value,
+              adresse: this.registerForm.get('adresse')?.value,
+              email: this.registerForm.get('email')?.value,
+              lastName: this.registerForm.get('lastName')?.value,
+              firstName: this.registerForm.get('firstName')?.value,
+              dateNaissance: this.registerForm.get('dateNaissance')?.value
+            });
+            
             this.registerForm.patchValue(formData);
-            console.log(' Champs pré-remplis depuis le TIN:', formData);
+            
+            console.log('✅ Champs pré-remplis depuis le TIN:', formData);
+            console.log('🔍 État du formulaire après patchValue:', {
+              cin: this.registerForm.get('cin')?.value,
+              telephone: this.registerForm.get('telephone')?.value,
+              adresse: this.registerForm.get('adresse')?.value,
+              email: this.registerForm.get('email')?.value,
+              lastName: this.registerForm.get('lastName')?.value,
+              firstName: this.registerForm.get('firstName')?.value,
+              dateNaissance: this.registerForm.get('dateNaissance')?.value
+            });
           }
         } else {
           // TIN non trouvé

@@ -93,6 +93,32 @@
           </div>
         </div>
 
+         <div class="form-grid">
+          <div class="form-group">
+            <label for="cin">CIN</label>
+            <div class="form-icon">
+              <i class="fas fa-id-card"></i>
+              <input id="cin" type="text" formControlName="cin" class="form-control" placeholder="Votre numéro CIN" (blur)="validateField('cin')" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="telephone">Téléphone</label>
+            <div class="form-icon">
+              <i class="fas fa-phone"></i>
+              <input id="telephone" type="tel" formControlName="telephone" class="form-control" placeholder="Votre numéro de téléphone" (blur)="validateField('telephone')" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="adresse">Adresse</label>
+          <div class="form-icon">
+            <i class="fas fa-home"></i>
+            <textarea id="adresse" formControlName="adresse" class="form-control" placeholder="Votre adresse complète" rows="3" (blur)="validateField('adresse')"></textarea>
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="email">Adresse Email</label>
           <div class="form-icon">

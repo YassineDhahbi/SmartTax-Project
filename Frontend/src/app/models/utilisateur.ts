@@ -10,6 +10,7 @@ export class Utilisateur {
   dateNaissance: string; // Format ISO (ex: "2023-01-01")
   dateInscription: string; // Format ISO
   cinImagePath: string | File | null; // Aligné avec Spring
+  cin: string | null;
   cinValidationStatus: 'valid' | 'invalid' | 'pending';
   cinConfidence: number;
   telephone: string | null;
@@ -28,6 +29,7 @@ export class Utilisateur {
     this.dateNaissance = data.dateNaissance ?? '';
     this.dateInscription = data.dateInscription ?? '';
     this.cinImagePath = data.cinImagePath ?? null;
+    this.cin = data.cin ?? null;
     this.cinValidationStatus = data.cinValidationStatus ?? 'pending';
     this.cinConfidence = data.cinConfidence ?? 0;
     this.telephone = data.telephone ?? null;
