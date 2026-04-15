@@ -115,10 +115,10 @@
           </div>
 
           <div class="da__heroActions">
-            <button class="da__btn is-primary" type="button">
+            <!-- <button class="da__btn is-primary" type="button">
               <i class="fa-solid fa-circle-plus" aria-hidden="true"></i>
               Nouveau dossier
-            </button>
+            </button> -->
             <button class="da__btn" type="button">
               <i class="fa-solid fa-file-export" aria-hidden="true"></i>
               Exporter
@@ -475,6 +475,11 @@
         </div>
       </div>
     </section>
+
+    <!-- Vue Profil Agent -->
+    <section *ngIf="currentView === 'profile'">
+      <app-agent-profile></app-agent-profile>
+    </section>
   </main>
 
   <!-- Modal Détails Immatriculation -->
@@ -496,7 +501,7 @@
           <h3 class="da__sectionTitle">Informations principales</h3>
           <div class="da__infoGrid">
             <div class="da__infoItem">
-              <label>N° Dossier</label>
+              <label>N° Immatriculation</label>
               <span>{{ selectedImmatriculation.dossierNumber || selectedImmatriculation.id || 'N/A' }}</span>
             </div>
             <div class="da__infoItem">

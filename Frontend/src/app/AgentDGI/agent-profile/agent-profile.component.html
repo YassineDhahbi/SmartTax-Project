@@ -1,0 +1,176 @@
+<div class="ap__container" [attr.data-theme]="theme">
+  <!-- État de chargement -->
+  <div class="ap__loading" *ngIf="isLoading">
+    <div class="ap__loadingSpinner">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <span>Chargement des informations...</span>
+    </div>
+  </div>
+
+  <!-- État d'erreur -->
+  <div class="ap__error" *ngIf="error && !isLoading">
+    <div class="ap__errorCard">
+      <i class="fa-solid fa-exclamation-triangle"></i>
+      <div>
+        <h3>Erreur de chargement</h3>
+        <p>{{ error }}</p>
+        <button class="ap__btn is-primary" type="button" (click)="loadAgentInfo()">
+          <i class="fa-solid fa-refresh"></i>
+          Réessayer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu principal -->
+  <div *ngIf="!isLoading && !error && agentInfo">
+    <div class="ap__header">
+      <div class="ap__headerContent">
+        <h1 class="ap__title">Profil de l'Agent</h1>
+      </div>
+      <div class="ap__headerActions">
+        <button class="ap__btn is-primary" type="button" (click)="editProfile()">
+          <i class="fa-solid fa-edit"></i>
+          Modifier le profil
+        </button>
+        <button class="ap__btn" type="button" (click)="changePassword()">
+          <i class="fa-solid fa-key"></i>
+          Changer mot de passe
+        </button>
+      </div>
+    </div>
+
+  <div class="ap__content">
+    <div class="ap__main">
+      <!-- Informations personnelles -->
+      <section class="ap__section">
+        <h2 class="ap__sectionTitle">
+          <i class="fa-solid fa-user"></i>
+          Informations personnelles
+        </h2>
+        <div class="ap__card">
+          <div class="ap__cardHeader">
+            <div class="ap__avatar" aria-hidden="true">
+              <i class="fa-solid fa-user-tie"></i>
+            </div>
+            <div class="ap__agentInfo">
+              <h3>{{ agentInfo.firstName }} {{ agentInfo.lastName }}</h3>
+              <p class="ap__role">{{ agentInfo.role }}</p>
+              <span class="ap__status" [class.is-active]="agentInfo.status === 'Actif' || agentInfo.status === 'ACTIVE'">
+                {{ agentInfo.status || 'Actif' }}
+              </span>
+            </div>
+          </div>
+          <div class="ap__cardBody">
+            <div class="ap__infoGrid">
+              <!-- Champs toujours présents -->
+              <div class="ap__infoItem">
+                <label>Nom</label>
+                <span>{{ agentInfo.lastName }}</span>
+              </div>
+              <div class="ap__infoItem">
+                <label>Prénom</label>
+                <span>{{ agentInfo.firstName }}</span>
+              </div>
+              <div class="ap__infoItem">
+                <label>Email</label>
+                <span>{{ agentInfo.email }}</span>
+              </div>
+              
+              <!-- Champs optionnels - affichés seulement s'ils ne sont pas vides -->
+              <div class="ap__infoItem" *ngIf="agentInfo.dateNaissance">
+                <label>Date de naissance</label>
+                <span>{{ agentInfo.dateNaissance | date:'dd/MM/yyyy' }}</span>
+              </div>
+              
+              <!-- Champs toujours affichés même si vides -->
+              <div class="ap__infoItem">
+                <label>Téléphone</label>
+                <span>{{ agentInfo.telephone || 'Non renseigné' }}</span>
+              </div>
+              
+              <div class="ap__infoItem">
+                <label>Département</label>
+                <span>{{ agentInfo.departement || 'Non renseigné' }}</span>
+              </div>
+              
+              <div class="ap__infoItem">
+                <label>Adresse</label>
+                <span>{{ agentInfo.adresse || 'Non renseigné' }}</span>
+              </div>
+              
+              <div class="ap__infoItem" *ngIf="agentInfo.dateInscription">
+                <label>Date d'inscription</label>
+                <span>{{ agentInfo.dateInscription | date:'dd/MM/yyyy' }}</span>
+              </div>
+              
+              
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- Compétences -->
+      <section class="ap__section">
+        <h2 class="ap__sectionTitle">
+          <i class="fa-solid fa-chart-line"></i>
+          Compétences
+        </h2>
+        <div class="ap__card">
+          <div class="ap__skills">
+            <div class="ap__skill" *ngFor="let skill of agentAdditionalInfo.competences">
+              <i class="fa-solid fa-check-circle"></i>
+              {{ skill }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+          </div>
+
+    <div class="ap__sidebar">
+      <!-- Actions rapides -->
+      <section class="ap__section">
+        <h2 class="ap__sectionTitle">
+          <i class="fa-solid fa-bolt"></i>
+          Actions rapides
+        </h2>
+        <div class="ap__quickActions">
+          <button class="ap__quickAction" type="button" (click)="editProfile()">
+            <i class="fa-solid fa-edit"></i>
+            <span>Modifier profil</span>
+          </button>
+          <button class="ap__quickAction" type="button" (click)="changePassword()">
+            <i class="fa-solid fa-key"></i>
+            <span>Changer mot de passe</span>
+          </button>
+          <button class="ap__quickAction" type="button" (click)="exportData()">
+            <i class="fa-solid fa-download"></i>
+            <span>Exporter données</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Statistiques -->
+      <section class="ap__section">
+        <h2 class="ap__sectionTitle">
+          <i class="fa-solid fa-chart-bar"></i>
+          Statistiques
+        </h2>
+        <div class="ap__stats">
+          <div class="ap__stat">
+            <div class="ap__statValue">247</div>
+            <div class="ap__statLabel">Dossiers traités</div>
+          </div>
+          <div class="ap__stat">
+            <div class="ap__statValue">10</div>
+            <div class="ap__statLabel">Nombre de Publication</div>
+          </div>
+          <div class="ap__stat">
+            <div class="ap__statValue">4.8</div>
+            <div class="ap__statLabel">Note moyenne</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

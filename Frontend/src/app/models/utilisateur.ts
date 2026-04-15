@@ -12,6 +12,9 @@ export class Utilisateur {
   cinImagePath: string | File | null; // Aligné avec Spring
   cinValidationStatus: 'valid' | 'invalid' | 'pending';
   cinConfidence: number;
+  telephone: string | null;
+  departement: string | null;
+  adresse: string | null;
 
   constructor(data: Partial<Utilisateur> = {}) {
     this.idUtilisateur = data.idUtilisateur ?? 0;
@@ -27,6 +30,9 @@ export class Utilisateur {
     this.cinImagePath = data.cinImagePath ?? null;
     this.cinValidationStatus = data.cinValidationStatus ?? 'pending';
     this.cinConfidence = data.cinConfidence ?? 0;
+    this.telephone = data.telephone ?? null;
+    this.departement = data.departement ?? null;
+    this.adresse = data.adresse ?? null;
   }
 
   getFullName(): string {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
@@ -77,13 +77,13 @@ export class DashboardAgentComponent implements OnInit {
 
   activeNavKey: string = 'overview';
 
-  currentView: string = 'overview'; // 'overview' or 'dossiers'
+  currentView: string = 'overview'; // 'overview', 'dossiers', or 'profile'
 
   activityRange: '7d' | '30d' = '7d';
 
   theme: 'dark' | 'light' = getInitialTheme();
 
-  constructor(private http: HttpClient, private immatriculationService: ImmatriculationService, private trashService: TrashService, private emailService: EmailService) {}
+  constructor(private http: HttpClient, private immatriculationService: ImmatriculationService, private trashService: TrashService, private emailService: EmailService, private cdr: ChangeDetectorRef) {}
 
   // Méthode pour formater l'adresse avec gouvernorat et ville
   formatAdresse(immatriculation: any): string {
@@ -327,44 +327,79 @@ export class DashboardAgentComponent implements OnInit {
     },
   ];
 
-  kpis: KpiCard[] = [
-    {
-      label: 'Dossiers en cours',
-      value: '24',
-      sub: 'Aujourd’hui',
-      icon: 'fa-solid fa-folder-tree',
-      delta: '+8%',
-      deltaUp: true,
-      tone: 'brand',
-    },
-    {
-      label: 'À traiter',
-      value: '7',
-      sub: 'Priorité haute',
-      icon: 'fa-solid fa-triangle-exclamation',
-      delta: '-2%',
-      deltaUp: false,
-      tone: 'warning',
-    },
-    {
-      label: 'Validés',
-      value: '18',
-      sub: 'Cette semaine',
-      icon: 'fa-solid fa-circle-check',
-      delta: '+12%',
-      deltaUp: true,
-      tone: 'success',
-    },
-    {
-      label: 'Bloqués',
-      value: '3',
-      sub: 'En attente',
-      icon: 'fa-solid fa-circle-xmark',
-      delta: '+1',
-      deltaUp: false,
-      tone: 'danger',
-    },
-  ];
+  get kpis(): KpiCard[] {
+    return [
+      {
+        label: 'Total',
+        value: this.getTotalImmatriculationsCount().toString(),
+        sub: 'Toutes les immatriculations',
+        icon: 'fa-solid fa-folder',
+        delta: '-2%',
+        deltaUp: false,
+        tone: 'neutral',
+      },
+      {
+        label: 'Dossiers en cours',
+        value: this.getEnCoursCount().toString(),
+        sub: 'Aujourd\'hui',
+        icon: 'fa-solid fa-folder-tree',
+        delta: '+8%',
+        deltaUp: true,
+        tone: 'brand',
+      },
+      
+      {
+        label: 'Validés',
+        value: this.getValidésCount().toString(),
+        sub: 'Cette semaine',
+        icon: 'fa-solid fa-circle-check',
+        delta: '+12%',
+        deltaUp: true,
+        tone: 'success',
+      },
+      {
+        label: 'Bloqués',
+        value: this.getBloquésCount().toString(),
+        sub: 'En attente',
+        icon: 'fa-solid fa-circle-xmark',
+        delta: '+1',
+        deltaUp: false,
+        tone: 'danger',
+      },
+    ];
+  }
+
+  getEnCoursCount(): number {
+    return this.immatriculations.filter(immatriculation => 
+      immatriculation.status === 'EN_COURS_VERIFICATION'
+    ).length;
+  }
+
+  getTotalImmatriculationsCount(): number {
+    return this.immatriculations.length;
+  }
+
+  getATraiterCount(): number {
+    return this.immatriculations.filter(immatriculation => 
+      immatriculation.status === 'SOUMIS'
+    ).length;
+  }
+
+  getValidésCount(): number {
+    const validés = this.immatriculations.filter(immatriculation => 
+      immatriculation.status === 'VALIDE'
+    );
+    console.log('Validés trouvés:', validés.map(v => ({ id: v.id, status: v.status })));
+    return validés.length;
+  }
+
+  getBloquésCount(): number {
+    const bloqués = this.immatriculations.filter(immatriculation => 
+      immatriculation.status === 'REJETE'
+    );
+    console.log('Rejetés trouvés:', bloqués.map(r => ({ id: r.id, status: r.status })));
+    return bloqués.length;
+  }
 
   quickActions: QuickAction[] = [
     { title: 'Créer un dossier', sub: 'Nouveau traitement', icon: 'fa-solid fa-circle-plus', tone: 'brand' },
@@ -459,6 +494,8 @@ export class DashboardAgentComponent implements OnInit {
     if (key === 'work') {
       this.currentView = 'dossiers';
       this.loadImmatriculations();
+    } else if (key === 'settings') {
+      this.currentView = 'profile';
     } else {
       this.currentView = 'overview';
     }
@@ -468,8 +505,8 @@ export class DashboardAgentComponent implements OnInit {
     this.isLoadingImmatriculations = true;
     this.immatriculationService.getAllImmatriculations().subscribe({
       next: (data) => {
-        console.log('📋 Données reçues de l\'API:', data);
-        console.log('🔍 Vérification des autresFiles:', data.map(imm => ({
+        console.log('Données reçues de l\'API:', data);
+        console.log('Vérification des autresFiles:', data.map(imm => ({
           id: imm.id,
           dossierNumber: imm.dossierNumber,
           autresFiles: imm.autresFiles,
@@ -477,6 +514,7 @@ export class DashboardAgentComponent implements OnInit {
         })));
         this.immatriculations = data;
         this.applyFilter();
+        this.cdr.detectChanges(); // Forcer la mise à jour des KPI
         this.isLoadingImmatriculations = false;
       },
       error: (error) => {
