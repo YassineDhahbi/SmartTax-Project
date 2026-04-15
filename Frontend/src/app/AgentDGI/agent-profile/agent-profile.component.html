@@ -22,6 +22,28 @@
     </div>
   </div>
 
+  <!-- Message de succès -->
+  <div class="ap__success" *ngIf="saveSuccess">
+    <div class="ap__successCard">
+      <i class="fa-solid fa-check-circle"></i>
+      <div>
+        <h3>Profil mis à jour</h3>
+        <p>Vos modifications ont été sauvegardées avec succès.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message d'erreur de sauvegarde -->
+  <div class="ap__error" *ngIf="saveError">
+    <div class="ap__errorCard">
+      <i class="fa-solid fa-exclamation-triangle"></i>
+      <div>
+        <h3>Erreur de sauvegarde</h3>
+        <p>{{ saveError }}</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Contenu principal -->
   <div *ngIf="!isLoading && !error && agentInfo">
     <div class="ap__header">
@@ -51,7 +73,8 @@
         <div class="ap__card">
           <div class="ap__cardHeader">
             <div class="ap__avatar" aria-hidden="true">
-              <i class="fa-solid fa-user-tie"></i>
+              <img [src]="getPhotoUrl()" alt="Photo de profil" class="ap__avatarImg">
+              <i class="fa-solid fa-user-tie" *ngIf="!agentInfo?.photo && !photoPreview"></i>
             </div>
             <div class="ap__agentInfo">
               <h3>{{ agentInfo.firstName }} {{ agentInfo.lastName }}</h3>
@@ -62,7 +85,144 @@
             </div>
           </div>
           <div class="ap__cardBody">
-            <div class="ap__infoGrid">
+            <!-- Formulaire d'édition -->
+            <form [formGroup]="editForm" *ngIf="isEditing" class="ap__editForm">
+              <div class="ap__formGrid">
+                <div class="ap__formItem">
+                  <label for="firstName">Nom *</label>
+                  <input 
+                    type="text" 
+                    id="firstName" 
+                    formControlName="lastName"
+                    class="ap__input"
+                    [class.is-invalid]="editForm.get('lastName')?.invalid && editForm.get('lastName')?.touched"
+                  >
+                  <div class="ap__error" *ngIf="editForm.get('lastName')?.invalid && editForm.get('lastName')?.touched">
+                    Le nom est obligatoire
+                  </div>
+                </div>
+
+                <div class="ap__formItem">
+                  <label for="lastName">Prénom *</label>
+                  <input 
+                    type="text" 
+                    id="lastName" 
+                    formControlName="firstName"
+                    class="ap__input"
+                    [class.is-invalid]="editForm.get('firstName')?.invalid && editForm.get('firstName')?.touched"
+                  >
+                  <div class="ap__error" *ngIf="editForm.get('firstName')?.invalid && editForm.get('firstName')?.touched">
+                    Le prénom est obligatoire
+                  </div>
+                </div>
+
+                <div class="ap__formItem">
+                  <label for="dateNaissance">Date de naissance</label>
+                  <input 
+                    type="date" 
+                    id="dateNaissance" 
+                    formControlName="dateNaissance"
+                    class="ap__input"
+                  >
+                </div>
+
+                <div class="ap__formItem">
+                  <label for="telephone">Téléphone</label>
+                  <input 
+                    type="tel" 
+                    id="telephone" 
+                    formControlName="telephone"
+                    class="ap__input"
+                    placeholder="+216 XX XXX XXX"
+                  >
+                </div>
+
+                <div class="ap__formItem ap__formItem--full">
+                  <label for="adresse">Ville</label>
+                  <select 
+                    id="adresse" 
+                    formControlName="adresse"
+                    class="ap__input ap__select"
+                  >
+                    <option value="">Sélectionner une ville</option>
+                    <option *ngFor="let ville of villesTunisie" [value]="ville">
+                      {{ ville }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Upload de photo -->
+                <div class="ap__formItem ap__formItem--full">
+                  <label>Photo de profil</label>
+                  <div class="ap__photoUpload">
+                    <div class="ap__photoPreview">
+                      <img [src]="getPhotoUrl()" alt="Photo de profil" class="ap__photoImg">
+                      <div class="ap__photoOverlay" *ngIf="isEditing">
+                        <i class="fa-solid fa-camera"></i>
+                        <span>Changer la photo</span>
+                      </div>
+                    </div>
+                    <div class="ap__photoActions" *ngIf="isEditing">
+                      <input 
+                        type="file" 
+                        id="photo" 
+                        (change)="onPhotoSelected($event)"
+                        accept="image/*"
+                        class="ap__photoInput"
+                      >
+                      <label for="photo" class="ap__btn ap__btn--outline">
+                        <i class="fa-solid fa-upload"></i>
+                        Choisir une photo
+                      </label>
+                      <button 
+                        type="button" 
+                        class="ap__btn is-primary" 
+                        (click)="uploadPhoto()"
+                        [disabled]="!selectedPhoto || isUploadingPhoto"
+                      >
+                        <i class="fa-solid fa-save" *ngIf="!isUploadingPhoto"></i>
+                        <i class="fa-solid fa-spinner fa-spin" *ngIf="isUploadingPhoto"></i>
+                        {{ isUploadingPhoto ? 'Upload...' : 'Sauvegarder' }}
+                      </button>
+                      <button 
+                        type="button" 
+                        class="ap__btn" 
+                        (click)="removePhoto()"
+                        [disabled]="!selectedPhoto && !photoPreview"
+                      >
+                        <i class="fa-solid fa-times"></i>
+                        Annuler
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ap__formActions">
+                <button 
+                  type="button" 
+                  class="ap__btn" 
+                  (click)="cancelEdit()"
+                  [disabled]="isSaving"
+                >
+                  <i class="fa-solid fa-times"></i>
+                  Annuler
+                </button>
+                <button 
+                  type="button" 
+                  class="ap__btn is-primary" 
+                  (click)="saveProfile()"
+                  [disabled]="editForm.invalid || isSaving"
+                >
+                  <i class="fa-solid fa-save" *ngIf="!isSaving"></i>
+                  <i class="fa-solid fa-spinner fa-spin" *ngIf="isSaving"></i>
+                  {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder' }}
+                </button>
+              </div>
+            </form>
+
+            <!-- Affichage normal -->
+            <div class="ap__infoGrid" *ngIf="!isEditing">
               <!-- Champs toujours présents -->
               <div class="ap__infoItem">
                 <label>Nom</label>
@@ -103,8 +263,6 @@
                 <label>Date d'inscription</label>
                 <span>{{ agentInfo.dateInscription | date:'dd/MM/yyyy' }}</span>
               </div>
-              
-              
             </div>
           </div>
         </div>

@@ -183,16 +183,24 @@
 }
 
 .ap__avatar {
-  width: 88px;
-  height: 88px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--brand);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--brand), #818cf8);
   color: white;
+  font-size: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ap__avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   border-radius: 50%;
-  font-size: 36px;
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
 }
 
 .ap__agentInfo {
@@ -501,6 +509,239 @@
   color: var(--muted);
   margin: 0 0 16px 0;
   line-height: 1.5;
+}
+
+/* Message de succès */
+.ap__success {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.ap__successCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: var(--r-md);
+  max-width: 500px;
+  text-align: left;
+}
+
+.ap__successCard i {
+  font-size: 24px;
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+.ap__successCard h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--success);
+  margin: 0 0 4px 0;
+}
+
+.ap__successCard p {
+  color: var(--muted);
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Formulaire d'édition */
+.ap__editForm {
+  padding: 32px;
+}
+
+.ap__formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.ap__formItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ap__formItem--full {
+  grid-column: 1 / -1;
+}
+
+.ap__formItem label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted2);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.ap__input {
+  padding: 12px 16px;
+  background: var(--card-2);
+  border: 1px solid var(--stroke);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.ap__input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--focus);
+}
+
+.ap__input::placeholder {
+  color: var(--muted2);
+}
+
+.ap__input.is-invalid {
+  border-color: var(--danger);
+}
+
+.ap__input.is-invalid:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.30);
+}
+
+.ap__textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.ap__select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+  padding-right: 40px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.ap__select option {
+  color: #000000;
+  background-color: var(--card);
+}
+
+.ap__select:focus {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
+
+.ap__error {
+  font-size: 12px;
+  color: var(--danger);
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Upload de photo */
+.ap__photoUpload {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.ap__photoPreview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  border: 2px solid var(--stroke);
+  background: var(--card-2);
+}
+
+.ap__photoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--r-lg);
+}
+
+.ap__photoOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.ap__photoOverlay:hover {
+  opacity: 1;
+}
+
+.ap__photoOverlay i {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.ap__photoOverlay span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ap__photoActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.ap__photoInput {
+  display: none;
+}
+
+.ap__btn--outline {
+  background: transparent;
+  border: 1px solid var(--brand);
+  color: var(--brand);
+}
+
+.ap__btn--outline:hover {
+  background: var(--brand);
+  color: white;
+}
+
+.ap__formActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 24px;
+  border-top: 1px solid var(--stroke);
+}
+
+@media (max-width: 768px) {
+  .ap__formGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .ap__formActions {
+    flex-direction: column;
+  }
+  
+  .ap__formActions .ap__btn {
+    width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
