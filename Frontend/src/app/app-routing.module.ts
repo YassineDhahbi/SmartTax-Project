@@ -6,10 +6,7 @@ import { RegisterComponent } from './components/register/register.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
-import { AdminComponent } from './admin/admin/admin.component';
-import { UtilisateurComponent } from './admin/utilisateur/utilisateur/utilisateur.component';
 import { BlogComponent } from './components/blog/blog.component';
-import { ParametreComponent } from './admin/parametre/parametre.component';
 import { AboutComponent } from './components/about/about.component';
 import { ActualiteComponent } from './components/actualite/actualite.component';
 import { DocumentTelechargerComponent } from './components/document-telecharger/document-telecharger.component';
@@ -19,6 +16,8 @@ import { ReclamationComponent } from './components/reclamation/reclamation.compo
 import { DossierComponent } from './components/dossier/dossier.component';
 import { DashboardAgentComponent } from './AgentDGI/dashboard-agent/dashboard-agent.component';
 import { TrashViewComponent } from './AgentDGI/trash-view/trash-view.component';
+import { DashboardAdminComponent } from './Admin/dashboard-admin/dashboard-admin.component';
+import { UtilisateursAdminComponent } from './Admin/utilisateurs-admin/utilisateurs-admin.component';
 
 import { AuthGuard } from './guards/auth.guard';
 
@@ -29,10 +28,7 @@ const routes: Routes = [
   { path: 'profile', component: ProfileComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
-  { path: 'admin', component: AdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } }, // Protégé par AuthGuard
-  { path: 'utilisateur', component: UtilisateurComponent },
   { path: 'service', component: BlogComponent },
-  { path: 'parametre', component: ParametreComponent },
   { path: 'about', component: AboutComponent },
   { path: 'actualite', component: ActualiteComponent },
   { path: 'Document Telecharger', component: DocumentTelechargerComponent },
@@ -41,6 +37,8 @@ const routes: Routes = [
   { path: 'Reclamation', component: ReclamationComponent },
   { path: 'Dossier', component: DossierComponent },
   { path: 'Dashboard-Agent', component: DashboardAgentComponent, canActivate: [AuthGuard], data: { roles: ['AGENT'] } },
+  { path: 'dashboard-admin', component: DashboardAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
+  { path: 'admin/utilisateurs', component: UtilisateursAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'trash', component: TrashViewComponent, canActivate: [AuthGuard], data: { roles: ['AGENT'] } },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }

@@ -1,0 +1,219 @@
+<div class="admin-dashboard">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">ST</div>
+      <div class="brand-text">
+        <h1>SmartTax Admin</h1>
+        <p>Panneau de supervision fiscale</p>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn">?</button>
+      <button class="icon-btn">⚙</button>
+      <div class="search-box">
+        <input type="text" placeholder="Rechercher un dossier, agent, contribuable..." />
+      </div>
+      <button class="btn ghost">Notifications</button>
+      <button class="btn primary">Nouveau rapport</button>
+      <div class="avatar">AD</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <p class="sidebar-title">Navigation</p>
+      <a class="nav-item" routerLink="/dashboard-admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Vue d'ensemble</a>
+      <a class="nav-item" routerLink="/admin/utilisateurs" routerLinkActive="active">Utilisateurs</a>
+      <a class="nav-item" href="javascript:void(0)">Dossiers</a>
+      <a class="nav-item" href="javascript:void(0)">Réclamations</a>
+      <a class="nav-item" href="javascript:void(0)">Publications</a>
+      <a class="nav-item" href="javascript:void(0)">Paiements</a>
+      <a class="nav-item" href="javascript:void(0)">Paramètres</a>
+
+      <div class="sidebar-card">
+        <h3>Statut système</h3>
+        <p>Tous les services sont opérationnels.</p>
+        <span class="status-pill">Uptime: 99.98%</span>
+      </div>
+
+      <div class="sidebar-card secondary">
+        <h3>Objectif mensuel</h3>
+        <p>Recouvrement fiscal</p>
+        <div class="progress slim">
+          <span style="width: 92%"></span>
+        </div>
+        <small>92% atteint</small>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div>
+          <h2>Bienvenue, Administrateur</h2>
+          <p>
+            Vous avez 24 dossiers critiques à valider aujourd'hui.
+            Gardez un oeil sur les alertes et priorisez les demandes urgentes.
+          </p>
+        </div>
+        <div class="hero-meta card">
+          <span>Mis à jour: aujourd'hui, 09:42</span>
+          <strong>24 validations prioritaires</strong>
+          <small>8 dossiers marqués urgents</small>
+          <button class="btn primary">Actualiser</button>
+        </div>
+      </section>
+
+      <section class="stats-grid">
+        <article class="stat-card" *ngFor="let stat of stats">
+          <p class="label">{{ stat.title }}</p>
+          <h3>{{ stat.value }}</h3>
+          <small>{{ stat.subtitle }}</small>
+          <span class="trend" [ngClass]="stat.trend">{{ stat.delta }}</span>
+        </article>
+      </section>
+
+      <section class="analytics-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Tendance hebdomadaire des recettes</h3>
+            <button class="btn ghost">30 jours</button>
+          </div>
+          <div class="sparkline">
+            <span class="bar h45"></span>
+            <span class="bar h62"></span>
+            <span class="bar h50"></span>
+            <span class="bar h74"></span>
+            <span class="bar h66"></span>
+            <span class="bar h84"></span>
+            <span class="bar h79"></span>
+          </div>
+          <div class="chart-legend">
+            <p>Cette semaine: <strong>1.96 M TND</strong></p>
+            <p>Variation: <strong class="good">+11.2%</strong></p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Performance par région</h3>
+          </div>
+          <div class="region" *ngFor="let region of regions">
+            <div class="region-head">
+              <p>{{ region.region }}</p>
+              <span>{{ region.amount }}</span>
+            </div>
+            <div class="progress">
+              <span [style.width.%]="region.completion"></span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="main-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Activité récente</h3>
+            <button class="btn ghost">Voir tout</button>
+          </div>
+          <ul class="activity-list">
+            <li *ngFor="let activity of activities">
+              <span class="severity" [ngClass]="activity.severity"></span>
+              <div>
+                <p class="activity-title">{{ activity.actor }} - {{ activity.action }}</p>
+                <small>{{ activity.time }}</small>
+              </div>
+            </li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Objectifs opérationnels</h3>
+          </div>
+          <div class="task" *ngFor="let task of tasks">
+            <div class="task-head">
+              <span>{{ task.label }}</span>
+              <strong>{{ task.progress }}%</strong>
+            </div>
+            <div class="progress">
+              <span [style.width.%]="task.progress"></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel quick-actions">
+          <div class="panel-head">
+            <h3>Actions rapides</h3>
+          </div>
+          <button class="action-btn" *ngFor="let action of quickActions">{{ action }}</button>
+        </article>
+
+        <article class="panel calendar-panel">
+          <div class="panel-head">
+            <h3>Planning du jour</h3>
+          </div>
+          <div class="agenda-item">
+            <p>10:00 - Réunion de pilotage national</p>
+            <small>Salle virtuelle 1</small>
+          </div>
+          <div class="agenda-item">
+            <p>13:30 - Validation lot réclamations</p>
+            <small>Pôle qualité</small>
+          </div>
+          <div class="agenda-item">
+            <p>16:00 - Revue sécurité et accès</p>
+            <small>Équipe technique</small>
+          </div>
+        </article>
+      </section>
+
+      <section class="bottom-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Dossiers prioritaires</h3>
+            <button class="btn ghost">Exporter</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Contribuable</th>
+                  <th>Type</th>
+                  <th>Statut</th>
+                  <th>Échéance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of cases">
+                  <td>{{ item.id }}</td>
+                  <td>{{ item.citizen }}</td>
+                  <td>{{ item.type }}</td>
+                  <td>
+                    <span class="status" [ngClass]="{
+                      'late': item.status === 'En retard',
+                      'in-progress': item.status === 'En cours',
+                      'done': item.status === 'Validé'
+                    }">{{ item.status }}</span>
+                  </td>
+                  <td>{{ item.due }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel alerts-panel">
+          <div class="panel-head">
+            <h3>Alertes & conformité</h3>
+          </div>
+          <div class="alert-card" *ngFor="let alert of alerts" [ngClass]="alert.level">
+            <h4>{{ alert.title }}</h4>
+            <p>{{ alert.description }}</p>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+</div>

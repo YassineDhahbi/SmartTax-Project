@@ -165,7 +165,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
             this.addToast('Succès', 'Connexion réussie ! Redirection...', 'toast-success');
             // Redirection basée sur le rôle
             if (response.role === 'ADMIN') {
-              setTimeout(() => this.router.navigate(['/admin']), 2000);
+              setTimeout(() => this.router.navigate(['/dashboard-admin']), 2000);
             } else if (response.role === 'CONTRIBUABLE') {
               setTimeout(() => this.router.navigate(['/home']), 2000);
             } else if (response.role === 'AGENT') {

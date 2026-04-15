@@ -20,10 +20,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { ProfileComponent } from './components/profile/profile.component';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
-import { AdminComponent } from './admin/admin/admin.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { UtilisateurComponent } from './admin/utilisateur/utilisateur/utilisateur.component';
-import { ParametreComponent } from './admin/parametre/parametre.component';
 import { ActualiteComponent } from './components/actualite/actualite.component';
 import { DocumentTelechargerComponent } from './components/document-telecharger/document-telecharger.component';
 import { DocumentFiscalComponent } from './components/document-fiscal/document-fiscal.component';
@@ -37,6 +34,8 @@ import { DashboardAgentComponent } from './AgentDGI/dashboard-agent/dashboard-ag
 import { ProfileAgentComponent } from './AgentDGI/profile-agent/profile-agent.component';
 import { TrashViewComponent } from './AgentDGI/trash-view/trash-view.component';
 import { AgentProfileComponent } from './AgentDGI/agent-profile/agent-profile.component';
+import { DashboardAdminComponent } from './Admin/dashboard-admin/dashboard-admin.component';
+import { UtilisateursAdminComponent } from './Admin/utilisateurs-admin/utilisateurs-admin.component';
 
 
 @NgModule({
@@ -56,9 +55,6 @@ import { AgentProfileComponent } from './AgentDGI/agent-profile/agent-profile.co
     ProfileComponent,
     ForgotPasswordComponent,
     ResetPasswordComponent,
-    AdminComponent,
-    UtilisateurComponent,
-    ParametreComponent,
     ActualiteComponent,
     DocumentTelechargerComponent,
     DocumentFiscalComponent,
@@ -69,7 +65,9 @@ import { AgentProfileComponent } from './AgentDGI/agent-profile/agent-profile.co
     DashboardAgentComponent,
     ProfileAgentComponent,
     TrashViewComponent,
-    AgentProfileComponent
+    AgentProfileComponent,
+    DashboardAdminComponent,
+    UtilisateursAdminComponent
 
 
   ],

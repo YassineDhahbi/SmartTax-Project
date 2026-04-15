@@ -1,0 +1,111 @@
+<div class="admin-dashboard">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">ST</div>
+      <div class="brand-text">
+        <h1>SmartTax Admin</h1>
+        <p>Panneau de supervision fiscale</p>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn">?</button>
+      <button class="icon-btn">?</button>
+      <div class="search-box">
+        <input
+          type="text"
+          [value]="searchTerm"
+          (input)="onSearchChange($any($event.target).value)"
+          placeholder="Rechercher un utilisateur..."
+        />
+      </div>
+      <button class="btn ghost" type="button" (click)="loadUsers()">Actualiser</button>
+      <div class="avatar">AD</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <p class="sidebar-title">Navigation</p>
+      <a class="nav-item" routerLink="/dashboard-admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Vue d'ensemble</a>
+      <a class="nav-item" routerLink="/admin/utilisateurs" routerLinkActive="active">Utilisateurs</a>
+      <a class="nav-item" href="javascript:void(0)">Dossiers</a>
+      <a class="nav-item" href="javascript:void(0)">R�clamations</a>
+      <a class="nav-item" href="javascript:void(0)">Publications</a>
+      <a class="nav-item" href="javascript:void(0)">Paiements</a>
+      <a class="nav-item" href="javascript:void(0)">Param�tres</a>
+    </aside>
+
+    <main class="content">
+      <section class="stats-grid">
+        <article class="stat-card" *ngFor="let stat of stats">
+          <p class="label">{{ stat.title }}</p>
+          <h3>{{ stat.value }}</h3>
+          <small>{{ stat.subtitle }}</small>
+          <span class="trend" [ngClass]="stat.trend">{{ stat.delta }}</span>
+        </article>
+      </section>
+      <section class="panel users-panel">
+        <div class="panel-head">
+          <div>
+            <h3>Utilisateurs enregistrés</h3>
+            <p>Liste complète des comptes récupérés depuis la base de données.</p>
+          </div>
+          <span class="count">{{ filteredUsers.length }} utilisateur(s)</span>
+        </div>
+
+        <div class="role-filters">
+          <button type="button" class="filter-btn" [class.active]="selectedRole === 'ALL'" (click)="onRoleFilterChange('ALL')">
+            Tous
+          </button>
+          <button type="button" class="filter-btn" [class.active]="selectedRole === 'CONTRIBUABLE'" (click)="onRoleFilterChange('CONTRIBUABLE')">
+            Contribuable
+          </button>
+          <button type="button" class="filter-btn" [class.active]="selectedRole === 'AGENT'" (click)="onRoleFilterChange('AGENT')">
+            Agent
+          </button>
+          <button type="button" class="filter-btn" [class.active]="selectedRole === 'ADMIN'" (click)="onRoleFilterChange('ADMIN')">
+            Admin
+          </button>
+        </div>
+
+        <p *ngIf="loading" class="state">Chargement des utilisateurs...</p>
+        <p *ngIf="!loading && errorMessage" class="state error">{{ errorMessage }}</p>
+        <p *ngIf="!loading && !errorMessage && filteredUsers.length === 0" class="state">Aucun utilisateur trouv�.</p>
+
+        <div class="table-wrap" *ngIf="!loading && !errorMessage && filteredUsers.length > 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Statut</th>
+                <th>Date d'inscription</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of filteredUsers">
+                <td class="user-cell">
+                  <div class="user-avatar">{{ getUserInitials(user) }}</div>
+                  <div>
+                    <strong>{{ user.firstName }} {{ user.lastName }}</strong>
+                    <small>ID: {{ user.idUtilisateur }}</small>
+                  </div>
+                </td>
+                <td>{{ user.email || '-' }}</td>
+                <td><span class="badge role">{{ user.role || '-' }}</span></td>
+                <td>
+                  <span class="badge status" [ngClass]="(user.status || '').toLowerCase()">
+                    {{ user.status || 'N/A' }}
+                  </span>
+                </td>
+                <td>{{ user.dateInscription ? (user.dateInscription | date: 'dd/MM/yyyy') : '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
