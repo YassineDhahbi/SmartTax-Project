@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Utilisateur } from 'src/app/models/utilisateur';
 import { UserService } from 'src/app/services/user/user.service';
 
@@ -24,7 +25,21 @@ export class UtilisateursAdminComponent implements OnInit {
   loading = true;
   errorMessage = '';
 
-  constructor(private userService: UserService) {}
+  selectedUser: Utilisateur | null = null;
+  showDetailsModal = false;
+  showEditModal = false;
+  showImageModal = false;
+  editForm: FormGroup;
+
+  constructor(private userService: UserService, private fb: FormBuilder) {
+    this.editForm = this.fb.group({
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      role: ['', [Validators.required]],
+      status: ['']
+    });
+  }
 
   ngOnInit(): void {
     this.loadUsers();
@@ -62,6 +77,133 @@ export class UtilisateursAdminComponent implements OnInit {
     const first = user.firstName?.charAt(0) ?? '';
     const last = user.lastName?.charAt(0) ?? '';
     return `${first}${last}`.toUpperCase() || 'U';
+  }
+
+  getRoleBadgeClass(role?: string): string {
+    const r = (role || '').toUpperCase();
+    switch (r) {
+      case 'ADMIN':
+        return 'role-admin';
+      case 'AGENT':
+        return 'role-agent';
+      case 'CONTRIBUABLE':
+        return 'role-contribuable';
+      default:
+        return 'role-unknown';
+    }
+  }
+
+  getCinValidationClass(status?: string): string {
+    const s = (status || '').toLowerCase();
+    switch (s) {
+      case 'valid':
+        return 'status-valid';
+      case 'invalid':
+        return 'status-invalid';
+      case 'pending':
+        return 'status-pending';
+      default:
+        return 'status-unknown';
+    }
+  }
+
+  onImageError(event: any): void {
+    // En cas d'erreur de chargement de l'image, on cache l'image
+    event.target.style.display = 'none';
+  }
+
+  openImageModal(): void {
+    if (this.selectedUser?.photo) {
+      this.showImageModal = true;
+    }
+  }
+
+  closeImageModal(): void {
+    this.showImageModal = false;
+  }
+
+  onLargeImageError(event: any): void {
+    // En cas d'erreur sur l'image grand taille, on ferme le modal
+    console.error('Erreur lors du chargement de l\'image en grand taille');
+    this.closeImageModal();
+  }
+
+  openUserDetails(user: Utilisateur): void {
+    this.selectedUser = user;
+    this.showDetailsModal = true;
+    this.showEditModal = false;
+  }
+
+  closeUserDetails(): void {
+    this.showDetailsModal = false;
+  }
+
+  openUserEdit(user: Utilisateur): void {
+    this.selectedUser = user;
+    this.showEditModal = true;
+    this.showDetailsModal = false;
+
+    this.editForm.patchValue({
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email || '',
+      role: user.role || 'CONTRIBUABLE',
+      status: user.status || ''
+    });
+  }
+
+  closeUserEdit(): void {
+    this.showEditModal = false;
+  }
+
+  saveUserEdit(): void {
+    if (!this.selectedUser) return;
+
+    if (this.editForm.invalid) {
+      this.markFormGroupTouched(this.editForm);
+      return;
+    }
+
+    const updatedUser: Partial<Utilisateur> = {
+      ...this.selectedUser,
+      firstName: this.editForm.value.firstName,
+      lastName: this.editForm.value.lastName,
+      email: this.editForm.value.email,
+      role: this.editForm.value.role,
+      status: this.editForm.value.status || null
+    };
+
+    this.userService.updateUserDetails(updatedUser).subscribe({
+      next: () => {
+        this.showEditModal = false;
+        this.selectedUser = null;
+        this.loadUsers();
+      },
+      error: (err) => {
+        this.errorMessage = err?.message || 'Échec de la mise à jour de l’utilisateur.';
+      }
+    });
+  }
+
+  confirmDeleteUser(user: Utilisateur): void {
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'cet utilisateur';
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${fullName} ?`)) return;
+
+    this.userService.deleteUser1(user.idUtilisateur).subscribe({
+      next: () => {
+        this.selectedUser = null;
+        this.showDetailsModal = false;
+        this.showEditModal = false;
+        this.loadUsers();
+      },
+      error: (err) => {
+        this.errorMessage = err?.message || 'Échec de la suppression de l’utilisateur.';
+      }
+    });
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup): void {
+    Object.values(formGroup.controls).forEach((control) => control.markAsTouched());
   }
 
   private updateStats(data: Utilisateur[]): void {

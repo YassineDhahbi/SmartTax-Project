@@ -81,7 +81,7 @@
                 <th>Email</th>
                 <th>Role</th>
                 <th>Statut</th>
-                <th>Date d'inscription</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -94,16 +94,182 @@
                   </div>
                 </td>
                 <td>{{ user.email || '-' }}</td>
-                <td><span class="badge role">{{ user.role || '-' }}</span></td>
+                <td>
+                  <span class="badge role" [ngClass]="getRoleBadgeClass(user.role)">
+                    {{ user.role || '-' }}
+                  </span>
+                </td>
                 <td>
                   <span class="badge status" [ngClass]="(user.status || '').toLowerCase()">
                     {{ user.status || 'N/A' }}
                   </span>
                 </td>
-                <td>{{ user.dateInscription ? (user.dateInscription | date: 'dd/MM/yyyy') : '-' }}</td>
+                <td class="action-cell">
+                  <button type="button" class="action-btn" title="Détails" (click)="openUserDetails(user)">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                  <button type="button" class="action-btn" title="Modifier" (click)="openUserEdit(user)">
+                    <i class="fa-solid fa-edit"></i>
+                  </button>
+                  <button type="button" class="action-btn action-btn--danger" title="Supprimer" (click)="confirmDeleteUser(user)">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Modal Détails -->
+        <div class="modal-overlay" *ngIf="showDetailsModal && selectedUser" (click)="closeUserDetails()">
+          <div class="modal-card" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h4>Détails utilisateur</h4>
+              <button type="button" class="modal-close" (click)="closeUserDetails()" title="Fermer">
+                <i class="fa-solid fa-times"></i>
+              </button>
+            </div>
+            <div class="modal-body">
+              <!-- Informations de base -->
+              <div class="details-section">
+                <h5 class="section-title">Informations personnelles</h5>
+                <div class="details-grid">
+                  <div class="detail-item">
+                    <label>Photo de profil:</label>
+                    <div class="profile-photo-container">
+                      <img *ngIf="selectedUser.photo" 
+                           [src]="selectedUser.photo" 
+                           alt="Photo de profil" 
+                           class="profile-photo-img clickable"
+                           (click)="openImageModal()"
+                           (error)="onImageError($event)">
+                      <div *ngIf="!selectedUser.photo" class="no-photo-placeholder">
+                        <i class="fa-solid fa-user"></i>
+                        <span>Aucune photo</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="detail-item">
+                    <label>Nom complet:</label>
+                    <span>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <label>Email:</label>
+                    <span>{{ selectedUser.email || '-' }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <label>CIN:</label>
+                    <span>{{ selectedUser.cin || '-' }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <label>Téléphone:</label>
+                    <span>{{ selectedUser.telephone || '-' }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <label>Adresse:</label>
+                    <span>{{ selectedUser.adresse || '-' }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <label>Date de naissance:</label>
+                    <span>{{ selectedUser.dateNaissance ? (selectedUser.dateNaissance | date: 'dd/MM/yyyy') : '-' }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <label>Date d'inscription:</label>
+                    <span>{{ selectedUser.dateInscription ? (selectedUser.dateInscription | date: 'dd/MM/yyyy') : '-' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Informations du compte -->
+              <div class="details-section">
+                <h5 class="section-title">Informations du compte</h5>
+                <div class="details-grid">
+                  <div class="detail-item">
+                    <label>Rôle:</label>
+                    <span class="badge role" [ngClass]="getRoleBadgeClass(selectedUser.role)">
+                      {{ selectedUser.role || '-' }}
+                    </span>
+                  </div>
+                  <div class="detail-item">
+                    <label>Statut:</label>
+                    <span class="badge status" [ngClass]="(selectedUser.status || '').toLowerCase()">
+                      {{ selectedUser.status || 'N/A' }}
+                    </span>
+                  </div>
+                  <div class="detail-item" *ngIf="selectedUser.role === 'AGENT'">
+                    <label>Département:</label>
+                    <span>{{ selectedUser.departement || '-' }}</span>
+                  </div>
+                  
+                </div>
+              </div>
+
+             
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="modal-btn" (click)="closeUserDetails()">Fermer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Image Grand Taille -->
+        <div class="image-modal-overlay" *ngIf="showImageModal && selectedUser?.photo" (click)="closeImageModal()">
+          <div class="image-modal-container" (click)="$event.stopPropagation()">
+            <div class="image-modal-header">
+              <h4>Photo de profil - {{ selectedUser?.firstName }} {{ selectedUser?.lastName }}</h4>
+              <button type="button" class="modal-close" (click)="closeImageModal()" title="Fermer">
+                <i class="fa-solid fa-times"></i>
+              </button>
+            </div>
+            <div class="image-modal-body">
+              <img [src]="selectedUser?.photo" 
+                   alt="Photo de profil en grand taille" 
+                   class="large-profile-image"
+                   (error)="onLargeImageError($event)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Modifier -->
+        <div class="modal-overlay" *ngIf="showEditModal && selectedUser" (click)="closeUserEdit()">
+          <div class="modal-card" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h4>Modifier utilisateur</h4>
+              <button type="button" class="modal-close" (click)="closeUserEdit()" title="Fermer">
+                <i class="fa-solid fa-times"></i>
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <form [formGroup]="editForm" (ngSubmit)="saveUserEdit()">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="role">Rôle</label>
+                    <select id="role" formControlName="role" class="modal-input">
+                      <option value="CONTRIBUABLE">CONTRIBUABLE</option>
+                      <option value="AGENT">AGENT</option>
+                      <option value="ADMIN">ADMIN</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="status">Statut</label>
+                    <select id="status" formControlName="status" class="modal-input">
+                      <option value="actif">Actif</option>
+                      <option value="inactif">Inactif</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="submit" class="modal-btn modal-btn--primary" [disabled]="editForm.invalid">
+                    <i class="fa-solid fa-save"></i>
+                    Enregistrer
+                  </button>
+                  <button type="button" class="modal-btn" (click)="closeUserEdit()">Annuler</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </section>
     </main>
