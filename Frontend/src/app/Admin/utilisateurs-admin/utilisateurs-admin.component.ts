@@ -165,7 +165,6 @@ export class UtilisateursAdminComponent implements OnInit {
     }
 
     const updatedUser: Partial<Utilisateur> = {
-      ...this.selectedUser,
       firstName: this.editForm.value.firstName,
       lastName: this.editForm.value.lastName,
       email: this.editForm.value.email,
@@ -173,14 +172,14 @@ export class UtilisateursAdminComponent implements OnInit {
       status: this.editForm.value.status || null
     };
 
-    this.userService.updateUserDetails(updatedUser).subscribe({
+    this.userService.updateUserById(this.selectedUser.idUtilisateur, updatedUser).subscribe({
       next: () => {
         this.showEditModal = false;
         this.selectedUser = null;
         this.loadUsers();
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'Échec de la mise à jour de l’utilisateur.';
+        this.errorMessage = err?.message || 'Échec de la mise à jour de l\'utilisateur.';
       }
     });
   }

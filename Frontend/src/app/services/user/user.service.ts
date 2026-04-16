@@ -174,4 +174,41 @@ export class UserService {
       })
     );
   }
+
+  updateUserById(id: number, user: Partial<Utilisateur>): Observable<Utilisateur> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return throwError(() => new Error('No token found'));
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    console.log('=== UPDATE USER DEBUG ===');
+    console.log('Sending update request to:', `${this.apiUrl}/${id}`);
+    console.log('User ID:', id);
+    console.log('User data:', JSON.stringify(user, null, 2));
+    console.log('Headers:', headers);
+    console.log('========================');
+
+    return this.http.put<Utilisateur>(`${this.apiUrl}/${id}`, user, { headers }).pipe(
+      map(data => {
+        console.log('Update successful, response:', data);
+        return new Utilisateur(data);
+      }),
+      catchError(error => {
+        console.error('=== UPDATE USER ERROR ===');
+        console.error('Error updating user by ID:', error);
+        console.error('Error status:', error.status);
+        console.error('Error statusText:', error.statusText);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.error);
+        console.error('Full error object:', JSON.stringify(error, null, 2));
+        console.error('========================');
+        return throwError(() => new Error('Failed to update user details'));
+      })
+    );
+  }
 }
