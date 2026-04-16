@@ -93,17 +93,13 @@ export class UserService {
   }
 
   createUser(user: any): Observable<any> {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return throwError(() => new Error('No token found'));
-    }
-
+    // L'endpoint /api/auth/register est public, pas besoin de token
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
 
-    return this.http.post<any>(`${this.apiUrl}/register`, user, { headers }).pipe(
+    // Utiliser l'endpoint d'authentification correct
+    return this.http.post<any>(`http://localhost:8080/api/auth/register`, user, { headers }).pipe(
       catchError(error => {
         console.error('Error creating user:', error);
         return throwError(() => new Error('Failed to create user'));
