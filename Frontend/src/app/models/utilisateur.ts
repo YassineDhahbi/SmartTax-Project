@@ -16,6 +16,7 @@ export class Utilisateur {
   telephone: string | null;
   departement: string | null;
   adresse: string | null;
+  matricule: string | null; // TIN (Tax Identification Number)
 
   constructor(data: Partial<Utilisateur> = {}) {
     this.idUtilisateur = data.idUtilisateur ?? 0;
@@ -35,6 +36,7 @@ export class Utilisateur {
     this.telephone = data.telephone ?? null;
     this.departement = data.departement ?? null;
     this.adresse = data.adresse ?? null;
+    this.matricule = data.matricule ?? null;
   }
 
   getFullName(): string {

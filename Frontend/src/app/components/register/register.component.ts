@@ -255,6 +255,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         dateNaissance: new Date(this.registerForm.value.dateNaissance).toISOString().split('T')[0],
         photo: this.registerForm.value.photo || null,
         role: this.registerForm.value.role,
+        matricule: this.registerForm.value.tin, // TIN sera enregistré dans le champ matricule
         securityCode: this.registerForm.value.securityCode || null // Inclure le code de sécurité
       };
 

@@ -32,7 +32,11 @@ export class UtilisateursAdminComponent implements OnInit {
   showDetailsModal = false;
   showEditModal = false;
   showImageModal = false;
+  showAddUserModal = false;
+  showDeleteModal = false;
+  userToDelete: Utilisateur | null = null;
   editForm: FormGroup;
+  addUserForm: FormGroup;
 
   constructor(private userService: UserService, private fb: FormBuilder) {
     this.editForm = this.fb.group({
@@ -41,6 +45,15 @@ export class UtilisateursAdminComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       role: ['', [Validators.required]],
       status: ['']
+    });
+
+    this.addUserForm = this.fb.group({
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      role: ['CONTRIBUABLE', [Validators.required]],
+      status: ['actif', [Validators.required]]
     });
   }
 
@@ -270,6 +283,60 @@ export class UtilisateursAdminComponent implements OnInit {
     this.showEditModal = false;
   }
 
+  openAddUserModal(): void {
+    this.showAddUserModal = true;
+    this.showEditModal = false;
+    this.showDetailsModal = false;
+    this.addUserForm.reset({
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      role: 'CONTRIBUABLE',
+      status: 'actif'
+    });
+  }
+
+  closeAddUserModal(): void {
+    this.showAddUserModal = false;
+  }
+
+  saveNewUser(): void {
+    if (this.addUserForm.invalid) {
+      this.markFormGroupTouched(this.addUserForm);
+      return;
+    }
+
+    const newUser = {
+      firstName: this.addUserForm.value.firstName,
+      lastName: this.addUserForm.value.lastName,
+      email: this.addUserForm.value.email,
+      password: this.addUserForm.value.password,
+      role: this.addUserForm.value.role,
+      status: this.addUserForm.value.status
+    };
+
+    this.userService.createUser(newUser).subscribe({
+      next: (response) => {
+        this.showAddUserModal = false;
+        this.loadUsers();
+        // Afficher un message de succès (vous pourriez ajouter un toast ici)
+        console.log('Utilisateur créé avec succès:', response);
+      },
+      error: (error) => {
+        console.error('Erreur lors de la création de l\'utilisateur:', error);
+        // Afficher un message d'erreur
+      }
+    });
+  }
+
+  markFormGroupTouched(formGroup: FormGroup): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      control?.markAsTouched({ onlySelf: true });
+    });
+  }
+
   saveUserEdit(): void {
     if (!this.selectedUser) return;
 
@@ -299,26 +366,40 @@ export class UtilisateursAdminComponent implements OnInit {
   }
 
   confirmDeleteUser(user: Utilisateur): void {
-    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'cet utilisateur';
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${fullName} ?`)) return;
+    this.userToDelete = user;
+    this.showDeleteModal = true;
+  }
 
-    this.userService.deleteUser1(user.idUtilisateur).subscribe({
+  openDeleteModal(user: Utilisateur): void {
+    this.userToDelete = user;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.userToDelete = null;
+  }
+
+  deleteUser(): void {
+    if (!this.userToDelete) return;
+
+    this.userService.deleteUser1(this.userToDelete.idUtilisateur).subscribe({
       next: () => {
         this.selectedUser = null;
         this.showDetailsModal = false;
         this.showEditModal = false;
+        this.showDeleteModal = false;
+        this.userToDelete = null;
         this.loadUsers();
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'Échec de la suppression de l’utilisateur.';
+        this.errorMessage = err?.message || 'Échec de la suppression de l\'utilisateur.';
+        this.closeDeleteModal();
       }
     });
   }
 
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.values(formGroup.controls).forEach((control) => control.markAsTouched());
-  }
-
+  
   private updateStats(data: Utilisateur[]): void {
     const total = data.length;
     const active = data.filter((user) => {

@@ -59,7 +59,13 @@
             <h3>Utilisateurs enregistrés</h3>
             <p>Liste complète des comptes récupérés depuis la base de données.</p>
           </div>
-          <span class="count">{{ filteredUsers.length }} utilisateur(s)</span>
+          <div class="panel-actions">
+            <span class="count">{{ filteredUsers.length }} utilisateur(s)</span>
+            <button class="add-user-btn" type="button" (click)="openAddUserModal()">
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Ajouter un utilisateur</span>
+            </button>
+          </div>
         </div>
 
         <!-- Barre de recherche avancée -->
@@ -237,6 +243,10 @@
                     <span>{{ selectedUser.cin || '-' }}</span>
                   </div>
                   <div class="detail-item">
+                    <label>Immatriculation:</label>
+                    <span>{{ selectedUser.matricule || '-' }}</span>
+                  </div>
+                  <div class="detail-item">
                     <label>Téléphone:</label>
                     <span>{{ selectedUser.telephone || '-' }}</span>
                   </div>
@@ -305,6 +315,70 @@
           </div>
         </div>
 
+        <!-- Modal pour ajouter un utilisateur -->
+        <div class="modal-overlay" *ngIf="showAddUserModal" (click)="closeAddUserModal()">
+          <div class="modal-card" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h4>Ajouter un nouvel utilisateur</h4>
+              <button type="button" class="modal-close" (click)="closeAddUserModal()" title="Fermer">
+                <i class="fa-solid fa-times"></i>
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <form [formGroup]="addUserForm" (ngSubmit)="saveNewUser()">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="add-firstName">Prénom</label>
+                    <input id="add-firstName" formControlName="firstName" type="text" class="modal-input" placeholder="Prénom">
+                  </div>
+                  <div class="form-group">
+                    <label for="add-lastName">Nom</label>
+                    <input id="add-lastName" formControlName="lastName" type="text" class="modal-input" placeholder="Nom">
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="add-email">Email</label>
+                    <input id="add-email" formControlName="email" type="email" class="modal-input" placeholder="Email">
+                  </div>
+                  <div class="form-group">
+                    <label for="add-password">Mot de passe</label>
+                    <input id="add-password" formControlName="password" type="password" class="modal-input" placeholder="Mot de passe">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="add-role">Rôle</label>
+                    <select id="add-role" formControlName="role" class="modal-input">
+                      <option value="CONTRIBUABLE">CONTRIBUABLE</option>
+                      <option value="AGENT">AGENT</option>
+                      <option value="ADMIN">ADMIN</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="add-status">Statut</label>
+                    <select id="add-status" formControlName="status" class="modal-input">
+                      <option value="actif">Actif</option>
+                      <option value="inactif">Inactif</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="submit" class="modal-btn modal-btn--primary" [disabled]="addUserForm.invalid">
+                    <i class="fa-solid fa-user-plus"></i>
+                    Ajouter l'utilisateur
+                  </button>
+                  <button type="button" class="modal-btn" (click)="closeAddUserModal()">Annuler</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
         <!-- Modal Modifier -->
         <div class="modal-overlay" *ngIf="showEditModal && selectedUser" (click)="closeUserEdit()">
           <div class="modal-card" (click)="$event.stopPropagation()">
@@ -348,5 +422,49 @@
         </div>
       </section>
     </main>
+  </div>
+</div>
+
+<!-- Modal de suppression d'utilisateur -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal-card modal-delete" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header--danger">
+      <h4>
+        <i class="fa-solid fa-exclamation-triangle"></i>
+        Confirmation de suppression
+      </h4>
+      <button type="button" class="modal-close" (click)="closeDeleteModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="delete-warning">
+        <div class="warning-icon">
+          <i class="fa-solid fa-user-slash"></i>
+        </div>
+        <div class="warning-content">
+          <h5>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</h5>
+          <p class="user-name">
+            <strong>{{ userToDelete?.firstName }} {{ userToDelete?.lastName }}</strong>
+          </p>
+          <p class="user-email">{{ userToDelete?.email }}</p>
+          <p class="warning-text">
+            Cette action est <strong>irréversible</strong>. Toutes les données associées à cet utilisateur seront définitivement supprimées.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer modal-footer--danger">
+      <button type="button" class="modal-btn modal-btn--danger" (click)="deleteUser()">
+        <i class="fa-solid fa-trash"></i>
+        Supprimer définitivement
+      </button>
+      <button type="button" class="modal-btn" (click)="closeDeleteModal()">
+        <i class="fa-solid fa-times"></i>
+        Annuler
+      </button>
+    </div>
   </div>
 </div>

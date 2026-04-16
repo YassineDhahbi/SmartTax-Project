@@ -92,6 +92,25 @@ export class UserService {
     );
   }
 
+  createUser(user: any): Observable<any> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return throwError(() => new Error('No token found'));
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.post<any>(`${this.apiUrl}/register`, user, { headers }).pipe(
+      catchError(error => {
+        console.error('Error creating user:', error);
+        return throwError(() => new Error('Failed to create user'));
+      })
+    );
+  }
+
   uploadPhoto(file: File): Observable<string> {
     const token = localStorage.getItem('token');
     if (!token) {
