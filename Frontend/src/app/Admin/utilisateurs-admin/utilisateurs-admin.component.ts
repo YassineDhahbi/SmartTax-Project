@@ -22,6 +22,9 @@ export class UtilisateursAdminComponent implements OnInit {
   stats: UserStatCard[] = [];
   searchTerm = '';
   selectedRole: 'ALL' | 'CONTRIBUABLE' | 'AGENT' | 'ADMIN' = 'ALL';
+  selectedStatus: 'ALL' | 'actif' | 'inactif' = 'ALL';
+  selectedDateFilter: 'ALL' | 'today' | 'week' | 'month' | 'year' = 'ALL';
+  showAdvancedSearch = false;
   loading = true;
   errorMessage = '';
 
@@ -71,6 +74,117 @@ export class UtilisateursAdminComponent implements OnInit {
   onRoleFilterChange(role: 'ALL' | 'CONTRIBUABLE' | 'AGENT' | 'ADMIN'): void {
     this.selectedRole = role;
     this.applyFilter();
+  }
+
+  applyFilter(): void {
+    this.filteredUsers = this.users.filter(user => {
+      const matchesSearch = !this.searchTerm || 
+        user.firstName?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        user.lastName?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        user.role?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        user.status?.toLowerCase().includes(this.searchTerm.toLowerCase());
+      
+      const matchesRole = this.selectedRole === 'ALL' || user.role === this.selectedRole;
+      const matchesStatus = this.selectedStatus === 'ALL' || user.status === this.selectedStatus;
+      const matchesDate = this.matchesDateFilter(user);
+      
+      return matchesSearch && matchesRole && matchesStatus && matchesDate;
+    });
+  }
+
+  matchesDateFilter(user: Utilisateur): boolean {
+    if (this.selectedDateFilter === 'ALL') return true;
+    
+    if (!user.dateInscription) return false;
+    
+    const userDate = new Date(user.dateInscription);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    switch (this.selectedDateFilter) {
+      case 'today':
+        const todayStart = new Date(today);
+        const todayEnd = new Date(today);
+        todayEnd.setHours(23, 59, 59, 999);
+        return userDate >= todayStart && userDate <= todayEnd;
+        
+      case 'week':
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay());
+        return userDate >= weekStart;
+        
+      case 'month':
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        return userDate >= monthStart;
+        
+      case 'year':
+        const yearStart = new Date(today.getFullYear(), 0, 1);
+        return userDate >= yearStart;
+        
+      default:
+        return true;
+    }
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.applyFilter();
+  }
+
+  toggleAdvancedSearch(): void {
+    this.showAdvancedSearch = !this.showAdvancedSearch;
+  }
+
+  onStatusFilterChange(status: string): void {
+    this.selectedStatus = status as 'ALL' | 'actif' | 'inactif';
+    this.applyFilter();
+  }
+
+  onDateFilterChange(dateFilter: string): void {
+    this.selectedDateFilter = dateFilter as 'ALL' | 'today' | 'week' | 'month' | 'year';
+    this.applyFilter();
+  }
+
+  resetFilters(): void {
+    this.searchTerm = '';
+    this.selectedRole = 'ALL';
+    this.selectedStatus = 'ALL';
+    this.selectedDateFilter = 'ALL';
+    this.showAdvancedSearch = false;
+    this.applyFilter();
+  }
+
+  exportUsers(): void {
+    const csvContent = this.generateCSV();
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `utilisateurs_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  generateCSV(): string {
+    const headers = ['ID', 'Prénom', 'Nom', 'Email', 'Rôle', 'Statut', 'Date d\'inscription'];
+    const rows = this.filteredUsers.map(user => [
+      user.idUtilisateur || '',
+      user.firstName || '',
+      user.lastName || '',
+      user.email || '',
+      user.role || '',
+      user.status || '',
+      user.dateInscription ? new Date(user.dateInscription).toLocaleDateString('fr-FR') : ''
+    ]);
+    
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+    
+    return csvContent;
   }
 
   getUserInitials(user: Utilisateur): string {
@@ -244,21 +358,5 @@ export class UtilisateursAdminComponent implements OnInit {
         trend: 'neutral'
       }
     ];
-  }
-
-  private applyFilter(): void {
-    const term = this.searchTerm.trim().toLowerCase();
-    this.filteredUsers = this.users.filter((user) => {
-      const role = (user.role || '').toUpperCase();
-      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-      const email = (user.email || '').toLowerCase();
-      const roleLower = role.toLowerCase();
-      const status = (user.status || '').toLowerCase();
-      const matchesRole = this.selectedRole === 'ALL' || role === this.selectedRole;
-      const matchesSearch =
-        !term || fullName.includes(term) || email.includes(term) || roleLower.includes(term) || status.includes(term);
-
-      return matchesRole && matchesSearch;
-    });
   }
 }

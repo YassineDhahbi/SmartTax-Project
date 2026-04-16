@@ -11,13 +11,21 @@
     <div class="topbar-actions">
       <button class="icon-btn">?</button>
       <button class="icon-btn">?</button>
-      <div class="search-box">
-        <input
-          type="text"
-          [value]="searchTerm"
-          (input)="onSearchChange($any($event.target).value)"
-          placeholder="Rechercher un utilisateur..."
-        />
+      <div class="search-container">
+        <div class="search-box-modern">
+          <i class="fa-solid fa-search search-icon"></i>
+          <input
+            type="text"
+            class="search-input"
+            [value]="searchTerm"
+            (input)="onSearchChange($any($event.target).value)"
+            placeholder="Rechercher un utilisateur..."
+            autocomplete="off"
+          />
+          <button class="search-clear-btn" type="button" (click)="clearSearch()" *ngIf="searchTerm">
+            <i class="fa-solid fa-times"></i>
+          </button>
+        </div>
       </div>
       <button class="btn ghost" type="button" (click)="loadUsers()">Actualiser</button>
       <div class="avatar">AD</div>
@@ -30,10 +38,10 @@
       <a class="nav-item" routerLink="/dashboard-admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Vue d'ensemble</a>
       <a class="nav-item" routerLink="/admin/utilisateurs" routerLinkActive="active">Utilisateurs</a>
       <a class="nav-item" href="javascript:void(0)">Dossiers</a>
-      <a class="nav-item" href="javascript:void(0)">R�clamations</a>
+      <a class="nav-item" href="javascript:void(0)">Réclamations</a>
       <a class="nav-item" href="javascript:void(0)">Publications</a>
       <a class="nav-item" href="javascript:void(0)">Paiements</a>
-      <a class="nav-item" href="javascript:void(0)">Param�tres</a>
+      <a class="nav-item" href="javascript:void(0)">Paramètres</a>
     </aside>
 
     <main class="content">
@@ -54,6 +62,73 @@
           <span class="count">{{ filteredUsers.length }} utilisateur(s)</span>
         </div>
 
+        <!-- Barre de recherche avancée -->
+        <div class="search-section">
+          <div class="search-bar-container">
+            <div class="search-bar">
+              <div class="search-input-wrapper">
+                <i class="fa-solid fa-search search-icon-main"></i>
+                <input
+                  type="text"
+                  class="search-input-main"
+                  [value]="searchTerm"
+                  (input)="onSearchChange($any($event.target).value)"
+                  placeholder="Rechercher par nom, email, rôle, statut..."
+                  autocomplete="off"
+                />
+                <button class="search-clear-main" type="button" (click)="clearSearch()" *ngIf="searchTerm">
+                  <i class="fa-solid fa-times"></i>
+                </button>
+              </div>
+              <div class="search-actions">
+                <button class="search-filter-btn" type="button" (click)="toggleAdvancedSearch()">
+                  <i class="fa-solid fa-filter"></i>
+                  Filtres
+                </button>
+                <button class="search-export-btn" type="button" (click)="exportUsers()">
+                  <i class="fa-solid fa-download"></i>
+                  Exporter
+                </button>
+              </div>
+            </div>
+            
+            <!-- Filtres avancés -->
+            <div class="advanced-filters" *ngIf="showAdvancedSearch">
+              <div class="filter-group">
+                <label>Rôle</label>
+                <select class="filter-select" [(ngModel)]="selectedRole" (change)="onRoleFilterChange(selectedRole)">
+                  <option value="ALL">Tous les rôles</option>
+                  <option value="CONTRIBUABLE">CONTRIBUABLE</option>
+                  <option value="AGENT">AGENT</option>
+                  <option value="ADMIN">ADMIN</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Statut</label>
+                <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onStatusFilterChange(selectedStatus)">
+                  <option value="ALL">Tous les statuts</option>
+                  <option value="actif">Actif</option>
+                  <option value="inactif">Inactif</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Date d'inscription</label>
+                <select class="filter-select" [(ngModel)]="selectedDateFilter" (change)="onDateFilterChange(selectedDateFilter)">
+                  <option value="ALL">Toutes les dates</option>
+                  <option value="today">Aujourd'hui</option>
+                  <option value="week">Cette semaine</option>
+                  <option value="month">Ce mois</option>
+                  <option value="year">Cette année</option>
+                </select>
+              </div>
+              <button class="reset-filters-btn" type="button" (click)="resetFilters()">
+                <i class="fa-solid fa-redo"></i>
+                Réinitialiser
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="role-filters">
           <button type="button" class="filter-btn" [class.active]="selectedRole === 'ALL'" (click)="onRoleFilterChange('ALL')">
             Tous
@@ -71,7 +146,7 @@
 
         <p *ngIf="loading" class="state">Chargement des utilisateurs...</p>
         <p *ngIf="!loading && errorMessage" class="state error">{{ errorMessage }}</p>
-        <p *ngIf="!loading && !errorMessage && filteredUsers.length === 0" class="state">Aucun utilisateur trouv�.</p>
+        <p *ngIf="!loading && !errorMessage && filteredUsers.length === 0" class="state">Aucun utilisateur trouvé.</p>
 
         <div class="table-wrap" *ngIf="!loading && !errorMessage && filteredUsers.length > 0">
           <table>
