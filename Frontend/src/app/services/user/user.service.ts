@@ -248,4 +248,64 @@ export class UserService {
       })
     );
   }
+
+  // Méthodes pour le profile admin
+  updateUserProfile(profileData: any): Observable<any> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return throwError(() => new Error('No token found'));
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.put<any>(`${this.apiUrl}/updateuser`, profileData, { headers }).pipe(
+      catchError(error => {
+        console.error('Error updating user profile:', error);
+        return throwError(() => new Error('Failed to update profile'));
+      })
+    );
+  }
+
+  uploadProfilePhoto(file: File): Observable<any> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return throwError(() => new Error('No token found'));
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<any>(`${this.apiUrl}/upload-photo`, formData, { headers }).pipe(
+      catchError(error => {
+        console.error('Error uploading photo:', error);
+        return throwError(() => new Error('Failed to upload photo'));
+      })
+    );
+  }
+
+  changePassword(passwordData: { currentPassword: string; newPassword: string }): Observable<any> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return throwError(() => new Error('No token found'));
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.post<any>(`${this.apiUrl}/change-password`, passwordData, { headers }).pipe(
+      catchError(error => {
+        console.error('Error changing password:', error);
+        return throwError(() => new Error('Failed to change password'));
+      })
+    );
+  }
 }

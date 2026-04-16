@@ -36,6 +36,7 @@ import { TrashViewComponent } from './AgentDGI/trash-view/trash-view.component';
 import { AgentProfileComponent } from './AgentDGI/agent-profile/agent-profile.component';
 import { DashboardAdminComponent } from './Admin/dashboard-admin/dashboard-admin.component';
 import { UtilisateursAdminComponent } from './Admin/utilisateurs-admin/utilisateurs-admin.component';
+import { ProfileAdminComponent } from './Admin/profile-admin/profile-admin.component';
 
 
 @NgModule({
@@ -76,7 +77,8 @@ import { UtilisateursAdminComponent } from './Admin/utilisateurs-admin/utilisate
     AppRoutingModule,
     ReactiveFormsModule, // Add this to imports
     HttpClientModule, // Add this to imports
-    FormsModule, BrowserAnimationsModule
+    FormsModule, BrowserAnimationsModule,
+    ProfileAdminComponent
   ],
   providers: [
     ReclamationService,

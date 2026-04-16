@@ -18,6 +18,7 @@ import { DashboardAgentComponent } from './AgentDGI/dashboard-agent/dashboard-ag
 import { TrashViewComponent } from './AgentDGI/trash-view/trash-view.component';
 import { DashboardAdminComponent } from './Admin/dashboard-admin/dashboard-admin.component';
 import { UtilisateursAdminComponent } from './Admin/utilisateurs-admin/utilisateurs-admin.component';
+import { ProfileAdminComponent } from './Admin/profile-admin/profile-admin.component';
 
 import { AuthGuard } from './guards/auth.guard';
 
@@ -39,6 +40,7 @@ const routes: Routes = [
   { path: 'Dashboard-Agent', component: DashboardAgentComponent, canActivate: [AuthGuard], data: { roles: ['AGENT'] } },
   { path: 'dashboard-admin', component: DashboardAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'admin/utilisateurs', component: UtilisateursAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
+  { path: 'admin/profile', component: ProfileAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'trash', component: TrashViewComponent, canActivate: [AuthGuard], data: { roles: ['AGENT'] } },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }

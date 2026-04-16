@@ -1,0 +1,292 @@
+<div class="admin-dashboard">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">ST</div>
+      <div class="brand-text">
+        <h1>SmartTax</h1>
+        <p>Administration</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="Rechercher...">
+      </div>
+      <div class="notification-bell">
+        <i class="fa-solid fa-bell"></i>
+        <span class="notification-dot"></span>
+      </div>
+      <div class="admin-profile">
+        <img [src]="currentUser?.photo || 'assets/img/default-avatar.png'" [alt]="currentUser?.firstName">
+        <div class="admin-info">
+          <span class="admin-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
+          <span class="admin-role">{{ getRoleDisplayName(currentUser?.role) }}</span>
+        </div>
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <p class="sidebar-title">Navigation</p>
+      <a class="nav-item" routerLink="/dashboard-admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Vue d'ensemble</a>
+      <a class="nav-item" routerLink="/admin/utilisateurs" routerLinkActive="active">Utilisateurs</a>
+      <a class="nav-item" href="javascript:void(0)">Dossiers</a>
+      <a class="nav-item" href="javascript:void(0)">Réclamations</a>
+      <a class="nav-item" href="javascript:void(0)">Publications</a>
+      <a class="nav-item" routerLink="/admin/profile" routerLinkActive="active">Profile</a>
+      <a class="nav-item" href="javascript:void(0)">Paramètres</a>
+
+      <div class="sidebar-card">
+        <h3>Statut système</h3>
+        <p>Tous les services sont opérationnels.</p>
+        <span class="status-pill">Uptime: 99.98%</span>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="page-header">
+        <div>
+          <h1>Mon Profil</h1>
+          <p>Gérez vos informations personnelles et votre compte</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn--secondary" (click)="openPasswordModal()">
+            <i class="fa-solid fa-key"></i>
+            Changer le mot de passe
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages de succès/erreur -->
+      <div class="alert alert--success" *ngIf="successMessage">
+        <i class="fa-solid fa-check-circle"></i>
+        {{ successMessage }}
+      </div>
+
+      <div class="alert alert--danger" *ngIf="errorMessage">
+        <i class="fa-solid fa-exclamation-circle"></i>
+        {{ errorMessage }}
+      </div>
+
+      <div class="profile-container">
+        <div class="profile-sidebar">
+          <div class="profile-photo-section">
+            <div class="photo-container">
+              <img [src]="imagePreview || 'assets/img/default-avatar.png'" 
+                   [alt]="currentUser?.firstName" 
+                   class="profile-photo">
+              <div class="photo-overlay">
+                <i class="fa-solid fa-camera"></i>
+                <span>Changer la photo</span>
+              </div>
+              <input type="file" 
+                     accept="image/*" 
+                     (change)="onFileSelected($event)"
+                     class="photo-input">
+            </div>
+            <button class="btn btn--primary btn--sm" 
+                    (click)="uploadPhoto()"
+                    [disabled]="!selectedFile || loading">
+              <i class="fa-solid fa-upload"></i>
+              Télécharger
+            </button>
+          </div>
+
+          <div class="profile-info-card">
+            <h3>Informations du compte</h3>
+            <div class="info-item">
+              <label>Rôle</label>
+              <span class="role-badge">{{ getRoleDisplayName(currentUser?.role) }}</span>
+            </div>
+            <div class="info-item">
+              <label>Statut</label>
+              <span class="status-badge status--{{ currentUser?.status }}">
+                {{ getStatusDisplayName(currentUser?.status) }}
+              </span>
+            </div>
+            <div class="info-item">
+              <label>Date d'inscription</label>
+              <span>{{ formatDate(currentUser?.dateInscription) }}</span>
+            </div>
+            <div class="info-item" *ngIf="currentUser?.cin">
+              <label>CIN</label>
+              <span>{{ currentUser?.cin }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-main">
+          <div class="card">
+            <div class="card-header">
+              <h2>Informations personnelles</h2>
+              <p>Mettez à jour vos informations personnelles</p>
+            </div>
+            <div class="card-content">
+              <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="firstName">Prénom *</label>
+                    <input type="text" 
+                           id="firstName" 
+                           formControlName="firstName"
+                           class="form-control"
+                           [class.is-invalid]="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
+                    <span class="error-message" 
+                          *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
+                      Le prénom est requis
+                    </span>
+                  </div>
+                  <div class="form-group">
+                    <label for="lastName">Nom *</label>
+                    <input type="text" 
+                           id="lastName" 
+                           formControlName="lastName"
+                           class="form-control"
+                           [class.is-invalid]="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
+                    <span class="error-message" 
+                          *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
+                      Le nom est requis
+                    </span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="email">Email *</label>
+                  <input type="email" 
+                         id="email" 
+                         formControlName="email"
+                         class="form-control"
+                         [class.is-invalid]="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+                  <span class="error-message" 
+                        *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+                    <span *ngIf="profileForm.get('email')?.errors?.['required']">L'email est requis</span>
+                    <span *ngIf="profileForm.get('email')?.errors?.['email']">Veuillez entrer un email valide</span>
+                  </span>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="telephone">Téléphone</label>
+                    <input type="tel" 
+                           id="telephone" 
+                           formControlName="telephone"
+                           class="form-control"
+                           placeholder="+216 XX XXX XXX">
+                  </div>
+                  <div class="form-group">
+                    <label for="dateNaissance">Date de naissance</label>
+                    <input type="date" 
+                           id="dateNaissance" 
+                           formControlName="dateNaissance"
+                           class="form-control">
+                  </div>
+                </div>
+
+       
+
+                <div class="form-group">
+                  <label for="adresse">Adresse</label>
+                  <textarea id="adresse" 
+                            formControlName="adresse"
+                            class="form-control"
+                            rows="3"
+                            placeholder="Votre adresse complète"></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" 
+                          class="btn btn--primary" 
+                          [disabled]="profileForm.invalid || loading">
+                    <i class="fa-solid fa-save"></i>
+                    {{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+                  </button>
+                  <button type="button" 
+                          class="btn btn--secondary" 
+                          (click)="loadUserProfile()">
+                    <i class="fa-solid fa-undo"></i>
+                    Annuler
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal pour changer le mot de passe -->
+  <div class="modal-overlay" *ngIf="showPasswordModal" (click)="closePasswordModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Changer le mot de passe</h3>
+        <button class="modal-close" (click)="closePasswordModal()">
+          <i class="fa-solid fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-content">
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+          <div class="form-group">
+            <label for="currentPassword">Mot de passe actuel *</label>
+            <input type="password" 
+                   id="currentPassword" 
+                   formControlName="currentPassword"
+                   class="form-control"
+                   [class.is-invalid]="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched">
+            <span class="error-message" 
+                  *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched">
+              Le mot de passe actuel est requis
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="newPassword">Nouveau mot de passe *</label>
+            <input type="password" 
+                   id="newPassword" 
+                   formControlName="newPassword"
+                   class="form-control"
+                   [class.is-invalid]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
+            <span class="error-message" 
+                  *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
+              <span *ngIf="passwordForm.get('newPassword')?.errors?.['required']">Le nouveau mot de passe est requis</span>
+              <span *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Minimum 6 caractères</span>
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirmer le mot de passe *</label>
+            <input type="password" 
+                   id="confirmPassword" 
+                   formControlName="confirmPassword"
+                   class="form-control"
+                   [class.is-invalid]="passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched">
+            <span class="error-message" 
+                  *ngIf="passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched">
+              La confirmation du mot de passe est requise
+            </span>
+          </div>
+
+          <div class="error-message" *ngIf="errorMessage && showPasswordModal">
+            {{ errorMessage }}
+          </div>
+
+          <div class="modal-actions">
+            <button type="submit" 
+                    class="btn btn--primary" 
+                    [disabled]="passwordForm.invalid || loading">
+              <i class="fa-solid fa-key"></i>
+              {{ loading ? 'Modification...' : 'Changer le mot de passe' }}
+            </button>
+            <button type="button" 
+                    class="btn btn--secondary" 
+                    (click)="closePasswordModal()">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
