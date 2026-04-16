@@ -201,6 +201,58 @@
           </table>
         </div>
 
+        <!-- Contrôles de pagination -->
+        <div class="pagination-container" *ngIf="totalItems > 0">
+          <div class="pagination-info">
+            <span>Affichage de {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ getEndRange() }} sur {{ totalItems }} utilisateurs</span>
+          </div>
+          
+          <div class="pagination-controls">
+            <!-- Bouton précédent -->
+            <button class="pagination-btn" 
+                    [disabled]="currentPage === 1" 
+                    (click)="onPageChange(currentPage - 1)">
+              <i class="fa-solid fa-chevron-left"></i>
+              Précédent
+            </button>
+
+            <!-- Numéros de pages -->
+            <div class="pagination-pages">
+              <button *ngFor="let page of paginationPages" 
+                      class="pagination-page"
+                      [class.active]="page === currentPage"
+                      [disabled]="page === currentPage"
+                      (click)="onPageChange(page)">
+                {{ page }}
+              </button>
+            </div>
+
+            <!-- Bouton suivant -->
+            <button class="pagination-btn" 
+                    [disabled]="currentPage === totalPages" 
+                    (click)="onPageChange(currentPage + 1)">
+              Suivant
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+
+          <!-- Sélection du nombre d'éléments par page -->
+          <div class="pagination-per-page">
+            <label for="itemsPerPage">Afficher:</label>
+            <select id="itemsPerPage" 
+                    class="pagination-select"
+                    [value]="itemsPerPage"
+                    (change)="onItemsPerPageChange($any($event.target).value)">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
+              <option [value]="50">50</option>
+              <option [value]="100">100</option>
+            </select>
+            <span>par page</span>
+          </div>
+        </div>
+
         <!-- Modal Détails -->
         <div class="modal-overlay" *ngIf="showDetailsModal && selectedUser" (click)="closeUserDetails()">
           <div class="modal-card" (click)="$event.stopPropagation()">

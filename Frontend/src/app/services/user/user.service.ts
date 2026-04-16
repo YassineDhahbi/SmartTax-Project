@@ -172,6 +172,28 @@ export class UserService {
     );
   }
 
+  // Méthodes de pagination - Implémentation côté client
+  getUsersPaginated(page: number, limit: number): Observable<{users: Utilisateur[], total: number}> {
+    // Utiliser l'endpoint existant pour récupérer tous les utilisateurs
+    return this.getAllUtilisateurs().pipe(
+      map(allUsers => {
+        // Pagination côté client
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedUsers = allUsers.slice(startIndex, endIndex);
+        
+        return {
+          users: paginatedUsers,
+          total: allUsers.length
+        };
+      }),
+      catchError(error => {
+        console.error('Error fetching users for pagination:', error);
+        return throwError(() => new Error('Failed to fetch users for pagination'));
+      })
+    );
+  }
+
   deleteUser1(id: number): Observable<void> {
     const token = localStorage.getItem('token');
     if (!token) {

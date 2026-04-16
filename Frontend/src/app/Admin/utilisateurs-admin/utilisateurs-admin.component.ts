@@ -28,6 +28,13 @@ export class UtilisateursAdminComponent implements OnInit {
   loading = true;
   errorMessage = '';
 
+  // Propriétés de pagination
+  currentPage = 1;
+  itemsPerPage = 5;
+  totalItems = 0;
+  totalPages = 0;
+  paginationPages: number[] = [];
+
   selectedUser: Utilisateur | null = null;
   showDetailsModal = false;
   showEditModal = false;
@@ -65,10 +72,12 @@ export class UtilisateursAdminComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
 
-    this.userService.getAllUtilisateurs().subscribe({
-      next: (data) => {
-        this.users = data;
-        this.updateStats(data);
+    this.userService.getUsersPaginated(this.currentPage, this.itemsPerPage).subscribe({
+      next: (response) => {
+        this.users = response.users;
+        this.totalItems = response.total;
+        this.calculateTotalPages();
+        this.updateStats(response.users);
         this.applyFilter();
         this.loading = false;
       },
@@ -100,10 +109,48 @@ export class UtilisateursAdminComponent implements OnInit {
       
       const matchesRole = this.selectedRole === 'ALL' || user.role === this.selectedRole;
       const matchesStatus = this.selectedStatus === 'ALL' || user.status === this.selectedStatus;
-      const matchesDate = this.matchesDateFilter(user);
-      
-      return matchesSearch && matchesRole && matchesStatus && matchesDate;
+      return matchesSearch && matchesRole && matchesStatus;
     });
+  }
+
+  calculateTotalPages(): void {
+    this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+    this.updatePaginationPages();
+  }
+
+  updatePaginationPages(): void {
+    this.paginationPages = [];
+    const maxPagesToShow = 5;
+    const startPage = Math.max(1, this.currentPage - Math.floor(maxPagesToShow / 2));
+    const endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
+    
+    for (let i = startPage; i <= endPage; i++) {
+      this.paginationPages.push(i);
+    }
+  }
+
+  onPageChange(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.loadUsers();
+    }
+  }
+
+  onItemsPerPageChange(itemsPerPage: number): void {
+    this.itemsPerPage = itemsPerPage;
+    this.currentPage = 1;
+    this.loadUsers();
+  }
+
+  getDisplayedUsers(): Utilisateur[] {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return this.filteredUsers.slice(start, end);
+  }
+
+  getEndRange(): number {
+    const end = this.currentPage * this.itemsPerPage;
+    return Math.min(end, this.totalItems);
   }
 
   matchesDateFilter(user: Utilisateur): boolean {
