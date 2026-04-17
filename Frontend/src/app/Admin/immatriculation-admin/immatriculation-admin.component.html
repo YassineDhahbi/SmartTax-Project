@@ -1,0 +1,519 @@
+<div class="admin-dashboard">
+  <app-topbar></app-topbar>
+
+  <div class="layout">
+    <aside >
+      <app-side-admin></app-side-admin>
+    </aside>
+
+    <main class="content">
+      <section class="stats-grid">
+        <article class="stat-card" *ngFor="let stat of stats">
+          <p class="label">{{ stat.title }}</p>
+          <h3>{{ stat.value }}</h3>
+          <small>{{ stat.subtitle }}</small>
+          <span class="trend" [ngClass]="stat.trend">{{ stat.delta }}</span>
+        </article>
+      </section>
+
+      <section class="panel immatriculations-panel">
+        <div class="panel-head">
+          <div>
+            <h3>Dossiers d'Immatriculation</h3>
+            <p>Liste complète des entreprises enregistrées dans la base de données.</p>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-primary">
+              <i class="fa-solid fa-plus"></i>
+              Nouvelle immatriculation
+            </button>
+            <button class="btn-secondary">
+              <i class="fa-solid fa-download"></i>
+              Exporter
+            </button>
+          </div>
+        </div>
+
+        <div class="search-section">
+          <div class="search-bar-container">
+            <div class="search-bar">
+              <div class="search-input-wrapper">
+                <i class="fa-solid fa-search search-icon-main"></i>
+                <input 
+                  type="text" 
+                  class="search-input-main" 
+                  placeholder="Rechercher par nom, raison sociale, numéro dossier..."
+                  [(ngModel)]="searchTerm"
+                  (input)="onSearchChange(searchTerm)"
+                >
+                <button class="search-clear-main" *ngIf="searchTerm" (click)="clearSearch()">
+                  <i class="fa-solid fa-times"></i>
+                </button>
+              </div>
+              <div class="search-actions">
+                <button class="search-filter-btn" (click)="toggleAdvancedSearch()">
+                  <i class="fa-solid fa-filter"></i>
+                  Filtres avancés
+                </button>
+                <button class="search-export-btn" (click)="exportImmatriculations()">
+                  <i class="fa-solid fa-file-export"></i>
+                  Exporter
+                </button>
+              </div>
+            </div>
+
+            <div class="advanced-filters" *ngIf="showAdvancedSearch">
+              <div class="filter-group">
+                <label>Statut</label>
+                <select class="filter-select" [(ngModel)]="selectedStatut" (change)="onStatutFilterChange(selectedStatut)">
+                  <option value="ALL">Tous les statuts</option>
+                  <option value="VALIDATED">Validé</option>
+                  <option value="PENDING">En attente</option>
+                  <option value="REJECTED">Rejeté</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Type contribuable</label>
+                <select class="filter-select" [(ngModel)]="selectedFormeJuridique" (change)="onFormeJuridiqueFilterChange(selectedFormeJuridique)">
+                  <option value="ALL">Tous les types</option>
+                  <option value="MORALE">Personne morale</option>
+                  <option value="PHYSIQUE">Personne physique</option>
+                </select>
+              </div>
+              <button class="reset-filters-btn" (click)="resetFilters()">
+                <i class="fa-solid fa-undo"></i>
+                Réinitialiser
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Numéro dossier</th>
+                  <th>Nom/Raison sociale</th>
+                  <th>Type</th>
+                  <th>Statut</th>
+                  <th>Date de création</th>
+                  <th>Email</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let immatriculation of filteredImmatriculations">
+                  <td>
+                    <span class="numero-immatriculation">{{ immatriculation.dossierNumber }}</span>
+                  </td>
+                  <td>
+                    <div class="company-info">
+                      <strong *ngIf="immatriculation.typeContribuable === 'PHYSIQUE'">
+                        {{ immatriculation.nom }} {{ immatriculation.prenom }}
+                      </strong>
+                      <strong *ngIf="immatriculation.typeContribuable === 'MORALE'">
+                        {{ immatriculation.raisonSociale }}
+                      </strong>
+                      <small>{{ immatriculation.adresse || 'N/A' }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="getFormeJuridiqueBadgeClass(immatriculation.typeContribuable)">
+                      {{ immatriculation.typeContribuable }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="getStatutBadgeClass(immatriculation.status)">
+                      {{ immatriculation.status }}
+                    </span>
+                  </td>
+                  <td>{{ formatDate(immatriculation.dateCreation) }}</td>
+                  <td>{{ immatriculation.email }}</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn-icon btn-view" (click)="openImmatriculationDetails(immatriculation)" title="Voir les détails">
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+                      <button class="btn-icon btn-edit" (click)="editImmatriculation(immatriculation)" title="Modifier">
+                        <i class="fa-solid fa-edit"></i>
+                      </button>
+                      <button class="btn-icon btn-delete" (click)="deleteImmatriculation(immatriculation)" title="Supprimer">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="pagination-container" *ngIf="totalItems > itemsPerPage">
+          <div class="pagination-info">
+            <span>Affichage de {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ getEndRange() }} sur {{ totalItems }} résultats</span>
+            <select class="items-per-page" (change)="onItemsPerPageChange(itemsPerPage)">
+              <option value="5">5 par page</option>
+              <option value="10">10 par page</option>
+              <option value="20">20 par page</option>
+              <option value="50">50 par page</option>
+            </select>
+          </div>
+          <div class="pagination-controls">
+            <button 
+              class="pagination-btn" 
+              (click)="onPageChange(currentPage - 1)"
+              [disabled]="currentPage === 1"
+            >
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button 
+              class="pagination-btn" 
+              *ngFor="let page of paginationPages"
+              [ngClass]="{ active: page === currentPage }"
+              (click)="onPageChange(page)"
+            >
+              {{ page }}
+            </button>
+            <button 
+              class="pagination-btn" 
+              (click)="onPageChange(currentPage + 1)"
+              [disabled]="currentPage === totalPages"
+            >
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Modal pour les détails de l'immatriculation -->
+<div class="modal-overlay" *ngIf="showDetailsModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>
+        <i class="fa-solid fa-building"></i>
+        Détails de l'immatriculation
+      </h3>
+      <button class="modal-close" (click)="closeImmatriculationDetails()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedImmatriculation">
+      <div class="details-section">
+        <h4 class="section-title">Informations générales</h4>
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Numéro dossier</label>
+            <span>{{ selectedImmatriculation.dossierNumber }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedImmatriculation.typeContribuable === 'PHYSIQUE'">
+            <label>Nom</label>
+            <span>{{ selectedImmatriculation.nom }} {{ selectedImmatriculation.prenom }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedImmatriculation.typeContribuable === 'MORALE'">
+            <label>Raison sociale</label>
+            <span>{{ selectedImmatriculation.raisonSociale }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedImmatriculation.typeContribuable === 'MORALE'">
+            <label>Forme juridique</label>
+            <span>{{ selectedImmatriculation.formeJuridique }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Type contribuable</label>
+            <span class="badge" [ngClass]="getFormeJuridiqueBadgeClass(selectedImmatriculation.typeContribuable)">
+              {{ selectedImmatriculation.typeContribuable }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <label>Statut</label>
+            <span class="badge" [ngClass]="getStatutBadgeClass(selectedImmatriculation.status)">
+              {{ selectedImmatriculation.status }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <label>Date de création</label>
+            <span>{{ formatDate(selectedImmatriculation.dateCreation) }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedImmatriculation.typeContribuable === 'MORALE'">
+            <label>Actionnaire principal</label>
+            <span>{{ selectedImmatriculation.actionnaire || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="details-section">
+        <h4 class="section-title">Coordonnées</h4>
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Adresse</label>
+            <span>{{ selectedImmatriculation.adresse }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Téléphone</label>
+            <span>{{ selectedImmatriculation.telephone }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Email</label>
+            <span>{{ selectedImmatriculation.email }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Activité</label>
+            <span>{{ selectedImmatriculation.activite }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="details-section">
+        <h4 class="section-title">Identifiants fiscaux</h4>
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Matricule fiscal</label>
+            <span>{{ selectedImmatriculation.matriculeFiscal }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Identifiant fiscal</label>
+            <span>{{ selectedImmatriculation.identifiantFiscal }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Registre de commerce</label>
+            <span>{{ selectedImmatriculation.registreCommerce }}</span>
+          </div>
+          <div class="detail-item">
+            <label>CNSS</label>
+            <span>{{ selectedImmatriculation.cnss }}</span>
+          </div>
+          <div class="detail-item">
+            <label>NIS</label>
+            <span>{{ selectedImmatriculation.nis }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="details-section" *ngIf="selectedImmatriculation.typeContribuable === 'MORALE'">
+        <h4 class="section-title">Actionnaire principal</h4>
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Nom</label>
+            <span>{{ selectedImmatriculation.actionnaire || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Nationalité</label>
+            <span>{{ selectedImmatriculation.nationalite || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations additionnelles du contribuable -->
+      <div class="details-section">
+        <h4 class="section-title">Informations complémentaires</h4>
+        <div class="details-grid">
+          <div class="detail-item" *ngIf="selectedImmatriculation.typeContribuable === 'PHYSIQUE'">
+            <label>CIN</label>
+            <span>{{ selectedImmatriculation.cin || 'N/A' }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedImmatriculation.typeContribuable === 'PHYSIQUE'">
+            <label>Date de naissance</label>
+            <span>{{ formatDate(selectedImmatriculation.dateNaissance) }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedImmatriculation.typeContribuable === 'MORALE'">
+            <label>Représentant légal</label>
+            <span>{{ selectedImmatriculation.representantLegal || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Nationalité</label>
+            <span>{{ selectedImmatriculation.nationalite || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations professionnelles -->
+      <div class="details-section">
+        <h4 class="section-title">Informations professionnelles</h4>
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Type d'activité</label>
+            <span>{{ selectedImmatriculation.typeActivite || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Secteur</label>
+            <span>{{ selectedImmatriculation.secteur || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Adresse professionnelle</label>
+            <span>{{ selectedImmatriculation.adresseProfessionnelle || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Date début d'activité</label>
+            <span>{{ formatDate(selectedImmatriculation.dateDebutActivite) }}</span>
+          </div>
+          <div class="detail-item detail-item--full">
+            <label>Description de l'activité</label>
+            <span>{{ selectedImmatriculation.descriptionActivite || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents joints -->
+      <div class="details-section">
+        <h4 class="section-title">Documents joints</h4>
+        <div class="documents-grid">
+          <!-- Pièce d'identité -->
+          <div class="document-item" *ngIf="selectedImmatriculation.identiteFile">
+            <div class="document-header">
+              <i class="fa-solid fa-id-card"></i>
+              <span>Pièce d'identité</span>
+            </div>
+            <div class="document-preview">
+              <img [src]="selectedImmatriculation.identiteFile" 
+                   alt="Pièce d'identité" 
+                   class="document-image"
+                   (error)="handleImageError($event)">
+              <div class="document-actions">
+                <button class="btn btn-sm btn-primary" 
+                        (click)="viewDocument(selectedImmatriculation.identiteFile, 'Pièce d\'identité')">
+                  <i class="fa-solid fa-eye"></i> Voir
+                </button>
+                <button class="btn btn-sm btn-secondary" 
+                        (click)="downloadDocument(selectedImmatriculation.identiteFile, 'piece-identite')">
+                  <i class="fa-solid fa-download"></i> Télécharger
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document d'activité -->
+          <div class="document-item" *ngIf="selectedImmatriculation.activiteFile">
+            <div class="document-header">
+              <i class="fa-solid fa-briefcase"></i>
+              <span>Document d'activité</span>
+            </div>
+            <div class="document-preview">
+              <img [src]="selectedImmatriculation.activiteFile" 
+                   alt="Document d'activité" 
+                   class="document-image"
+                   (error)="handleImageError($event)">
+              <div class="document-actions">
+                <button class="btn btn-sm btn-primary" 
+                        (click)="viewDocument(selectedImmatriculation.activiteFile, 'Document d\'activité')">
+                  <i class="fa-solid fa-eye"></i> Voir
+                </button>
+                <button class="btn btn-sm btn-secondary" 
+                        (click)="downloadDocument(selectedImmatriculation.activiteFile, 'document-activite')">
+                  <i class="fa-solid fa-download"></i> Télécharger
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Photo personnelle -->
+          <div class="document-item" *ngIf="selectedImmatriculation.photoFile">
+            <div class="document-header">
+              <i class="fa-solid fa-user"></i>
+              <span>Photo personnelle</span>
+            </div>
+            <div class="document-preview">
+              <img [src]="selectedImmatriculation.photoFile" 
+                   alt="Photo personnelle" 
+                   class="document-image"
+                   (error)="handleImageError($event)">
+              <div class="document-actions">
+                <button class="btn btn-sm btn-primary" 
+                        (click)="viewDocument(selectedImmatriculation.photoFile, 'Photo personnelle')">
+                  <i class="fa-solid fa-eye"></i> Voir
+                </button>
+                <button class="btn btn-sm btn-secondary" 
+                        (click)="downloadDocument(selectedImmatriculation.photoFile, 'photo-personnelle')">
+                  <i class="fa-solid fa-download"></i> Télécharger
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Autres documents -->
+        <div class="other-documents-section" *ngIf="selectedImmatriculation.autresFiles && selectedImmatriculation.autresFiles.length > 0">
+          <div class="document-item">
+            <div class="document-header">
+              <i class="fa-solid fa-folder"></i>
+              <span>Autres documents ({{ selectedImmatriculation.autresFiles.length }})</span>
+            </div>
+            <div class="document-list">
+              <div class="other-document" *ngFor="let doc of selectedImmatriculation.autresFiles; let i = index">
+                <div class="other-document-info">
+                  <i class="fa-solid fa-file"></i>
+                  <span>Document {{ i + 1 }}</span>
+                </div>
+                <div class="document-actions">
+                  <button class="btn btn-sm btn-primary" 
+                          (click)="viewDocument(doc, 'Document ' + (i + 1))">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                  <button class="btn btn-sm btn-secondary" 
+                          (click)="downloadDocument(doc, 'document-' + (i + 1))">
+                    <i class="fa-solid fa-download"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aucun document -->
+        <div class="no-documents" *ngIf="!hasDocuments">
+          <i class="fa-solid fa-folder-open"></i>
+          <span>Aucun document joint</span>
+        </div>
+      </div>
+
+      <!-- Scores de validation -->
+      <div class="details-section" *ngIf="selectedImmatriculation.overallScore !== undefined">
+        <h4 class="section-title">Scores de validation</h4>
+        <div class="scores-grid">
+          <div class="score-item">
+            <div class="score-label">Score global</div>
+            <div class="score-value" [attr.data-score]="getScoreLevel(selectedImmatriculation.overallScore)">
+              {{ selectedImmatriculation.overallScore }}%
+            </div>
+          </div>
+          <div class="score-item" *ngIf="selectedImmatriculation.completenessScore !== undefined">
+            <div class="score-label">Complétude</div>
+            <div class="score-value" [attr.data-score]="getScoreLevel(selectedImmatriculation.completenessScore)">
+              {{ selectedImmatriculation.completenessScore }}%
+            </div>
+          </div>
+          <div class="score-item" *ngIf="selectedImmatriculation.verificationScore !== undefined">
+            <div class="score-label">Vérification</div>
+            <div class="score-value" [attr.data-score]="getScoreLevel(selectedImmatriculation.verificationScore)">
+              {{ selectedImmatriculation.verificationScore }}%
+            </div>
+          </div>
+          <div class="score-item" *ngIf="selectedImmatriculation.documentsScore !== undefined">
+            <div class="score-label">Documents</div>
+            <div class="score-value" [attr.data-score]="getScoreLevel(selectedImmatriculation.documentsScore)">
+              {{ selectedImmatriculation.documentsScore }}%
+            </div>
+          </div>
+          <div class="score-item" *ngIf="selectedImmatriculation.identityValidationScore !== undefined">
+            <div class="score-label">Validation Pièce (SWIN)</div>
+            <div class="score-value" [attr.data-score]="getScoreLevel(selectedImmatriculation.identityValidationScore)">
+              {{ selectedImmatriculation.identityValidationScore }}%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn--secondary" (click)="closeImmatriculationDetails()">
+        <i class="fa-solid fa-times"></i>
+        Fermer
+      </button>
+      <button class="modal-btn modal-btn--primary" (click)="editImmatriculation(selectedImmatriculation)">
+        <i class="fa-solid fa-edit"></i>
+        Modifier
+      </button>
+    </div>
+  </div>
+</div>

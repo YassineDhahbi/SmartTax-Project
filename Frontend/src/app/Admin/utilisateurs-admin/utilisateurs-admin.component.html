@@ -2,15 +2,8 @@
   <app-topbar></app-topbar>
 
   <div class="layout">
-    <aside class="sidebar">
-      <p class="sidebar-title">Navigation</p>
-      <a class="nav-item" routerLink="/dashboard-admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Vue d'ensemble</a>
-      <a class="nav-item" routerLink="/admin/utilisateurs" routerLinkActive="active">Utilisateurs</a>
-      <a class="nav-item" href="javascript:void(0)">Dossiers</a>
-      <a class="nav-item" href="javascript:void(0)">Réclamations</a>
-      <a class="nav-item" href="javascript:void(0)">Publications</a>
-      <a class="nav-item" routerLink="/admin/profile" routerLinkActive="active">Profile</a>
-      <a class="nav-item" href="javascript:void(0)">Paramètres</a>
+    <aside >
+      <app-side-admin></app-side-admin>
     </aside>
 
     <main class="content">

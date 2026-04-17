@@ -39,6 +39,8 @@ import { DashboardAdminComponent } from './Admin/dashboard-admin/dashboard-admin
 import { UtilisateursAdminComponent } from './Admin/utilisateurs-admin/utilisateurs-admin.component';
 import { ProfileAdminComponent } from './Admin/profile-admin/profile-admin.component';
 import { TopbarComponent } from './Admin/topbar-admin/topbar.component';
+import { ImmatriculationAdminComponent } from './Admin/immatriculation-admin/immatriculation-admin.component';
+import { SideAdminComponent } from './Admin/side-admin/side-admin.component';
 
 
 @NgModule({
@@ -71,7 +73,9 @@ import { TopbarComponent } from './Admin/topbar-admin/topbar.component';
     AgentProfileComponent,
     DashboardAdminComponent,
     UtilisateursAdminComponent,
-    TopbarComponent
+    TopbarComponent,
+    ImmatriculationAdminComponent,
+    SideAdminComponent
     
 
 

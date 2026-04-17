@@ -1,0 +1,37 @@
+<aside class="sidebar">
+  <p class="sidebar-title">Navigation</p>
+  <a class="nav-item" routerLink="/dashboard-admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+    <i class="fa-solid fa-chart-line"></i>
+    Vue d'ensemble
+  </a>
+  <a class="nav-item" routerLink="/admin/utilisateurs" routerLinkActive="active">
+    <i class="fa-solid fa-users"></i>
+    Utilisateurs
+  </a>
+  <a class="nav-item" routerLink="/admin/immatriculations" routerLinkActive="active">
+    <i class="fa-solid fa-building"></i>
+    Dossiers d'Immatriculation
+  </a>
+  <a class="nav-item" href="javascript:void(0)">
+    <i class="fa-solid fa-exclamation-triangle"></i>
+    Réclamations
+  </a>
+  <a class="nav-item" href="javascript:void(0)">
+    <i class="fa-solid fa-newspaper"></i>
+    Publications
+  </a>
+  <a class="nav-item" routerLink="/admin/profile" routerLinkActive="active">
+    <i class="fa-solid fa-user-circle"></i>
+    Profile
+  </a>
+  <a class="nav-item" href="javascript:void(0)">
+    <i class="fa-solid fa-cog"></i>
+    Paramètres
+  </a>
+  
+  <div class="sidebar-card">
+    <h3>Statut système</h3>
+    <p>Tous les services sont opérationnels.</p>
+    <span class="status-pill">Uptime: 99.98%</span>
+  </div>
+</aside>
