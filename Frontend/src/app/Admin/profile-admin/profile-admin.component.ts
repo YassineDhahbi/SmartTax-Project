@@ -197,12 +197,21 @@ export class ProfileAdminComponent implements OnInit {
   }
 
   getRoleDisplayName(role: string): string {
-    const roleMap: { [key: string]: string } = {
-      'ADMIN': 'Administrateur',
-      'AGENT': 'Agent',
-      'CONTRIBUABLE': 'Contribuable'
-    };
-    return roleMap[role] || role;
+    switch (role) {
+      case 'ROLE_ADMIN':
+        return 'Administrateur';
+      case 'ROLE_AGENT':
+        return 'Agent DGI';
+      default:
+        return role;
+    }
+  }
+
+  getInitials(firstName: string, lastName: string): string {
+    if (!firstName && !lastName) return 'AD';
+    if (!firstName) return (lastName || '').charAt(0).toUpperCase();
+    if (!lastName) return (firstName || '').charAt(0).toUpperCase();
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
   }
 
   getStatusDisplayName(status: string): string {
@@ -221,5 +230,10 @@ export class ProfileAdminComponent implements OnInit {
       month: '2-digit',
       year: 'numeric'
     });
+  }
+
+  logout(): void {
+    localStorage.removeItem('token');
+    this.router.navigate(['/login']);
   }
 }

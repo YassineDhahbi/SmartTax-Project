@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
+import { NgChartsModule } from 'ng2-charts';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './components/home/home.component';
 import { AboutComponent } from './components/about/about.component';
@@ -37,6 +38,7 @@ import { AgentProfileComponent } from './AgentDGI/agent-profile/agent-profile.co
 import { DashboardAdminComponent } from './Admin/dashboard-admin/dashboard-admin.component';
 import { UtilisateursAdminComponent } from './Admin/utilisateurs-admin/utilisateurs-admin.component';
 import { ProfileAdminComponent } from './Admin/profile-admin/profile-admin.component';
+import { TopbarComponent } from './Admin/topbar-admin/topbar.component';
 
 
 @NgModule({
@@ -68,7 +70,9 @@ import { ProfileAdminComponent } from './Admin/profile-admin/profile-admin.compo
     TrashViewComponent,
     AgentProfileComponent,
     DashboardAdminComponent,
-    UtilisateursAdminComponent
+    UtilisateursAdminComponent,
+    TopbarComponent
+    
 
 
   ],
@@ -78,7 +82,8 @@ import { ProfileAdminComponent } from './Admin/profile-admin/profile-admin.compo
     ReactiveFormsModule, // Add this to imports
     HttpClientModule, // Add this to imports
     FormsModule, BrowserAnimationsModule,
-    ProfileAdminComponent
+    ProfileAdminComponent,
+    NgChartsModule
   ],
   providers: [
     ReclamationService,

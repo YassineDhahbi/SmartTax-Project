@@ -17,12 +17,20 @@
         <span class="notification-dot"></span>
       </div>
       <div class="admin-profile">
-        <img [src]="currentUser?.photo || 'assets/img/default-avatar.png'" [alt]="currentUser?.firstName">
+        <div class="admin-avatar" *ngIf="!currentUser?.photo">
+          {{ getInitials(currentUser?.firstName, currentUser?.lastName) }}
+        </div>
+        <img *ngIf="currentUser?.photo" 
+             [src]="currentUser?.photo" 
+             [alt]="currentUser?.firstName"
+             class="admin-photo">
         <div class="admin-info">
           <span class="admin-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
           <span class="admin-role">{{ getRoleDisplayName(currentUser?.role) }}</span>
         </div>
-        <i class="fa-solid fa-chevron-down"></i>
+        <button class="logout-btn" (click)="logout()" title="Déconnexion">
+          <i class="fa-solid fa-sign-out-alt"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -74,24 +82,20 @@
         <div class="profile-sidebar">
           <div class="profile-photo-section">
             <div class="photo-container">
-              <img [src]="imagePreview || 'assets/img/default-avatar.png'" 
-                   [alt]="currentUser?.firstName" 
-                   class="profile-photo">
-              <div class="photo-overlay">
-                <i class="fa-solid fa-camera"></i>
-                <span>Changer la photo</span>
+              <div class="profile-avatar" *ngIf="!currentUser?.photo && !imagePreview">
+                {{ getInitials(currentUser?.firstName, currentUser?.lastName) }}
               </div>
+              <img [src]="imagePreview || currentUser?.photo" 
+                   [alt]="currentUser?.firstName" 
+                   class="profile-photo"
+                   *ngIf="currentUser?.photo || imagePreview">
+          
               <input type="file" 
                      accept="image/*" 
                      (change)="onFileSelected($event)"
                      class="photo-input">
             </div>
-            <button class="btn btn--primary btn--sm" 
-                    (click)="uploadPhoto()"
-                    [disabled]="!selectedFile || loading">
-              <i class="fa-solid fa-upload"></i>
-              Télécharger
-            </button>
+      
           </div>
 
           <div class="profile-info-card">

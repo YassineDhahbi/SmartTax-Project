@@ -137,11 +137,28 @@
   background: rgba(56, 189, 248, 0.1);
 }
 
-.admin-profile img {
+.admin-profile img,
+.admin-photo {
   width: 36px;
   height: 36px;
   border-radius: 8px;
   object-fit: cover;
+}
+
+.admin-avatar,
+.profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #22d3ee, #2563eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .admin-info {
@@ -163,6 +180,30 @@
 .admin-profile i {
   color: #64748b;
   font-size: 12px;
+}
+
+.logout-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+.logout-btn i {
+  font-size: 16px;
 }
 
 .layout {
@@ -326,6 +367,22 @@
   object-fit: cover;
   border: 4px solid rgba(56, 189, 248, 0.3);
   border-radius: 50%;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  border: 4px solid rgba(56, 189, 248, 0.3);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22d3ee, #2563eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 48px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .photo-overlay {

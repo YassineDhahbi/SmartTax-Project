@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Utilisateur } from 'src/app/models/utilisateur';
 import { UserService } from 'src/app/services/user/user.service';
+import { ChartOptions, ChartType, ChartData } from 'chart.js';
 
 interface UserStatCard {
   title: string;
@@ -35,17 +37,118 @@ export class UtilisateursAdminComponent implements OnInit {
   totalPages = 0;
   paginationPages: number[] = [];
 
+  // Propriétés pour les statistiques totales
+  totalActiveUsers = 0;
+  totalAdminUsers = 0;
+  totalAgentUsers = 0;
+
+  // Propriétés pour les graphiques
+  monthlyInscriptionsData: ChartData<'bar'> = {
+    labels: [],
+    datasets: [{
+      label: 'Inscriptions',
+      data: [],
+      backgroundColor: 'rgba(34, 211, 238, 0.6)',
+      borderColor: 'rgba(34, 211, 238, 1)',
+      borderWidth: 2,
+      borderRadius: 8
+    }]
+  };
+
+  roleDistributionData: ChartData<'doughnut'> = {
+    labels: ['Contribuables', 'Agents DGI', 'Admins'],
+    datasets: [{
+      data: [0, 0, 0],
+      backgroundColor: [
+        'rgba(34, 211, 238, 0.8)',
+        'rgba(16, 185, 129, 0.8)',
+        'rgba(251, 146, 60, 0.8)'
+      ],
+      borderColor: [
+        'rgba(34, 211, 238, 1)',
+        'rgba(16, 185, 129, 1)',
+        'rgba(251, 146, 60, 1)'
+      ],
+      borderWidth: 2
+    }]
+  };
+
+  barChartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      },
+      title: {
+        display: true,
+        text: 'Inscriptions par mois',
+        color: '#e5e7eb',
+        font: {
+          size: 16,
+          weight: 'bold'
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(148, 163, 184, 0.2)'
+        },
+        ticks: {
+          color: '#94a3b8'
+        }
+      },
+      x: {
+        grid: {
+          color: 'rgba(148, 163, 184, 0.2)'
+        },
+        ticks: {
+          color: '#94a3b8'
+        }
+      }
+    }
+  };
+
+  doughnutChartOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#e5e7eb',
+          padding: 20,
+          font: {
+            size: 12
+          }
+        }
+      },
+      title: {
+        display: true,
+        text: 'Répartition des rôles',
+        color: '#e5e7eb',
+        font: {
+          size: 16,
+          weight: 'bold'
+        }
+      }
+    }
+  };
+
   selectedUser: Utilisateur | null = null;
   showDetailsModal = false;
   showEditModal = false;
   showImageModal = false;
   showAddUserModal = false;
   showDeleteModal = false;
+  isStatsModalOpen = false;
   userToDelete: Utilisateur | null = null;
   editForm: FormGroup;
   addUserForm: FormGroup;
 
-  constructor(private userService: UserService, private fb: FormBuilder) {
+  constructor(private userService: UserService, private fb: FormBuilder, private router: Router) {
     this.editForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
@@ -66,6 +169,7 @@ export class UtilisateursAdminComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUsers();
+    this.loadAllUsersForStats();
   }
 
   loadUsers(): void {
@@ -77,7 +181,7 @@ export class UtilisateursAdminComponent implements OnInit {
         this.users = response.users;
         this.totalItems = response.total;
         this.calculateTotalPages();
-        this.updateStats(response.users);
+        this.updateStats();
         this.applyFilter();
         this.loading = false;
       },
@@ -364,11 +468,10 @@ export class UtilisateursAdminComponent implements OnInit {
     };
 
     this.userService.createUser(newUser).subscribe({
-      next: (response) => {
-        this.showAddUserModal = false;
+      next: () => {
+        this.closeAddUserModal();
         this.loadUsers();
-        // Afficher un message de succès (vous pourriez ajouter un toast ici)
-        console.log('Utilisateur créé avec succès:', response);
+        this.loadAllUsersForStats();
       },
       error: (error) => {
         console.error('Erreur lors de la création de l\'utilisateur:', error);
@@ -405,6 +508,7 @@ export class UtilisateursAdminComponent implements OnInit {
         this.showEditModal = false;
         this.selectedUser = null;
         this.loadUsers();
+        this.loadAllUsersForStats();
       },
       error: (err) => {
         this.errorMessage = err?.message || 'Échec de la mise à jour de l\'utilisateur.';
@@ -438,6 +542,7 @@ export class UtilisateursAdminComponent implements OnInit {
         this.showDeleteModal = false;
         this.userToDelete = null;
         this.loadUsers();
+        this.loadAllUsersForStats();
       },
       error: (err) => {
         this.errorMessage = err?.message || 'Échec de la suppression de l\'utilisateur.';
@@ -446,15 +551,91 @@ export class UtilisateursAdminComponent implements OnInit {
     });
   }
 
-  
-  private updateStats(data: Utilisateur[]): void {
-    const total = data.length;
-    const active = data.filter((user) => {
-      const status = (user.status || '').toLowerCase();
-      return status === 'actif' || status === 'active';
-    }).length;
-    const admins = data.filter((user) => (user.role || '').toUpperCase() === 'ADMIN').length;
-    const agents = data.filter((user) => (user.role || '').toUpperCase() === 'AGENT').length;
+  private loadAllUsersForStats(): void {
+    this.userService.getAllUtilisateurs().subscribe({
+      next: (users) => {
+
+        this.totalActiveUsers =
+          users.filter(x => x.status === 'actif').length;
+        this.totalAdminUsers =
+          users.filter(x => x.role === 'ADMIN').length;
+        this.totalAgentUsers =
+          users.filter(x => x.role === 'AGENT').length;
+
+        this.generateChartData(users);
+        this.updateStats();
+      },
+      error: (error: any) => {
+        console.error('Erreur lors du chargement des statistiques:', error);
+      }
+    });
+  }
+
+  generateChartData(users: Utilisateur[]): void {
+    // Générer les données pour le graphique des inscriptions par mois
+    this.generateMonthlyInscriptionsData(users);
+    
+    // Générer les données pour le graphique de répartition des rôles
+    this.generateRoleDistributionData(users);
+  }
+
+  generateMonthlyInscriptionsData(users: Utilisateur[]): void {
+    const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const currentYear = new Date().getFullYear();
+    const monthlyCounts = new Array(12).fill(0);
+
+    users.forEach(user => {
+      if (user.dateInscription) {
+        const inscriptionDate = new Date(user.dateInscription);
+        if (inscriptionDate.getFullYear() === currentYear) {
+          const month = inscriptionDate.getMonth();
+          monthlyCounts[month]++;
+        }
+      }
+    });
+
+    this.monthlyInscriptionsData = {
+      labels: monthNames,
+      datasets: [{
+        label: 'Inscriptions',
+        data: monthlyCounts,
+        backgroundColor: 'rgba(34, 211, 238, 0.6)',
+        borderColor: 'rgba(34, 211, 238, 1)',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    };
+  }
+
+  generateRoleDistributionData(users: Utilisateur[]): void {
+    const contribuableCount = users.filter(x => x.role === 'CONTRIBUABLE').length;
+    const agentCount = users.filter(x => x.role === 'AGENT').length;
+    const adminCount = users.filter(x => x.role === 'ADMIN').length;
+
+    this.roleDistributionData = {
+      labels: ['Contribuables', 'Agents DGI', 'Admins'],
+      datasets: [{
+        data: [contribuableCount, agentCount, adminCount],
+        backgroundColor: [
+          'rgba(34, 211, 238, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(251, 146, 60, 0.8)'
+        ],
+        borderColor: [
+          'rgba(34, 211, 238, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(251, 146, 60, 1)'
+        ],
+        borderWidth: 2
+      }]
+    };
+  }
+
+  private updateStats(): void {
+    const total = this.totalItems;
+    const active = this.totalActiveUsers;
+    const admins = this.totalAdminUsers;
+    const agents = this.totalAgentUsers;
 
     this.stats = [
       {
@@ -486,5 +667,42 @@ export class UtilisateursAdminComponent implements OnInit {
         trend: 'neutral'
       }
     ];
+  }
+
+  
+  showStatsModal(): void {
+    this.isStatsModalOpen = true;
+  }
+
+  closeStatsModal(): void {
+    this.isStatsModalOpen = false;
+  }
+
+  getStatIcon(title: string): string {
+    switch (title) {
+      case 'Total utilisateurs':
+        return 'fa-users';
+      case 'Comptes actifs':
+        return 'fa-user-check';
+      case 'Administrateurs':
+        return 'fa-user-shield';
+      case 'Agents DGI':
+        return 'fa-user-tie';
+      default:
+        return 'fa-chart-bar';
+    }
+  }
+
+  getTrendIcon(trend: string): string {
+    switch (trend) {
+      case 'up':
+        return 'fa-arrow-up';
+      case 'down':
+        return 'fa-arrow-down';
+      case 'neutral':
+        return 'fa-minus';
+      default:
+        return 'fa-minus';
+    }
   }
 }

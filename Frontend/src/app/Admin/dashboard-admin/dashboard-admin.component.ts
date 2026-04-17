@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 interface StatCard {
   title: string;
@@ -46,6 +47,8 @@ interface AlertItem {
   styleUrls: ['./dashboard-admin.component.css']
 })
 export class DashboardAdminComponent {
+  constructor(private router: Router) {}
+
   readonly stats: StatCard[] = [
     {
       title: 'Contribuables actifs',

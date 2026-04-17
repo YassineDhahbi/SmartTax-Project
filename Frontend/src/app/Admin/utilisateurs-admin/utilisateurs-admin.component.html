@@ -1,36 +1,5 @@
 <div class="admin-dashboard">
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">ST</div>
-      <div class="brand-text">
-        <h1>SmartTax Admin</h1>
-        <p>Panneau de supervision fiscale</p>
-      </div>
-    </div>
-
-    <div class="topbar-actions">
-      <button class="icon-btn">?</button>
-      <button class="icon-btn">?</button>
-      <div class="search-container">
-        <div class="search-box-modern">
-          <i class="fa-solid fa-search search-icon"></i>
-          <input
-            type="text"
-            class="search-input"
-            [value]="searchTerm"
-            (input)="onSearchChange($any($event.target).value)"
-            placeholder="Rechercher un utilisateur..."
-            autocomplete="off"
-          />
-          <button class="search-clear-btn" type="button" (click)="clearSearch()" *ngIf="searchTerm">
-            <i class="fa-solid fa-times"></i>
-          </button>
-        </div>
-      </div>
-      <button class="btn ghost" type="button" (click)="loadUsers()">Actualiser</button>
-      <div class="avatar">AD</div>
-    </div>
-  </header>
+  <app-topbar></app-topbar>
 
   <div class="layout">
     <aside class="sidebar">
@@ -64,6 +33,10 @@
             <button class="add-user-btn" type="button" (click)="openAddUserModal()">
               <i class="fa-solid fa-user-plus"></i>
               <span>Ajouter un utilisateur</span>
+            </button>
+            <button class="stats-btn" type="button" (click)="showStatsModal()">
+              <i class="fa-solid fa-chart-bar"></i>
+              <span>Statistiques</span>
             </button>
           </div>
         </div>
@@ -516,6 +489,52 @@
       <button type="button" class="modal-btn" (click)="closeDeleteModal()">
         <i class="fa-solid fa-times"></i>
         Annuler
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal des statistiques -->
+<div class="modal-overlay" *ngIf="isStatsModalOpen">
+  <div class="modal-stats">
+    <div class="modal-header--stats">
+      <h4>
+        <i class="fa-solid fa-chart-bar"></i>
+        Statistiques des utilisateurs
+      </h4>
+      <button class="modal-close" (click)="closeStatsModal()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="charts-container">
+        <!-- Bar Chart - Inscriptions par mois -->
+        <div class="chart-section">
+          <div class="chart-wrapper">
+            <canvas 
+                     baseChart
+                     [data]="monthlyInscriptionsData" 
+                     [options]="barChartOptions">
+            </canvas>
+          </div>
+        </div>
+
+        <!-- Doughnut Chart - Répartition des rôles -->
+        <div class="chart-section">
+          <div class="chart-wrapper">
+            <canvas 
+                     baseChart
+                     [data]="roleDistributionData" 
+                     [options]="doughnutChartOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer--stats">
+      <button class="btn-primary" (click)="closeStatsModal()">
+        <i class="fa-solid fa-check"></i>
+        Fermer
       </button>
     </div>
   </div>
