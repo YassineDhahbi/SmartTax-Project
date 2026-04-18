@@ -136,7 +136,7 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
                       <button class="btn-icon btn-edit" (click)="editImmatriculation(immatriculation)" title="Modifier">
-                        <i class="fa-solid fa-edit"></i>
+                        <i class="fa-solid fa-file-pdf"></i>
                       </button>
                       <button class="btn-icon btn-delete" (click)="deleteImmatriculation(immatriculation)" title="Supprimer">
                         <i class="fa-solid fa-trash"></i>
@@ -259,10 +259,6 @@
             <label>Email</label>
             <span>{{ selectedImmatriculation.email }}</span>
           </div>
-          <div class="detail-item">
-            <label>Activité</label>
-            <span>{{ selectedImmatriculation.activite }}</span>
-          </div>
         </div>
       </div>
 
@@ -270,24 +266,8 @@
         <h4 class="section-title">Identifiants fiscaux</h4>
         <div class="details-grid">
           <div class="detail-item">
-            <label>Matricule fiscal</label>
-            <span>{{ selectedImmatriculation.matriculeFiscal }}</span>
-          </div>
-          <div class="detail-item">
-            <label>Identifiant fiscal</label>
-            <span>{{ selectedImmatriculation.identifiantFiscal }}</span>
-          </div>
-          <div class="detail-item">
             <label>Registre de commerce</label>
             <span>{{ selectedImmatriculation.registreCommerce }}</span>
-          </div>
-          <div class="detail-item">
-            <label>CNSS</label>
-            <span>{{ selectedImmatriculation.cnss }}</span>
-          </div>
-          <div class="detail-item">
-            <label>NIS</label>
-            <span>{{ selectedImmatriculation.nis }}</span>
           </div>
         </div>
       </div>
@@ -510,9 +490,32 @@
         <i class="fa-solid fa-times"></i>
         Fermer
       </button>
-      <button class="modal-btn modal-btn--primary" (click)="editImmatriculation(selectedImmatriculation)">
-        <i class="fa-solid fa-edit"></i>
-        Modifier
+      <button class="modal-btn modal-btn--primary" (click)="printImmatriculationDetails()">
+        <i class="fa-solid fa-print"></i>
+        Imprimer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour afficher les images en grand taille -->
+<div class="image-modal-overlay" *ngIf="showImageModal" (click)="closeImageModal()">
+  <div class="image-modal" (click)="$event.stopPropagation()">
+    <div class="image-modal-header">
+      <h4>{{ imageModalTitle }}</h4>
+      <button class="image-modal-close" (click)="closeImageModal()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="image-modal-body">
+      <img [src]="imageModalUrl" [alt]="imageModalTitle" class="image-modal-img" (error)="handleImageError($event)">
+    </div>
+    <div class="image-modal-footer">
+      <button class="btn btn-primary" (click)="downloadDocument(imageModalUrl, imageModalTitle)">
+        <i class="fa-solid fa-download"></i> Télécharger
+      </button>
+      <button class="btn btn-secondary" (click)="closeImageModal()">
+        <i class="fa-solid fa-times"></i> Fermer
       </button>
     </div>
   </div>

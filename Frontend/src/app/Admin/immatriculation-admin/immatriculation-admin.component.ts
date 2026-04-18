@@ -2,6 +2,8 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ImmatriculationService } from '../../services/immatriculation.service';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-immatriculation-admin',
@@ -34,6 +36,9 @@ export class ImmatriculationAdminComponent implements OnInit {
   
   selectedImmatriculation: any = null;
   showDetailsModal = false;
+  showImageModal = false;
+  imageModalUrl = '';
+  imageModalTitle = '';
 
   constructor(
     private router: Router,
@@ -261,7 +266,319 @@ export class ImmatriculationAdminComponent implements OnInit {
   }
 
   editImmatriculation(immatriculation: any): void {
-    console.log('Modification de l\'immatriculation:', immatriculation);
+    // Sélectionner l'immatriculation et télécharger le PDF
+    this.selectedImmatriculation = immatriculation;
+    this.downloadImmatriculationPDF();
+  }
+
+  downloadImmatriculationPDF(): void {
+    // Créer un élément HTML temporaire pour le contenu
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = this.generatePrintContent();
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-9999px';
+    tempDiv.style.top = '-9999px';
+    tempDiv.style.width = '800px';
+    tempDiv.style.padding = '20px';
+    tempDiv.style.backgroundColor = 'white';
+    tempDiv.style.fontFamily = 'Arial, sans-serif';
+    
+    document.body.appendChild(tempDiv);
+    
+    // Utiliser html2canvas pour capturer le contenu
+    html2canvas(tempDiv, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true
+    }).then(canvas => {
+      // Créer un PDF avec jsPDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Calculer les dimensions pour adapter au format A4
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
+      
+      // Ajouter l'image au PDF
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      
+      // Télécharger le PDF
+      const fileName = `Immatriculation_${this.selectedImmatriculation?.dossierNumber || 'unknown'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+      // Nettoyer l'élément temporaire
+      document.body.removeChild(tempDiv);
+    }).catch(error => {
+      console.error('Erreur lors de la génération du PDF:', error);
+      document.body.removeChild(tempDiv);
+      // En cas d'erreur, revenir à l'ancienne méthode
+      this.fallbackPDFDownload();
+    });
+  }
+
+  private fallbackPDFDownload(): void {
+    // Méthode de secours si html2canvas échoue
+    const printContent = this.generatePrintContent();
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          setTimeout(() => {
+            printWindow.close();
+          }, 1000);
+        }, 500);
+      };
+    }
+  }
+
+  printImmatriculationDetails(): void {
+    // Créer une fenêtre d'impression avec les détails de l'immatriculation
+    const printContent = this.generatePrintContent();
+    const printWindow = window.open('', '_blank');
+    
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      
+      // Attendre que le contenu soit chargé avant d'imprimer
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+    }
+  }
+
+  private generatePrintContent(): string {
+    const immatriculation = this.selectedImmatriculation;
+    if (!immatriculation) return '';
+
+    const formatDate = (date: string) => new Date(date).toLocaleDateString('fr-TN');
+    const formatAdresse = () => {
+      const parts = [
+        immatriculation.adresse,
+        immatriculation.ville,
+        immatriculation.codePostal,
+        immatriculation.pays
+      ].filter(part => part && part.trim() !== '');
+      return parts.length > 0 ? parts.join(', ') : 'N/A';
+    };
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Détails de l'Immatriculation - ${immatriculation.dossierNumber}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .header h1 {
+            margin: 0;
+            color: #333;
+          }
+          .section {
+            margin-bottom: 30px;
+          }
+          .section h2 {
+            color: #333;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+          }
+          .info-item {
+            margin-bottom: 10px;
+          }
+          .info-item label {
+            font-weight: bold;
+            display: inline-block;
+            width: 150px;
+            color: #555;
+          }
+          .info-item span {
+            color: #333;
+          }
+          .full-width {
+            grid-column: 1 / -1;
+          }
+          .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+          }
+          @media print {
+            body { margin: 15px; }
+            .header { page-break-after: always; }
+            .section { page-break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Détails de l'Immatriculation</h1>
+          <p>Numéro dossier: ${immatriculation.dossierNumber}</p>
+          <p>Date d'impression: ${new Date().toLocaleDateString('fr-TN')}</p>
+        </div>
+
+        <div class="section">
+          <h2>Informations générales</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Numéro dossier:</label>
+              <span>${immatriculation.dossierNumber}</span>
+            </div>
+            <div class="info-item">
+              <label>Type contribuable:</label>
+              <span>${immatriculation.typeContribuable}</span>
+            </div>
+            <div class="info-item">
+              <label>Statut:</label>
+              <span>${immatriculation.status}</span>
+            </div>
+            <div class="info-item">
+              <label>Date de création:</label>
+              <span>${formatDate(immatriculation.dateCreation)}</span>
+            </div>
+            ${immatriculation.typeContribuable === 'PHYSIQUE' ? `
+              <div class="info-item">
+                <label>Nom:</label>
+                <span>${immatriculation.nom || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <label>Prénom:</label>
+                <span>${immatriculation.prenom || 'N/A'}</span>
+              </div>
+            ` : ''}
+            ${immatriculation.typeContribuable === 'MORALE' ? `
+              <div class="info-item">
+                <label>Raison sociale:</label>
+                <span>${immatriculation.raisonSociale || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <label>Forme juridique:</label>
+                <span>${immatriculation.formeJuridique || 'N/A'}</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Coordonnées</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Email:</label>
+              <span>${immatriculation.email || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <label>Téléphone:</label>
+              <span>${immatriculation.telephone || 'N/A'}</span>
+            </div>
+            <div class="info-item full-width">
+              <label>Adresse:</label>
+              <span>${formatAdresse()}</span>
+            </div>
+          </div>
+        </div>
+
+        ${immatriculation.typeContribuable === 'PHYSIQUE' ? `
+        <div class="section">
+          <h2>Informations personnelles</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>CIN:</label>
+              <span>${immatriculation.cin || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <label>Date de naissance:</label>
+              <span>${formatDate(immatriculation.dateNaissance)}</span>
+            </div>
+            <div class="info-item">
+              <label>Nationalité:</label>
+              <span>${immatriculation.nationalite || 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        ${immatriculation.typeContribuable === 'MORALE' ? `
+        <div class="section">
+          <h2>Informations entreprise</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Actionnaire principal:</label>
+              <span>${immatriculation.actionnaire || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <label>Représentant légal:</label>
+              <span>${immatriculation.representantLegal || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <label>Registre de commerce:</label>
+              <span>${immatriculation.registreCommerce || 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        <div class="section">
+          <h2>Informations professionnelles</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Type d'activité:</label>
+              <span>${immatriculation.typeActivite || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <label>Secteur:</label>
+              <span>${immatriculation.secteur || 'N/A'}</span>
+            </div>
+            <div class="info-item full-width">
+              <label>Adresse professionnelle:</label>
+              <span>${immatriculation.adresseProfessionnelle || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <label>Date début d'activité:</label>
+              <span>${formatDate(immatriculation.dateDebutActivite)}</span>
+            </div>
+            <div class="info-item full-width">
+              <label>Description de l'activité:</label>
+              <span>${immatriculation.descriptionActivite || 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+
+       
+
+        <div class="footer">
+          <p>Document généré par SmartTax - Système de Gestion Fiscale</p>
+        </div>
+      </body>
+      </html>
+    `;
   }
 
   deleteImmatriculation(immatriculation: any): void {
@@ -270,7 +587,16 @@ export class ImmatriculationAdminComponent implements OnInit {
 
   // Méthodes pour gérer les documents
   viewDocument(fileUrl: string, title: string): void {
-    window.open(fileUrl, '_blank');
+    this.imageModalUrl = fileUrl;
+    this.imageModalTitle = title;
+    this.showImageModal = true;
+  }
+
+  // Méthode pour fermer le modal d'image
+  closeImageModal(): void {
+    this.showImageModal = false;
+    this.imageModalUrl = '';
+    this.imageModalTitle = '';
   }
 
   downloadDocument(fileUrl: string, filename: string): void {
