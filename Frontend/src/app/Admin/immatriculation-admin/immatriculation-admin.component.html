@@ -55,10 +55,11 @@
                   <i class="fa-solid fa-filter"></i>
                   Filtres avancés
                 </button>
-                <button class="search-export-btn" (click)="exportImmatriculations()">
-                  <i class="fa-solid fa-file-export"></i>
-                  Exporter
+                <button class="search-filter-btn btn-trash" (click)="openTrashModal()">
+                  <i class="fa-solid fa-trash"></i>
+                  Corbeille
                 </button>
+                
               </div>
             </div>
 
@@ -68,7 +69,7 @@
                 <select class="filter-select" [(ngModel)]="selectedStatut" (change)="onStatutFilterChange(selectedStatut)">
                   <option value="ALL">Tous les statuts</option>
                   <option value="VALIDATED">Validé</option>
-                  <option value="PENDING">En attente</option>
+                  <option value="PENDING">En cours de vérification</option>
                   <option value="REJECTED">Rejeté</option>
                 </select>
               </div>

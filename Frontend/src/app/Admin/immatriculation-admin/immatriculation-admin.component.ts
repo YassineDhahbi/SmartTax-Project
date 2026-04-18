@@ -167,9 +167,12 @@ export class ImmatriculationAdminComponent implements OnInit {
   applyFilter(): void {
     let filtered = this.immatriculations;
 
-    // Filtrer par statut
+    // Filtrer par statut avec logique de nettoyage
     if (this.selectedStatut !== 'ALL') {
-      filtered = filtered.filter(i => i.status === this.selectedStatut);
+      filtered = filtered.filter(i => {
+        const cleanStatus = i.status ? i.status.trim().toUpperCase() : '';
+        return this.matchesStatut(cleanStatus, this.selectedStatut);
+      });
     }
 
     // Filtrer par type contribuable
@@ -237,6 +240,24 @@ export class ImmatriculationAdminComponent implements OnInit {
     }
   }
 
+  private matchesStatut(status: string, filterValue: string): boolean {
+    const cleanStatus = status ? status.trim().toUpperCase() : '';
+    const cleanFilter = filterValue ? filterValue.trim().toUpperCase() : '';
+    
+    switch (cleanFilter) {
+      case 'VALIDATED':
+        return ['VALIDATED', 'VALIDÉ', 'VALIDE', 'APPROUVED', 'ACCEPTED'].includes(cleanStatus);
+      case 'REJECTED':
+        return ['REJECTED', 'REJETE', 'REJETÉ', 'DECLINED', 'REFUSED'].includes(cleanStatus);
+      case 'PENDING':
+        return ['PENDING', 'EN ATTENTE', 'WAITING', 'PENDING_APPROVAL', 'EN_COURS_VERIFICATION'].includes(cleanStatus);
+      case 'EN_COURS_VERIFICATION':
+        return ['EN_COURS_VERIFICATION', 'VERIFICATION', 'VERIFYING', 'IN_PROGRESS', 'EN COURS'].includes(cleanStatus);
+      default:
+        return cleanStatus === cleanFilter;
+    }
+  }
+
   getFormeJuridiqueBadgeClass(type: string): string {
     switch (type) {
       case 'MORALE': return 'forme-sa';
@@ -263,6 +284,11 @@ export class ImmatriculationAdminComponent implements OnInit {
 
   exportImmatriculations(): void {
     console.log('Exportation des immatriculations...');
+  }
+
+  openTrashModal(): void {
+    console.log('Ouverture du modal de corbeille');
+    // TODO: Implémenter le modal de corbeille pour afficher les immatriculations supprimées
   }
 
   editImmatriculation(immatriculation: any): void {
