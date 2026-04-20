@@ -23,14 +23,11 @@
             <p>Liste complète des entreprises enregistrées dans la base de données.</p>
           </div>
           <div class="panel-actions">
-            <button class="btn-primary">
-              <i class="fa-solid fa-plus"></i>
-              Nouvelle immatriculation
+            <button class="btn-primary" (click)="openStatisticsModal()">
+              <i class="fa-solid fa-chart-bar"></i>
+              Statistiques
             </button>
-            <button class="btn-secondary">
-              <i class="fa-solid fa-download"></i>
-              Exporter
-            </button>
+          
           </div>
         </div>
 
@@ -630,6 +627,52 @@
     </div>
     <div class="modal-footer">
       <button class="modal-btn modal-btn--primary" (click)="closeRejectionReasonModal()">
+        <i class="fa-solid fa-check"></i>
+        Fermer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal des statistiques -->
+<div class="modal-overlay" *ngIf="showStatisticsModal" (click)="closeStatisticsModal()">
+  <div class="modal-card modal-statistics" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <i class="fa-solid fa-chart-bar" style="color: #2563eb;"></i>
+      </div>
+      <h3>Statistiques des Immatriculations</h3>
+      <button class="modal-close" (click)="closeStatisticsModal()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Cartes de statistiques -->
+      <div class="stats-overview">
+        
+     
+       
+      </div>
+
+      <!-- Graphiques -->
+      <div class="charts-container">
+        <div class="chart-section">
+          <h4>Évolution des statuts</h4>
+          <div class="chart-wrapper">
+            <canvas id="barChart" width="400" height="200"></canvas>
+          </div>
+        </div>
+        
+        <div class="chart-section">
+          <h4>Répartition des statuts</h4>
+          <div class="chart-wrapper">
+            <canvas id="pieChart" width="200" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn--primary" (click)="closeStatisticsModal()">
         <i class="fa-solid fa-check"></i>
         Fermer
       </button>

@@ -5,6 +5,7 @@ import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { Chart } from 'chart.js/auto';
 
 @Component({
   selector: 'app-immatriculation-admin',
@@ -54,6 +55,15 @@ export class ImmatriculationAdminComponent implements OnInit {
   // View rejection reason properties
   showRejectionReasonModal = false;
   rejectionReasonToView: string = '';
+  
+  // Statistics modal properties
+  showStatisticsModal = false;
+  statistics = {
+    total: 0,
+    valides: 0,
+    rejetes: 0,
+    enCours: 0
+  };
 
   constructor(
     private router: Router,
@@ -821,6 +831,144 @@ export class ImmatriculationAdminComponent implements OnInit {
   closeRejectionReasonModal(): void {
     this.showRejectionReasonModal = false;
     this.rejectionReasonToView = '';
+  }
+
+  // ==================== STATISTIQUES MODAL ====================
+  
+  openStatisticsModal(): void {
+    this.calculateStatistics();
+    this.showStatisticsModal = true;
+    
+    // Attendre que le modal soit affiché pour créer les graphiques
+    setTimeout(() => {
+      this.createCharts();
+    }, 100);
+  }
+
+  closeStatisticsModal(): void {
+    this.showStatisticsModal = false;
+  }
+
+  calculateStatistics(): void {
+    this.statistics = {
+      total: this.immatriculations.length,
+      valides: this.immatriculations.filter(i => i.status === 'VALIDE').length,
+      rejetes: this.immatriculations.filter(i => i.status === 'REJETE').length,
+      enCours: this.immatriculations.filter(i => i.status === 'EN_COURS_VERIFICATION').length
+    };
+  }
+
+  createCharts(): void {
+    this.createBarChart();
+    this.createPieChart();
+  }
+
+  private createBarChart(): void {
+    const canvas = document.getElementById('barChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Créer le graphique en barres
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Total', 'Validées', 'Rejetées', 'En cours'],
+        datasets: [{
+          label: 'Nombre d\'immatriculations',
+          data: [this.statistics.total, this.statistics.valides, this.statistics.rejetes, this.statistics.enCours],
+          backgroundColor: [
+            'rgba(37, 99, 235, 0.8)',
+            'rgba(34, 197, 94, 0.8)',
+            'rgba(239, 68, 68, 0.8)',
+            'rgba(245, 158, 11, 0.8)'
+          ],
+          borderColor: [
+            'rgba(37, 99, 235, 1)',
+            'rgba(34, 197, 94, 1)',
+            'rgba(239, 68, 68, 1)',
+            'rgba(245, 158, 11, 1)'
+          ],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              color: '#e5e7eb'
+            },
+            grid: {
+              color: 'rgba(148, 163, 184, 0.1)'
+            }
+          },
+          x: {
+            ticks: {
+              color: '#e5e7eb'
+            },
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+  }
+
+  private createPieChart(): void {
+    const canvas = document.getElementById('pieChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Créer le graphique circulaire
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Validées', 'Rejetées', 'En cours'],
+        datasets: [{
+          data: [this.statistics.valides, this.statistics.rejetes, this.statistics.enCours],
+          backgroundColor: [
+            'rgba(34, 197, 94, 0.8)',
+            'rgba(239, 68, 68, 0.8)',
+            'rgba(245, 158, 11, 0.8)'
+          ],
+          borderColor: [
+            'rgba(34, 197, 94, 1)',
+            'rgba(239, 68, 68, 1)',
+            'rgba(245, 158, 11, 1)'
+          ],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#e5e7eb',
+              padding: 20,
+              font: {
+                size: 12
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
   showNotification(message: string, type: 'success' | 'error' | 'warning' | 'info'): void {
