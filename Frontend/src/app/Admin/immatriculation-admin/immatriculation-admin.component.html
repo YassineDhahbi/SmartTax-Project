@@ -487,13 +487,147 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="modal-btn modal-btn--secondary" (click)="closeImmatriculationDetails()">
+      <div class="modal-footer-section">
+        <div class="modal-footer-left">
+          <button class="modal-btn modal-btn--secondary" (click)="closeImmatriculationDetails()">
+            <i class="fa-solid fa-times"></i>
+            Fermer
+          </button>
+          <button class="modal-btn modal-btn--primary" (click)="printImmatriculationDetails()">
+            <i class="fa-solid fa-print"></i>
+            Imprimer
+          </button>
+        </div>
+        
+        <!-- Boutons d'action pour l'admin (uniquement si statut EN_COURS_VERIFICATION) -->
+        <div class="modal-footer-right" *ngIf="selectedImmatriculation.status === 'EN_COURS_VERIFICATION'">
+          <button class="modal-btn modal-btn--success" (click)="validateImmatriculation()">
+            <i class="fa-solid fa-check"></i>
+            Valider
+          </button>
+          <button class="modal-btn modal-btn--danger" (click)="openRejectModal()">
+            <i class="fa-solid fa-times"></i>
+            Rejeter
+          </button>
+        </div>
+        
+        <!-- Boutons pour les immatriculations rejetées -->
+        <div class="modal-footer-right" *ngIf="selectedImmatriculation.status === 'REJETE'">
+          <button class="modal-btn modal-btn--info" (click)="viewRejectionReason(selectedImmatriculation)">
+            <i class="fa-solid fa-info-circle"></i>
+            Voir la raison
+          </button>
+          <button class="modal-btn modal-btn--warning" (click)="resetToEnCoursVerification(selectedImmatriculation)">
+            <i class="fa-solid fa-undo"></i>
+            Remettre en cours
+          </button>
+        </div>
+        
+        <!-- Boutons pour les immatriculations validées -->
+        <div class="modal-footer-right" *ngIf="selectedImmatriculation.status === 'VALIDE'">
+          <button class="modal-btn modal-btn--warning" (click)="resetToEnCoursVerification(selectedImmatriculation)">
+            <i class="fa-solid fa-undo"></i>
+            Remettre en cours
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal-card modal-delete" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="fa-solid fa-exclamation-triangle" style="color: #f59e0b;"></i>
+        Confirmation de suppression
+      </h3>
+      <button class="modal-close" (click)="closeDeleteModal()">
         <i class="fa-solid fa-times"></i>
-        Fermer
       </button>
-      <button class="modal-btn modal-btn--primary" (click)="printImmatriculationDetails()">
-        <i class="fa-solid fa-print"></i>
-        Imprimer
+    </div>
+    <div class="modal-body">
+      <p>Êtes-vous sûr de vouloir déplacer cette immatriculation vers la corbeille ?</p>
+      <p><strong>N° dossier:</strong> {{ immatriculationToDelete?.dossierNumber || immatriculationToDelete?.id }}</p>
+      <p><strong>Type:</strong> {{ immatriculationToDelete?.typeContribuable }}</p>
+      <p><small>L'immatriculation sera supprimée définitivement dans 30 jours.</small></p>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn--secondary" (click)="closeDeleteModal()">
+        <i class="fa-solid fa-times"></i>
+        Annuler
+      </button>
+      <button class="modal-btn modal-btn--danger" (click)="confirmDelete()">
+        <i class="fa-solid fa-trash"></i>
+        Déplacer vers la corbeille
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de rejet -->
+<div class="modal-overlay" *ngIf="showRejectModal" (click)="closeRejectModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="fa-solid fa-times-circle" style="color: #ef4444;"></i>
+        Rejet de l'immatriculation
+      </h3>
+      <button class="modal-close" (click)="closeRejectModal()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Veuillez indiquer la raison du rejet :</p>
+      <div class="form-group">
+        <label for="rejectionReason">Raison du rejet</label>
+        <textarea 
+          id="rejectionReason" 
+          class="form-control" 
+          rows="4" 
+          placeholder="Veuillez spécifier la raison du rejet..."
+          [(ngModel)]="rejectionReason"
+        ></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn--secondary" (click)="closeRejectModal()">
+        <i class="fa-solid fa-times"></i>
+        Annuler
+      </button>
+      <button class="modal-btn modal-btn--danger" (click)="confirmReject()">
+        <i class="fa-solid fa-times"></i>
+        Rejeter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour afficher la raison de rejet -->
+<div class="modal-overlay" *ngIf="showRejectionReasonModal" (click)="closeRejectionReasonModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <i class="fa-solid fa-info-circle" style="color: #0ea5e9;"></i>
+      </div>
+      <h3>Raison de rejet</h3>
+      <button class="modal-close" (click)="closeRejectionReasonModal()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="rejection-reason-content">
+        <label>Motif du rejet</label>
+        <div class="rejection-reason-text">
+          {{ rejectionReasonToView }}
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn--primary" (click)="closeRejectionReasonModal()">
+        <i class="fa-solid fa-check"></i>
+        Fermer
       </button>
     </div>
   </div>

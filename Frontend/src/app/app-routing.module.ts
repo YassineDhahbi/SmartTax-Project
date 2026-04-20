@@ -43,7 +43,7 @@ const routes: Routes = [
   { path: 'admin/utilisateurs', component: UtilisateursAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'admin/immatriculations', component: ImmatriculationAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'admin/profile', component: ProfileAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
-  { path: 'trash', component: TrashViewComponent, canActivate: [AuthGuard], data: { roles: ['AGENT'] } },
+  { path: 'trash', component: TrashViewComponent, canActivate: [AuthGuard], data: { roles: ['AGENT', 'ADMIN'] } },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }
 ];

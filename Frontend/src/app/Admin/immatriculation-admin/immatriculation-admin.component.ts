@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ImmatriculationService } from '../../services/immatriculation.service';
+import { TrashService } from '../../services/trash.service';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -39,10 +40,25 @@ export class ImmatriculationAdminComponent implements OnInit {
   showImageModal = false;
   imageModalUrl = '';
   imageModalTitle = '';
+  
+  // Propriétés pour la gestion de la suppression
+  showDeleteModal = false;
+  immatriculationToDelete: any = null;
+  userName = 'admin'; // Nom d'utilisateur pour la corbeille
+  
+  // Propriétés pour la gestion du rejet
+  showRejectModal = false;
+  immatriculationToReject: any = null;
+  rejectionReason = '';
+  
+  // View rejection reason properties
+  showRejectionReasonModal = false;
+  rejectionReasonToView: string = '';
 
   constructor(
     private router: Router,
     private immatriculationService: ImmatriculationService,
+    private trashService: TrashService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -75,9 +91,9 @@ export class ImmatriculationAdminComponent implements OnInit {
 
   generateStats(): void {
     const total = this.immatriculations.length;
-    const actives = this.immatriculations.filter(i => i.status === 'VALIDATED').length;
-    const enAttente = this.immatriculations.filter(i => i.status === 'PENDING').length;
-    const morale = this.immatriculations.filter(i => i.typeContribuable === 'MORALE').length;
+    const actives = this.immatriculations.filter(i => i.status === 'VALIDE').length;
+    const enAttente = this.immatriculations.filter(i => i.status === 'REJETE').length;
+    const enCours = this.immatriculations.filter(i => i.status === 'EN_COURS_VERIFICATION').length;
 
     this.stats = [
       {
@@ -95,17 +111,17 @@ export class ImmatriculationAdminComponent implements OnInit {
         trend: 'up'
       },
       {
-        title: 'En attente',
+        title: 'Rejetées',
         value: enAttente.toString(),
-        subtitle: 'Dossiers en attente',
+        subtitle: 'Dossiers rejetés',
         delta: `-${Math.round((enAttente / total) * 100)}%`,
         trend: 'down'
       },
       {
-        title: 'Personne morale',
-        value: morale.toString(),
-        subtitle: 'Sociétés',
-        delta: `+${Math.round((morale / total) * 100)}%`,
+        title: 'Dossiers en cours',
+        value: enCours.toString(),
+        subtitle: 'En vérification',
+        delta: `+${Math.round((enCours / total) * 100)}%`,
         trend: 'up'
       }
     ];
@@ -287,8 +303,8 @@ export class ImmatriculationAdminComponent implements OnInit {
   }
 
   openTrashModal(): void {
-    console.log('Ouverture du modal de corbeille');
-    // TODO: Implémenter le modal de corbeille pour afficher les immatriculations supprimées
+    // Rediriger directement vers la page de corbeille
+    this.navigateToTrash();
   }
 
   editImmatriculation(immatriculation: any): void {
@@ -608,7 +624,257 @@ export class ImmatriculationAdminComponent implements OnInit {
   }
 
   deleteImmatriculation(immatriculation: any): void {
-    console.log('Suppression de l\'immatriculation:', immatriculation);
+    // Ouvrir le modal de confirmation au lieu de supprimer directement
+    this.immatriculationToDelete = immatriculation;
+    this.showDeleteModal = true;
+  }
+
+  confirmDelete(): void {
+    if (!this.immatriculationToDelete) return;
+    
+    // Déplacer vers la corbeille au lieu de supprimer définitivement
+    this.trashService.moveToTrash(this.immatriculationToDelete.id.toString(), this.userName || 'admin').subscribe({
+      next: () => {
+        // Supprimer localement
+        const index = this.immatriculations.findIndex(i => i.id === this.immatriculationToDelete.id);
+        if (index > -1) {
+          this.immatriculations.splice(index, 1);
+          this.applyFilter();
+        }
+        
+        // Fermer la modal
+        this.closeDeleteModal();
+        
+        // Afficher un message de succès
+        console.log('Immatriculation déplacée vers la corbeille. Elle sera supprimée définitivement dans 30 jours.');
+        
+        // Rediriger vers la page de corbeille
+        this.navigateToTrash();
+      },
+      error: (error: any) => {
+        console.error('Erreur lors du déplacement vers la corbeille:', error);
+        alert('Une erreur est survenue lors du déplacement vers la corbeille. Veuillez réessayer.');
+        this.closeDeleteModal();
+      }
+    });
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.immatriculationToDelete = null;
+  }
+
+  // Navigation vers la corbeille
+  navigateToTrash(): void {
+    // Rediriger vers la page de corbeille
+    window.location.href = '/trash';
+  }
+
+  // ==================== GESTION DE LA VALIDATION ====================
+  
+  validateImmatriculation(): void {
+    if (!this.selectedImmatriculation) return;
+    
+    this.immatriculationService.validateDossier(this.selectedImmatriculation.id).subscribe({
+      next: (response: any) => {
+        console.log('✅ Immatriculation validée avec succès:', response);
+        
+        // Vérifier si la réponse contient une notification personnalisée
+        if (response.notification) {
+          // Afficher la notification du backend (verte)
+          this.showNotification(
+            response.notification.text || 'Dossier validé avec succès !',
+            response.notification.type || 'success'
+          );
+        } else {
+          // Notification par défaut si pas de notification personnalisée
+          this.showNotification(
+            'Dossier validé avec succès ! Un email avec le TIN a été envoyé.',
+            'success'
+          );
+        }
+        
+        // Mettre à jour le statut dans la liste locale
+        const index = this.immatriculations.findIndex(i => i.id === this.selectedImmatriculation.id);
+        if (index !== -1) {
+          this.immatriculations[index] = response.data || response;
+          this.applyFilter();
+        }
+        
+        // Mettre à jour l'immatriculation sélectionnée
+        this.selectedImmatriculation = response.data || response;
+        
+        // Fermer le modal après validation
+        this.closeImmatriculationDetails();
+      },
+      error: (error: any) => {
+        console.error('❌ Erreur lors de la validation:', error);
+        
+        // Afficher un message d'erreur
+        this.showNotification(
+          'Erreur lors de la validation du dossier',
+          'error'
+        );
+      }
+    });
+  }
+
+  openRejectModal(): void {
+    if (!this.selectedImmatriculation) return;
+    
+    this.immatriculationToReject = this.selectedImmatriculation;
+    this.rejectionReason = '';
+    this.showRejectModal = true;
+  }
+
+  closeRejectModal(): void {
+    this.showRejectModal = false;
+    this.immatriculationToReject = null;
+    this.rejectionReason = '';
+  }
+
+  confirmReject(): void {
+    if (!this.immatriculationToReject || !this.rejectionReason.trim()) return;
+    
+    this.immatriculationService.rejectDossier(this.immatriculationToReject.id, this.rejectionReason).subscribe({
+      next: (response: any) => {
+        console.log('✅ Immatriculation rejetée avec succès:', response);
+        
+        // Vérifier si la réponse contient une notification personnalisée
+        if (response.notification) {
+          this.showNotification(
+            response.notification.text || 'Dossier rejeté avec succès !',
+            response.notification.type || 'error'
+          );
+        } else {
+          this.showNotification(
+            'Dossier rejeté avec succès !',
+            'error'
+          );
+        }
+        
+        // Mettre à jour le statut dans la liste locale
+        const index = this.immatriculations.findIndex(i => i.id === this.immatriculationToReject.id);
+        if (index !== -1) {
+          this.immatriculations[index] = response.data || response;
+          this.applyFilter();
+        }
+        
+        // Mettre à jour l'immatriculation sélectionnée
+        this.selectedImmatriculation = response.data || response;
+        
+        // Fermer les modals
+        this.closeRejectModal();
+        this.closeImmatriculationDetails();
+      },
+      error: (error: any) => {
+        console.error('❌ Erreur lors du rejet:', error);
+        this.showNotification(
+          'Erreur lors du rejet du dossier',
+          'error'
+        );
+        this.closeRejectModal();
+      }
+    });
+  }
+
+  resetToEnCoursVerification(immatriculation: any): void {
+    if (!immatriculation) return;
+    
+    this.immatriculationService.submitDossier(immatriculation.id).subscribe({
+      next: (response: any) => {
+        console.log('✅ Immatriculation remise en cours de vérification:', response);
+        
+        this.showNotification(
+          'Dossier remis en cours de vérification avec succès !',
+          'warning'
+        );
+        
+        // Mettre à jour le statut dans la liste locale
+        const index = this.immatriculations.findIndex(i => i.id === immatriculation.id);
+        if (index !== -1) {
+          this.immatriculations[index] = response.data || response;
+          this.applyFilter();
+        }
+        
+        // Mettre à jour l'immatriculation sélectionnée
+        this.selectedImmatriculation = response.data || response;
+        
+        // Fermer le modal
+        this.closeImmatriculationDetails();
+      },
+      error: (error: any) => {
+        console.error('❌ Erreur lors de la remise en cours:', error);
+        this.showNotification(
+          'Erreur lors de la remise en cours de vérification',
+          'error'
+        );
+      }
+    });
+  }
+
+  viewRejectionReason(immatriculation: any): void {
+    this.rejectionReasonToView = immatriculation.motifRejet || 'Aucune raison spécifiée';
+    this.showRejectionReasonModal = true;
+  }
+
+  closeRejectionReasonModal(): void {
+    this.showRejectionReasonModal = false;
+    this.rejectionReasonToView = '';
+  }
+
+  showNotification(message: string, type: 'success' | 'error' | 'warning' | 'info'): void {
+    // Implémenter un système de notification (toast, alert, etc.)
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    
+    // Pour l'instant, utiliser une alerte simple
+    // TODO: Implémenter un système de toast moderne
+    const alertClass = type === 'success' ? 'alert-success' : 
+                      type === 'error' ? 'alert-danger' : 
+                      type === 'warning' ? 'alert-warning' : 'alert-info';
+    
+    // Créer une alerte stylisée
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert ${alertClass}`;
+    alertDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      max-width: 300px;
+    `;
+    
+    const icon = type === 'success' ? '✅' : 
+                 type === 'error' ? '❌' : 
+                 type === 'warning' ? '⚠️' : 'ℹ️';
+    
+    alertDiv.innerHTML = `${icon} ${message}`;
+    document.body.appendChild(alertDiv);
+    
+    // Animation d'entrée
+    setTimeout(() => {
+      alertDiv.style.opacity = '1';
+      alertDiv.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Auto-suppression après 4 secondes
+    setTimeout(() => {
+      alertDiv.style.opacity = '0';
+      alertDiv.style.transform = 'translateX(100%)';
+      setTimeout(() => {
+        if (document.body.contains(alertDiv)) {
+          document.body.removeChild(alertDiv);
+        }
+      }, 300);
+    }, 4000);
   }
 
   // Méthodes pour gérer les documents
