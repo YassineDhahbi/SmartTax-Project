@@ -1001,6 +1001,18 @@
   transform: translateY(-1px);
 }
 
+.search-filter-btn:nth-child(3) {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.search-filter-btn:nth-child(3):hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.4);
+  transform: translateY(-1px);
+}
+
 /* Styles pour les documents */
 .documents-grid {
   display: grid;

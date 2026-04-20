@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
 @Component({
@@ -889,6 +889,283 @@ export class ImmatriculationAdminComponent implements OnInit {
     this.showImageModal = false;
     this.imageModalUrl = '';
     this.imageModalTitle = '';
+  }
+
+  // ==================== EXPORT PDF ====================
+  
+  exportToPDF(): void {
+    try {
+      this.showNotification('Génération du PDF en cours...', 'info');
+      
+      // Calculer les statistiques
+      const total = this.immatriculations.length;
+      const valides = this.immatriculations.filter(i => i.status === 'VALIDE').length;
+      const rejetes = this.immatriculations.filter(i => i.status === 'REJETE').length;
+      const enCours = this.immatriculations.filter(i => i.status === 'EN_COURS_VERIFICATION').length;
+
+      // Créer un élément temporaire pour contenir le HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = this.generatePDFContent(total, valides, rejetes, enCours);
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '-9999px';
+      tempDiv.style.width = '210mm'; // Largeur A4
+      tempDiv.style.padding = '20px';
+      tempDiv.style.backgroundColor = '#ffffff';
+      document.body.appendChild(tempDiv);
+
+      // Utiliser html2canvas pour convertir en image
+      html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: 794, // Largeur A4 en pixels à 96 DPI
+        windowWidth: 794
+      }).then(canvas => {
+        // Créer le PDF avec jsPDF
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        
+        // Calculer les dimensions pour A4
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        // Vérifier si le contenu dépasse une page A4
+        const maxHeight = pdf.internal.pageSize.getHeight() - 20; // Marge de 10mm
+        
+        if (pdfHeight <= maxHeight) {
+          // Contenu sur une seule page
+          pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, pdfHeight);
+        } else {
+          // Contenu sur plusieurs pages
+          const pageCount = Math.ceil(pdfHeight / maxHeight);
+          for (let i = 0; i < pageCount; i++) {
+            const yOffset = i * maxHeight;
+            const remainingHeight = Math.min(maxHeight, pdfHeight - yOffset);
+            
+            if (i > 0) {
+              pdf.addPage();
+            }
+            
+            // Ajouter une portion de l'image
+            pdf.addImage(imgData, 'PNG', 10, 10 + (i * maxHeight), pdfWidth - 20, remainingHeight);
+          }
+        }
+        
+        // Nettoyer l'élément temporaire
+        document.body.removeChild(tempDiv);
+        
+        // Télécharger le PDF
+        const fileName = `rapport-immatriculations-${new Date().toISOString().split('T')[0]}.pdf`;
+        pdf.save(fileName);
+        
+        this.showNotification('PDF téléchargé avec succès !', 'success');
+      }).catch((error: any) => {
+        console.error('Erreur lors de la génération du PDF:', error);
+        this.showNotification('Erreur lors de la génération du PDF: ' + (error.message || error), 'error');
+        
+        // Nettoyer l'élément temporaire en cas d'erreur
+        if (document.body.contains(tempDiv)) {
+          document.body.removeChild(tempDiv);
+        }
+      });
+      
+    } catch (error: any) {
+      console.error('Erreur inattendue:', error);
+      this.showNotification('Erreur lors de la génération du PDF: ' + (error.message || error), 'error');
+    }
+  }
+
+  private generatePDFContent(total: number, valides: number, rejetes: number, enCours: number): string {
+    const currentDate = new Date().toLocaleDateString('fr-FR');
+    
+    // Générer les lignes du tableau
+    const tableRows = this.immatriculations.map(imm => `
+      <tr>
+        <td>${imm.dossierNumber || imm.id}</td>
+        <td>${imm.raisonSociale || imm.nom || 'N/A'}</td>
+        <td>${imm.typeContribuable || 'N/A'}</td>
+        <td>${imm.email || 'N/A'}</td>
+        <td>${imm.telephone || 'N/A'}</td>
+        <td><span class="status-badge ${this.getStatutBadgeClass(imm.status)}">${imm.status}</span></td>
+      </tr>
+    `).join('');
+
+    return `
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rapport des Immatriculations</title>
+        <style>
+          body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: white;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 20px;
+          }
+          .header h1 {
+            color: #2563eb;
+            margin: 0;
+            font-size: 28px;
+          }
+          .header p {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 14px;
+          }
+          .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            gap: 20px;
+          }
+          .stat-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+          }
+          .stat-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 24px;
+            font-weight: bold;
+          }
+          .stat-card.total h3 { color: #2563eb; }
+          .stat-card.valides h3 { color: #22c55e; }
+          .stat-card.rejetes h3 { color: #ef4444; }
+          .stat-card.en-cours h3 { color: #f59e0b; }
+          .stat-card p {
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .table-container {
+            margin-top: 30px;
+          }
+          .table-container h2 {
+            color: #2563eb;
+            margin-bottom: 15px;
+            font-size: 20px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+          }
+          th, td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+          }
+          th {
+            background: #f8f9fa;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+          }
+          tr:nth-child(even) {
+            background: #f8f9fa;
+          }
+          .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          .statut-valide {
+            background: #dcfce7;
+            color: #166534;
+          }
+          .statut-rejete {
+            background: #fef2f2;
+            color: #dc2626;
+          }
+          .statut-verification {
+            background: #fef3c7;
+            color: #d97706;
+          }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            border-top: 1px solid #dee2e6;
+            padding-top: 15px;
+          }
+          @media print {
+            body { padding: 10px; }
+            .stats-container { flex-wrap: wrap; }
+            .stat-card { min-width: 100px; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Rapport des Immatriculations</h1>
+          <p>Généré le ${currentDate}</p>
+        </div>
+        
+        <div class="stats-container">
+          <div class="stat-card total">
+            <h3>${total}</h3>
+            <p>Total</p>
+          </div>
+          <div class="stat-card valides">
+            <h3>${valides}</h3>
+            <p>Validées</p>
+          </div>
+          <div class="stat-card rejetes">
+            <h3>${rejetes}</h3>
+            <p>Rejetées</p>
+          </div>
+          <div class="stat-card en-cours">
+            <h3>${enCours}</h3>
+            <p>En cours</p>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <h2>Liste des Immatriculations</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>N° Dossier</th>
+                <th>Raison Sociale</th>
+                <th>Type</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="footer">
+          <p>SmartTax - Système de Gestion des Immatriculations</p>
+        </div>
+      </body>
+      </html>
+    `;
   }
 
   downloadDocument(fileUrl: string, filename: string): void {
