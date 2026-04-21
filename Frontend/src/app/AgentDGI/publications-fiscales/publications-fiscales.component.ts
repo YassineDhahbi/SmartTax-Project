@@ -119,6 +119,7 @@ export class PublicationsFiscalesComponent implements OnInit {
       }
     ];
     isLoadingTags = false;
+    isCorrectingContent = false;
     loading = false;
     showCreatePublicationModal = false;
     isCreatingPublication = false;
@@ -136,6 +137,9 @@ export class PublicationsFiscalesComponent implements OnInit {
     // Propriétés séparées pour CKEditor (HTML) et affichage (texte brut)
     ckEditorTitle = '';
     ckEditorContent = '';
+    
+    // Propriété pour le fichier image
+    selectedImageFile: File | null = null;
     
     publicationTagInput = '';
     publicationTags: string[] = [];
@@ -1613,6 +1617,72 @@ export class PublicationsFiscalesComponent implements OnInit {
 
   onContentChange(): void {
     this.newPublicationForm.content = this.stripHtml(this.ckEditorContent);
+  }
+
+  // Méthode pour gérer le téléchargement d'image
+  onImageUpload(event: any): void {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      this.selectedImageFile = file;
+      
+      // Créer une URL pour l'aperçu
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.newPublicationForm.image_url = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('Veuillez sélectionner un fichier image valide.');
+    }
+  }
+
+  // Fonction pour corriger les fautes dans le contenu avec l'API de Groq
+  correctContentWithAI(): void {
+    if (!this.ckEditorContent || this.stripHtml(this.ckEditorContent).trim() === '') {
+      alert('Veuillez entrer un contenu à corriger.');
+      return;
+    }
+
+    const plainText = this.stripHtml(this.ckEditorContent).trim();
+
+    this.isCorrectingContent = true;
+
+    const requestBody = {
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        {
+          role: 'user',
+          content: `Corrigez les fautes d'orthographe, de grammaire et de ponctuation dans ce texte en français, et améliorez sa clarté si nécessaire. Retournez uniquement le texte corrigé, sans explication ni texte supplémentaire : "${plainText}"`
+        }
+      ],
+      max_tokens: 1000,
+      temperature: 0.3
+    };
+
+    this.http.post('https://api.groq.com/openai/v1/chat/completions', requestBody, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '
+      }
+    }).subscribe({
+      next: (data: any) => {
+        const correctedText = data.choices[0].message.content.trim();
+        
+        // Mettre à jour le contenu CKEditor avec le texte corrigé
+        this.ckEditorContent = correctedText;
+        
+        // Mettre à jour aussi le formulaire
+        this.newPublicationForm.content = this.stripHtml(correctedText);
+        
+        this.isCorrectingContent = false;
+        this.showNotification('Contenu corrigé avec succès !', 'success');
+      },
+      error: (error) => {
+        console.error('Erreur lors de la correction du contenu:', error);
+        this.showNotification(`Erreur lors de la correction : ${error.message || 'Erreur inconnue'}`, 'error');
+        this.isCorrectingContent = false;
+      }
+    });
   }
 
   // Méthodes pour la gestion des publications

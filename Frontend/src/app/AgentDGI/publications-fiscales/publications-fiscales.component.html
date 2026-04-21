@@ -157,17 +157,29 @@
                   </div>
                 </div>
 
-                <!-- Bouton Generate tags using AI -->
+                <!-- Boutons IA -->
                 <div class="da__publicationFormGroup">
-                  <button 
-                    class="da__generateTagsBtn" 
-                    (click)="generateTagsFromDescription()"
-                    [disabled]="isLoadingTags || !ckEditorContent">
-                    <i class="fa-solid fa-magic" *ngIf="!isLoadingTags"></i>
-                    <i class="fa-solid fa-spinner fa-spin" *ngIf="isLoadingTags"></i>
-                    <span *ngIf="!isLoadingTags">Generate tags using AI</span>
-                    <span *ngIf="isLoadingTags">Génération en cours...</span>
-                  </button>
+                  <div class="da__aiButtonsContainer">
+                    <button 
+                      class="da__generateTagsBtn" 
+                      (click)="generateTagsFromDescription()"
+                      [disabled]="isLoadingTags || !ckEditorContent">
+                      <i class="fa-solid fa-magic" *ngIf="!isLoadingTags"></i>
+                      <i class="fa-solid fa-spinner fa-spin" *ngIf="isLoadingTags"></i>
+                      <span *ngIf="!isLoadingTags">Generate tags using AI</span>
+                      <span *ngIf="isLoadingTags">Génération en cours...</span>
+                    </button>
+                    
+                    <button 
+                      class="da__correctContentBtn" 
+                      (click)="correctContentWithAI()"
+                      [disabled]="isCorrectingContent || !ckEditorContent">
+                      <i class="fa-solid fa-spell-check" *ngIf="!isCorrectingContent"></i>
+                      <i class="fa-solid fa-spinner fa-spin" *ngIf="isCorrectingContent"></i>
+                      <span *ngIf="!isCorrectingContent">Corriger contenu avec IA</span>
+                      <span *ngIf="isCorrectingContent">Correction en cours...</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div class="da__publicationFormGroup">
@@ -218,11 +230,26 @@
               </div>
 
               <aside class="da__publicationPreview">
-                <div class="da__publicationPreviewImage">
-                  <img *ngIf="newPublicationForm.image_url; else noPubImage" [src]="newPublicationForm.image_url" alt="Preview" />
-                  <ng-template #noPubImage>
-                    <div class="da__publicationPreviewPlaceholder">600x450</div>
-                  </ng-template>
+                <div class="da__publicationPreviewSection">
+                  <div class="da__publicationPreviewImage">
+                    <img *ngIf="newPublicationForm.image_url; else noPubImage" [src]="newPublicationForm.image_url" alt="Preview" (error)="handleImageError($event)" />
+                    <ng-template #noPubImage>
+                      <div class="da__publicationPreviewPlaceholder">600x450</div>
+                    </ng-template>
+                  </div>
+                  
+                  <div class="da__imageUploadSection">
+                    <label for="image-upload" class="da__imageUploadBtn">
+                      <i class="fa-solid fa-upload"></i>
+                      <span>Télécharger une image</span>
+                    </label>
+                    <input 
+                      id="image-upload" 
+                      type="file" 
+                      accept="image/*" 
+                      (change)="onImageUpload($event)" 
+                      style="display: none;" />
+                  </div>
                 </div>
                 <h4>{{ newPublicationForm.title || 'Titre non défini' }}</h4>
                 <p>{{ newPublicationForm.content || 'Aucune contenu pour le moment' }}</p>
