@@ -41,6 +41,8 @@ import { ProfileAdminComponent } from './Admin/profile-admin/profile-admin.compo
 import { TopbarComponent } from './Admin/topbar-admin/topbar.component';
 import { ImmatriculationAdminComponent } from './Admin/immatriculation-admin/immatriculation-admin.component';
 import { SideAdminComponent } from './Admin/side-admin/side-admin.component';
+import { PublicationsFiscalesComponent } from './AgentDGI/publications-fiscales/publications-fiscales.component';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 
 
 @NgModule({
@@ -75,7 +77,8 @@ import { SideAdminComponent } from './Admin/side-admin/side-admin.component';
     UtilisateursAdminComponent,
     TopbarComponent,
     ImmatriculationAdminComponent,
-    SideAdminComponent
+    SideAdminComponent,
+    PublicationsFiscalesComponent
     
 
 
@@ -87,7 +90,8 @@ import { SideAdminComponent } from './Admin/side-admin/side-admin.component';
     HttpClientModule, // Add this to imports
     FormsModule, BrowserAnimationsModule,
     ProfileAdminComponent,
-    NgChartsModule
+    NgChartsModule,
+    CKEditorModule
   ],
   providers: [
     ReclamationService,

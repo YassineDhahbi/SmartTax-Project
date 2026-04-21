@@ -1,0 +1,238 @@
+<section class="da__grid">
+        <div class="da__panel da__panel--wide">
+          <div class="da__panelHead">
+            <div class="da__panelTitle">
+              <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
+              Liste des Publication
+            </div>
+            <div class="da__panelHint">
+              <span *ngIf="isLoadingImmatriculations">Chargement...</span>
+              <span *ngIf="!isLoadingImmatriculations">{{ filteredImmatriculations.length }} Publications trouvées</span>
+            </div>
+          </div>
+          
+          <!-- Filtres -->
+          <div class="da__filters">
+            <div class="da__filterGroup">
+              <button class="da__filterBtn" 
+                      [class.da__filterBtn--active]="activeFilter === 'all'"
+                      (click)="setFilter('all')">
+                <i class="fa-solid fa-border-all"></i>
+                <span>Tous</span>
+              </button>
+              <button class="da__filterBtn" 
+                      [class.da__filterBtn--active]="activeFilter === 'PHYSIQUE'"
+                      (click)="setFilter('PHYSIQUE')">
+                <i class="fa-solid fa-user"></i>
+                <span>Personnes physiques</span>
+              </button>
+              <button class="da__filterBtn" 
+                      [class.da__filterBtn--active]="activeFilter === 'MORALE'"
+                      (click)="setFilter('MORALE')">
+                <i class="fa-solid fa-building"></i>
+                <span>Personnes morales</span>
+              </button>
+              <button class="da__filterBtn da__filterBtn--primary da__filterBtn--create" (click)="createPublication()">
+                <i class="fa-solid fa-plus"></i>
+                <span>Nouvelle publication</span>
+              </button>
+            </div>
+            
+         
+            
+          </div>
+
+          <div class="da__panelBody">
+            <!-- État de chargement -->
+            <div *ngIf="loading" class="da__loading">
+              <div class="da__spinner"></div>
+              <p>Chargement des publications...</p>
+            </div>
+
+            <!-- Tableau des publications -->
+            <div class="da__tableWrap" *ngIf="!loading">
+              <table class="da__table" aria-label="Liste des publications">
+                <thead>
+                  <tr>
+                    <th>Titre</th>
+                    <th>Auteur</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th class="da__center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let publication of publications">
+                    <td>
+                      <div class="da__publicationInfo">
+                        <div class="da__strong">
+                          {{ publication.title || 'Sans titre' }}
+                        </div>
+                        <div class="da__small">{{ publication.summary ? publication.summary.substring(0, 50) + '...' : 'Aucun résumé' }}</div>
+                      </div>
+                    </td>
+                    <td>{{ publication.author || 'Non spécifié' }}</td>
+                
+                    <td>
+                      <span class="da__status" [attr.data-status]="publication.status?.toLowerCase()">
+                        {{ getStatusLabel(publication.status) }}
+                      </span>
+                    </td>
+                    <td>{{ formatDate(publication.created_at) }}</td>
+                    <td class="da__center">
+                      <button class="da__rowBtn da__rowBtn--pin" 
+                              [class.da__pinned]="publication.is_pinned"
+                              (click)="togglePin(publication)"
+                              title="{{ publication.is_pinned ? 'Désépingler' : 'Épingler' }} la publication">
+                        <i class="fa-solid fa-thumbtack"></i>
+                      </button>
+                      <button class="da__rowBtn da__rowBtn--edit" (click)="editPublication(publication)" title="Modifier">
+                        <i class="fa-solid fa-edit"></i>
+                      </button>
+                      <button class="da__rowBtn da__rowBtn--danger" (click)="deletePublication(publication)" title="Supprimer">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr *ngIf="publications.length === 0">
+                    <td colspan="6" class="da__center">
+                      <div class="da__emptyState">
+                        <div class="da__emptyIcon">
+                          <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <div class="da__emptyText">
+                          <h4>Aucune publication</h4>
+                          <p>Commencez par créer votre première publication</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Panneau vide pour simuler la structure de dashboard-agent -->
+     
+        <div *ngIf="showCreatePublicationModal" class="da__modalOverlay" (click)="closeCreatePublicationModal()">
+          <div class="da__modal da__modal--publication" (click)="$event.stopPropagation()">
+            <div class="da__modalHeader">
+              <div class="da__modalTitle">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>Nouvelle publication</span>
+              </div>
+              <button class="da__modalClose" (click)="closeCreatePublicationModal()" type="button" aria-label="Fermer">
+                <i class="fa-solid fa-times"></i>
+              </button>
+            </div>
+
+            <div class="da__modalBody da__publicationComposer">
+              <div class="da__publicationForm">
+                <p class="da__publicationLead">Créez une publication claire et structurée pour les contribuables.</p>
+
+                <div class="da__publicationFormGroup">
+                  <label class="da__publicationLabel" for="pub-title">Titre *</label>
+                  <div class="da__publicationEditorWrap">
+                    <ckeditor
+                      [editor]="Editor"
+                      [data]="newPublicationForm.title"
+                      [config]="titleEditorConfig"
+                      (change)="onTitleEditorChange($event)">
+                    </ckeditor>
+                  </div>
+                </div>
+
+              
+
+                <div class="da__publicationFormGroup">
+                  <label class="da__publicationLabel" for="pub-content">Contenu *</label>
+                  <div class="da__publicationEditorWrap da__publicationEditorWrap--content">
+                    <ckeditor
+                      [editor]="Editor"
+                      [data]="newPublicationForm.content"
+                      [config]="contentEditorConfig"
+                      (change)="onContentEditorChange($event)">
+                    </ckeditor>
+                  </div>
+                </div>
+
+        
+
+                <div class="da__publicationFormGroup">
+                  <label class="da__publicationLabel" for="pub-tag">Tags</label>
+                  <div class="da__publicationTagInputWrap">
+                    <input
+                      id="pub-tag"
+                      class="da__publicationInput"
+                      type="text"
+                      placeholder="Ajouter un tag et appuyer Entrée"
+                      [(ngModel)]="publicationTagInput"
+                      (keydown.enter)="$event.preventDefault(); addPublicationTag()" />
+                    <button type="button" class="da__tagAddBtn" (click)="addPublicationTag()">
+                      <i class="fa-solid fa-plus"></i>
+                    </button>
+                  </div>
+                  <div class="da__publicationTags">
+                    <span class="da__tagChip" *ngFor="let tag of publicationTags">
+                      {{ tag }}
+                      <button type="button" (click)="removePublicationTag(tag)">
+                        <i class="fa-solid fa-times"></i>
+                      </button>
+                    </span>
+                    <span class="da__tagHint" *ngIf="publicationTags.length === 0">Aucun tag ajouté</span>
+                  </div>
+                </div>
+
+                <div class="da__publicationFormGroup">
+                  <label class="da__publicationLabel">Planification</label>
+                  <div class="da__publicationSchedule">
+                    <label>
+                      <input type="radio" name="scheduleType" value="now" [(ngModel)]="newPublicationForm.schedule_type" />
+                      Publier maintenant
+                    </label>
+                    <label>
+                      <input type="radio" name="scheduleType" value="later" [(ngModel)]="newPublicationForm.schedule_type" />
+                      Programmer
+                    </label>
+                    <input
+                      *ngIf="newPublicationForm.schedule_type === 'later'"
+                      class="da__publicationInput"
+                      type="datetime-local"
+                      [(ngModel)]="newPublicationForm.scheduled_at" />
+                  </div>
+                </div>
+
+                
+              </div>
+
+              <aside class="da__publicationPreview">
+                <div class="da__publicationPreviewImage">
+                  <img *ngIf="newPublicationForm.image_url; else noPubImage" [src]="newPublicationForm.image_url" alt="Preview" />
+                  <ng-template #noPubImage>
+                    <div class="da__publicationPreviewPlaceholder">600x450</div>
+                  </ng-template>
+                </div>
+                <h4>{{ newPublicationForm.title || 'Titre non défini' }}</h4>
+                <p>{{ newPublicationForm.content || 'Aucune contenu pour le moment' }}</p>
+                <div class="da__previewMeta">
+                  <strong>Tags:</strong>
+                  <span>{{ publicationTags.length ? publicationTags.join(', ') : 'Aucun tag' }}</span>
+                </div>
+                <div class="da__previewMeta">
+                  <strong>Programmation:</strong>
+                  <span>{{ newPublicationForm.schedule_type === 'later' ? (newPublicationForm.scheduled_at || 'Date non définie') : 'Maintenant' }}</span>
+                </div>
+              </aside>
+            </div>
+
+            <div class="da__modalFooter">
+              <button class="da__btn da__btn--secondary" type="button" (click)="closeCreatePublicationModal()">Annuler</button>
+              <button class="da__btn da__btn--primary" type="button" [disabled]="isCreatingPublication" (click)="submitCreatePublication()">
+                <i class="fa-solid fa-save"></i>
+                <span>{{ isCreatingPublication ? 'Publication en cours...' : 'Publier en brouillon' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>

@@ -110,12 +110,14 @@
         <div class="da__heroHead">
           <div>
             <div class="da__heroKicker">{{ greeting }}, {{ userName }}</div>
-            <h1 class="da__heroTitle">Tableau de bord Agent DGI</h1>
-            <div class="da__heroDesc">Suivi des dossiers, décisions et conformité — vue claire, actions rapides et priorités.</div>
+            <h1 class="da__heroTitle" *ngIf="currentView !== 'publications'">Tableau de bord Agent DGI</h1>
+            <h1 class="da__heroTitle" *ngIf="currentView === 'publications'">Actualités & Publications Fiscales</h1>
+            <div class="da__heroDesc" *ngIf="currentView !== 'publications'">Suivi des dossiers, décisions et conformité — vue claire, actions rapides et priorités.</div>
+            <div class="da__heroDesc" *ngIf="currentView === 'publications'">Gérez les publications fiscales et les actualités du système — création, modification et validation des contenus.</div>
           </div>
 
           <div class="da__heroActions">
-            <!-- <button class="da__btn is-primary" type="button">
+            <!-- <button class="da__btn is-primary" type="button" *ngIf="currentView !== 'publications'">
               <i class="fa-solid fa-circle-plus" aria-hidden="true"></i>
               Nouveau dossier
             </button> -->
@@ -479,6 +481,11 @@
     <!-- Vue Profil Agent -->
     <section *ngIf="currentView === 'profile'">
       <app-agent-profile></app-agent-profile>
+    </section>
+
+    <!-- Vue Publications -->
+    <section class="da__grid" *ngIf="currentView === 'publications'">
+      <app-publications-fiscales></app-publications-fiscales>
     </section>
   </main>
 

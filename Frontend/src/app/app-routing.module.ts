@@ -20,6 +20,7 @@ import { DashboardAdminComponent } from './Admin/dashboard-admin/dashboard-admin
 import { UtilisateursAdminComponent } from './Admin/utilisateurs-admin/utilisateurs-admin.component';
 import { ProfileAdminComponent } from './Admin/profile-admin/profile-admin.component';
 import { ImmatriculationAdminComponent } from './Admin/immatriculation-admin/immatriculation-admin.component';
+import { PublicationsFiscalesComponent } from './AgentDGI/publications-fiscales/publications-fiscales.component';
 
 import { AuthGuard } from './guards/auth.guard';
 
@@ -43,6 +44,7 @@ const routes: Routes = [
   { path: 'admin/utilisateurs', component: UtilisateursAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'admin/immatriculations', component: ImmatriculationAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'admin/profile', component: ProfileAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
+  { path: 'publications-fiscales', component: PublicationsFiscalesComponent, canActivate: [AuthGuard], data: { roles: ['AGENT', 'ADMIN'] } },
   { path: 'trash', component: TrashViewComponent, canActivate: [AuthGuard], data: { roles: ['AGENT', 'ADMIN'] } },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }

@@ -306,16 +306,17 @@ export class DashboardAgentComponent implements OnInit {
     {
       title: 'Pilotage',
       items: [
-        { key: 'overview', label: 'Vue d’ensemble', icon: 'fa-solid fa-grid-2' },
+        { key: 'overview', label: 'Vue d\'ensemble', icon: 'fa-solid fa-grid-2' },
         { key: 'work', label: 'Dossiers', icon: 'fa-solid fa-folder-open', badge: 7 },
-        { key: 'decisions', label: 'Décisions', icon: 'fa-solid fa-file-signature' },
+       
+        { key: 'publications', label: 'Publications', icon: 'fa-solid fa-newspaper' },
       ],
     },
     {
       title: 'Communication',
       items: [
         { key: 'notifications', label: 'Notifications', icon: 'fa-solid fa-bell', badge: 3 },
-        { key: 'support', label: 'Centre d’aide', icon: 'fa-solid fa-circle-question' },
+        { key: 'support', label: 'Centre d\'aide', icon: 'fa-solid fa-circle-question' },
       ],
     },
     {
@@ -494,6 +495,8 @@ export class DashboardAgentComponent implements OnInit {
     if (key === 'work') {
       this.currentView = 'dossiers';
       this.loadImmatriculations();
+    } else if (key === 'publications') {
+      this.currentView = 'publications';
     } else if (key === 'settings') {
       this.currentView = 'profile';
     } else if (key === 'logout') {
