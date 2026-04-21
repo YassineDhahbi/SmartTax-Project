@@ -136,9 +136,9 @@
                   <div class="da__publicationEditorWrap">
                     <ckeditor
                       [editor]="Editor"
-                      [data]="newPublicationForm.title"
+                      [(ngModel)]="ckEditorTitle"
                       [config]="titleEditorConfig"
-                      (change)="onTitleEditorChange($event)">
+                      (ngModelChange)="onTitleChange()">
                     </ckeditor>
                   </div>
                 </div>
@@ -150,14 +150,25 @@
                   <div class="da__publicationEditorWrap da__publicationEditorWrap--content">
                     <ckeditor
                       [editor]="Editor"
-                      [data]="newPublicationForm.content"
+                      [(ngModel)]="ckEditorContent"
                       [config]="contentEditorConfig"
-                      (change)="onContentEditorChange($event)">
+                      (ngModelChange)="onContentChange()">
                     </ckeditor>
                   </div>
                 </div>
 
-        
+                <!-- Bouton Generate tags using AI -->
+                <div class="da__publicationFormGroup">
+                  <button 
+                    class="da__generateTagsBtn" 
+                    (click)="generateTagsFromDescription()"
+                    [disabled]="isLoadingTags || !ckEditorContent">
+                    <i class="fa-solid fa-magic" *ngIf="!isLoadingTags"></i>
+                    <i class="fa-solid fa-spinner fa-spin" *ngIf="isLoadingTags"></i>
+                    <span *ngIf="!isLoadingTags">Generate tags using AI</span>
+                    <span *ngIf="isLoadingTags">Génération en cours...</span>
+                  </button>
+                </div>
 
                 <div class="da__publicationFormGroup">
                   <label class="da__publicationLabel" for="pub-tag">Tags</label>

@@ -118,6 +118,7 @@ export class PublicationsFiscalesComponent implements OnInit {
         is_pinned: false
       }
     ];
+    isLoadingTags = false;
     loading = false;
     showCreatePublicationModal = false;
     isCreatingPublication = false;
@@ -131,6 +132,11 @@ export class PublicationsFiscalesComponent implements OnInit {
       schedule_type: 'now',
       scheduled_at: ''
     };
+    
+    // Propriétés séparées pour CKEditor (HTML) et affichage (texte brut)
+    ckEditorTitle = '';
+    ckEditorContent = '';
+    
     publicationTagInput = '';
     publicationTags: string[] = [];
     public Editor: any = ClassicEditor;
@@ -1473,10 +1479,10 @@ export class PublicationsFiscalesComponent implements OnInit {
   }
 
   submitCreatePublication(): void {
-    const plainTitle = this.stripHtml(this.newPublicationForm.title);
-    const plainContent = this.stripHtml(this.newPublicationForm.content);
+    // Synchroniser d'abord le contenu CKEditor avec le formulaire
+    this.syncContentWithForm();
 
-    if (!plainTitle || !this.newPublicationForm.summary.trim() || !plainContent) {
+    if (!this.newPublicationForm.title || !this.newPublicationForm.summary.trim() || !this.newPublicationForm.content) {
       this.showNotification('Veuillez remplir les champs obligatoires (titre, résumé, contenu).', 'warning');
       return;
     }
@@ -1485,7 +1491,7 @@ export class PublicationsFiscalesComponent implements OnInit {
 
     const publicationToAdd = {
       id: Date.now(),
-      title: plainTitle,
+      title: this.newPublicationForm.title,
       summary: this.newPublicationForm.summary.trim(),
       content: this.newPublicationForm.content,
       author: this.userName || 'Agent DGI',
@@ -1533,26 +1539,80 @@ export class PublicationsFiscalesComponent implements OnInit {
     this.publicationTags = this.publicationTags.filter(t => t !== tag);
   }
 
+  // Fonction pour générer des tags avec l'API de Groq
+  generateTagsFromDescription(): void {
+    if (!this.ckEditorContent || this.stripHtml(this.ckEditorContent).trim() === '') {
+      alert('Veuillez entrer une description pour générer des tags.');
+      return;
+    }
+
+    const plainText = this.stripHtml(this.ckEditorContent).trim();
+
+    this.isLoadingTags = true;
+
+    const requestBody = {
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        {
+          role: 'user',
+          content: `Génère 4 tags significatifs pour ce texte en français : "${plainText}". Retourne uniquement les tags séparés par des virgules, sans texte supplémentaire (exemple : "tag1, tag2, tag3, tag4").`
+        }
+      ],
+      max_tokens: 50,
+      temperature: 0.5
+    };
+
+    this.http.post('https://api.groq.com/openai/v1/chat/completions', requestBody, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '
+      }
+    }).subscribe({
+      next: (data: any) => {
+        const rawTags = data.choices[0].message.content.trim();
+        const tags = rawTags
+          .split(',')
+          .map((tag: string) => tag.replace(/[*#]+/g, '').trim())
+          .filter((tag: string) => tag.length > 0)
+          .slice(0, 4);
+
+        this.publicationTags = tags.length > 0 ? tags : [];
+        this.isLoadingTags = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors de la génération des tags:', error);
+        alert(`Erreur lors de la génération des tags : ${error.message || 'Erreur inconnue'}`);
+        this.publicationTags = [];
+        this.isLoadingTags = false;
+      }
+    });
+  }
+
   // Méthode pour nettoyer le HTML et obtenir le texte brut
   stripHtml(html: string): string {
     if (!html) return '';
     
-    // Créer un élément div temporaire
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-    
-    // Obtenir le texte brut
-    return tempDiv.textContent || tempDiv.innerText || '';
+    // Utiliser une approche plus simple avec regex
+    return html
+      .replace(/<[^>]*>/g, '') // Supprimer toutes les balises HTML
+      .replace(/&nbsp;/g, ' ') // Remplacer les espaces insécables
+      .replace(/\s+/g, ' ') // Nettoyer les espaces multiples
+      .trim();
   }
 
-  onTitleEditorChange(event: any): void {
-    const htmlContent = event.editor.getData();
-    this.newPublicationForm.title = this.stripHtml(htmlContent);
+  // Méthode pour synchroniser le contenu CKEditor avec le formulaire (texte brut)
+  syncContentWithForm(): void {
+    this.newPublicationForm.title = this.stripHtml(this.ckEditorTitle);
+    this.newPublicationForm.content = this.stripHtml(this.ckEditorContent);
   }
 
-  onContentEditorChange(event: any): void {
-    const htmlContent = event.editor.getData();
-    this.newPublicationForm.content = this.stripHtml(htmlContent);
+  // Méthodes pour mettre à jour le formulaire en temps réel
+  onTitleChange(): void {
+    this.newPublicationForm.title = this.stripHtml(this.ckEditorTitle);
+  }
+
+  onContentChange(): void {
+    this.newPublicationForm.content = this.stripHtml(this.ckEditorContent);
   }
 
   // Méthodes pour la gestion des publications
