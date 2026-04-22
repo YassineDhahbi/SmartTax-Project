@@ -390,7 +390,6 @@ export class DashboardAgentComponent implements OnInit {
     const validés = this.immatriculations.filter(immatriculation => 
       immatriculation.status === 'VALIDE'
     );
-    console.log('Validés trouvés:', validés.map(v => ({ id: v.id, status: v.status })));
     return validés.length;
   }
 
@@ -398,7 +397,7 @@ export class DashboardAgentComponent implements OnInit {
     const bloqués = this.immatriculations.filter(immatriculation => 
       immatriculation.status === 'REJETE'
     );
-    console.log('Rejetés trouvés:', bloqués.map(r => ({ id: r.id, status: r.status })));
+    
     return bloqués.length;
   }
 

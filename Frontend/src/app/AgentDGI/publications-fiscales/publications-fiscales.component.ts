@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
 import { EmailService } from '../../services/email/email.service';
+import { PublicationService } from '../../services/publication.service';
 import { Immatriculation } from '../../models/immatriculation.model';
 import jsPDF from 'jspdf';
 import * as QRCode from 'qrcode';
@@ -87,39 +88,12 @@ export class PublicationsFiscalesComponent implements OnInit {
 
     // Propriétés pour les publications
     publications: any[] = [
-      {
-        id: 1,
-        title: "Guide fiscal 2026",
-        summary: "Nouveau guide complet sur la fiscalité des entreprises",
-        author: "Direction Générale",
-        language: "fr",
-        status: "PUBLISHED",
-        created_at: "2024-01-15T10:30:00Z",
-        is_pinned: true
-      },
-      {
-        id: 2,
-        title: "Procédures de déclaration",
-        summary: "Guide étape par étape pour les déclarations fiscales",
-        author: "Service Technique",
-        language: "ar",
-        status: "DRAFT",
-        created_at: "2024-01-10T14:20:00Z",
-        is_pinned: false
-      },
-      {
-        id: 3,
-        title: "Tax Updates 2026",
-        summary: "Latest tax regulations and updates for businesses",
-        author: "International Desk",
-        language: "en",
-        status: "VALIDATED",
-        created_at: "2024-01-08T09:15:00Z",
-        is_pinned: false
-      }
     ];
+    filteredPublications: any[] = [];
+    tempUserId: string = ''; // Pour stocker temporairement l'ID utilisateur
     isLoadingTags = false;
     isCorrectingContent = false;
+    isSavingDraft = false;
     loading = false;
     showCreatePublicationModal = false;
     isCreatingPublication = false;
@@ -143,6 +117,53 @@ export class PublicationsFiscalesComponent implements OnInit {
     
     publicationTagInput = '';
     publicationTags: string[] = [];
+    
+    // Tags existants pour réutilisation
+    existingTags: string[] = [];
+    showExistingTags = false;
+    
+    // Pagination
+    currentPage = 0;
+    itemsPerPage = 10;
+    totalItems = 0;
+    totalPages = 0;
+    paginationInfo: any = null;
+    
+    // Modal de détails de publication
+    showPublicationDetailsModal = false;
+    selectedPublicationForDetails: any = null;
+    
+    // Modal de modification de publication
+    showEditPublicationModal = false;
+    selectedPublicationForEdit: any = null;
+    editPublicationForm = {
+      title: '',
+      content: '',
+      summary: '',
+      imageUrl: '',
+      language: 'fr',
+      tags: [] as string[]
+    };
+    isEditingPublication = false;
+    
+    // Gestion de l'image pour la modification
+    editImagePreview: string | null = null;
+    selectedEditImageFile: File | null = null;
+    isUploadingEditImage = false;
+  
+  // Image par défaut en base64
+  readonly defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMzAgMTUwQzEzMCAxNjUuNSAxNDIuNSAxODAgMTU4IDE4MEgyNDJDMjU3LjUgMTgwIDI3MCAxNjUuNSAyNzAgMTUwQzI3MCAxMzQuNSAyNTcuNSAxMjAgMjQyIDEyMEgxNThDMTQyLjUgMTIwIDEzMCAxMzQuNSAxMzAgMTUwWiIgZmlsbD0iI0Q5RDlEOSIvPgo8Y2lyY2xlIGN4PSIxNTAiIGN5PSIxNTAiIHI9IjIwIiBmaWxsPSIjRjNGNEY2IiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjIwIiBmaWxsPSIjRjNGNEY2IiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8cGF0aCBkPSJNMTUwIDE2MUMxNTUuNSAxNjEgMTYxIDE1NS41IDE2MSAxNTBDMTYxIDE0NC41IDE1NS41IDEzOSAxNTAgMTM5QzE0NC41IDEzOSAxMzkgMTQ0LjUgMTM5IDE1MEMxMzkgMTU1LjUgMTQ0LjUgMTYxIDE1MCAxNjFaIiBmaWxsPSIjOUM0QUYzIi8+CjxwYXRoIGQ9Ik0yNTAgMTYxQzI1NS41IDE2MSAyNjEgMTU1LjUgMjYxIDE1MEMyNjEgMTQ0LjUgMjU1LjUgMTM5IDI1MCAxMzVDMjQ0LjUgMTM5IDIzOSAxNDQuNSAyMzkgMTUwQzIzOSAxNTUuNSAyNDQuNSAxNjEgMjUwIDE2MVoiIGZpbGw9IiM5QzRBQjMiLz4KPHRleHQgeD0iMjAwIiB5PSIyMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlDNEFDMiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SW1hZ2Ugbm9uIGRpc3BvbmlibGU8L3RleHQ+Cjwvc3ZnPgo=';
+  
+  // Getter pour déboguer l'état de l'image
+  get debugImageState() {
+    return {
+      editImagePreview: this.editImagePreview,
+      formImageUrl: this.editPublicationForm.imageUrl,
+      hasImage: !!(this.editImagePreview || this.editPublicationForm.imageUrl),
+      showModal: this.showEditPublicationModal
+    };
+  }
+  
     public Editor: any = ClassicEditor;
     public titleEditorConfig: any = {
       placeholder: 'Enter publication title here...',
@@ -169,7 +190,14 @@ export class PublicationsFiscalesComponent implements OnInit {
       }
     };
   
-    constructor(private http: HttpClient, private immatriculationService: ImmatriculationService, private trashService: TrashService, private emailService: EmailService, private cdr: ChangeDetectorRef) {}
+    constructor(
+      private http: HttpClient,
+      private cdr: ChangeDetectorRef,
+      private immatriculationService: ImmatriculationService,
+      private trashService: TrashService,
+      private emailService: EmailService,
+      private publicationService: PublicationService
+    ) {}
   
     // Méthode pour formater l'adresse avec gouvernorat et ville
     formatAdresse(immatriculation: any): string {
@@ -242,7 +270,7 @@ export class PublicationsFiscalesComponent implements OnInit {
     autoSaveTimeout: any = null;
     
     // Filter properties
-    activeFilter: 'all' | 'PHYSIQUE' | 'MORALE' = 'all';
+    activeFilter: 'all' | 'my' = 'all';
     
     // Sorting properties
     sortBy: 'date' | 'status' | 'none' = 'none';
@@ -254,6 +282,143 @@ export class PublicationsFiscalesComponent implements OnInit {
     // Search properties
     searchTerm: string = '';
     
+    // Méthode pour extraire le nom de l'auteur depuis le DTO
+    getAuthorName(publication: any): string {
+      // Priorité au champ createdByName du DTO
+      if (publication.createdByName) {
+        return publication.createdByName;
+      }
+      
+      // Fallback si createdByName n'existe pas (ancien format)
+      if (publication.createdBy) {
+        // Si createdBy est un objet avec firstName/lastName
+        if (publication.createdBy.firstName && publication.createdBy.lastName) {
+          return `${publication.createdBy.firstName} ${publication.createdBy.lastName}`;
+        }
+        // Si createdBy est un objet avec name
+        if (publication.createdBy.name) {
+          return publication.createdBy.name;
+        }
+        // Si createdBy est un objet avec email
+        if (publication.createdBy.email) {
+          return publication.createdBy.email.split('@')[0]; // Prend la partie avant @
+        }
+      }
+      return 'Non spécifié';
+    }
+
+    // Méthode pour corriger les URLs des images
+    getImageUrl(url: string): string {
+      if (!url) return '';
+      
+      // Si l'URL est déjà complète (commence par http), la retourner telle quelle
+      if (url.startsWith('http')) {
+        return url;
+      }
+      
+      // Si l'URL commence par 'uploads/publications/', ajouter l'URL du serveur
+      if (url.startsWith('uploads/publications/')) {
+        return `http://localhost:8080/${url}`;
+      }
+      
+      // Si l'URL commence par '/assets/', ajouter l'URL du serveur
+      if (url.startsWith('/assets/')) {
+        return `http://localhost:8080${url}`;
+      }
+      
+      // Si l'URL commence par 'assets/', ajouter l'URL du serveur avec /
+      if (url.startsWith('assets/')) {
+        return `http://localhost:8080/${url}`;
+      }
+      
+      // Sinon, retourner l'URL telle quelle
+      return url;
+    }
+
+    // Méthode pour gérer les erreurs de chargement d'images
+    onImageError(event: any): void {
+      console.log('ð Erreur de chargement d\'image, utilisation de l\'image par défaut');
+      console.log('ð URL qui a échoué:', event.target.src);
+      // Remplacer l'image par une image par défaut en base64
+      event.target.src = this.defaultImage;
+      
+      // L'image par défaut en base64 ne devrait jamais échouer, mais au cas où
+      event.target.onerror = () => {
+        console.log('ð Erreur de chargement de l\'image par défaut, masquage de l\'image');
+        event.target.style.display = 'none';
+        const parent = event.target.parentElement;
+        if (parent && parent.classList.contains('da__imagePreview')) {
+          parent.style.display = 'none';
+        }
+      };
+    }
+    
+    // Méthode pour déboguer getImageUrl dans la modal de modification
+    debugImageUrl(url: string): void {
+      const processedUrl = this.getImageUrl(url);
+      console.log('ð URL originale:', url);
+      console.log('ð URL traitée par getImageUrl():', processedUrl);
+      console.log('ð URL commence par uploads/publications/?', url.startsWith('uploads/publications/'));
+    }
+
+    // Méthode pour récupérer l'email de l'utilisateur connecté
+    getCurrentUserEmail(): string {
+      try {
+        // Essayer directement la clé email (vu dans les logs)
+        const email = localStorage.getItem('email');
+        if (email && email !== 'undefined' && email !== 'null') {
+          console.log('ð Email trouvé dans localStorage (clé email):', email);
+          return email;
+        }
+        
+        // Essayer la clé userEmail
+        const userEmail = localStorage.getItem('userEmail');
+        if (userEmail && userEmail !== 'undefined' && userEmail !== 'null') {
+          console.log('ð Email trouvé dans localStorage (clé userEmail):', userEmail);
+          return userEmail;
+        }
+        
+        // Vérifier userInfo
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+          const user = JSON.parse(userInfo);
+          console.log('ð userInfo trouvé:', user);
+          if (user.email && user.email !== 'undefined' && user.email !== 'null') {
+            console.log('ð Email trouvé dans userInfo:', user.email);
+            return user.email;
+          }
+        }
+        
+        // Si aucun email trouvé, essayer de le récupérer depuis le backend
+        console.log('ð Email non trouvé dans localStorage, tentative de récupération depuis le backend...');
+        this.fetchCurrentUserEmail();
+        
+        console.log('ð Aucun email valide trouvé, retour de chaîne vide');
+        return '';
+      } catch (error) {
+        console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+        return '';
+      }
+    }
+
+    // Méthode pour récupérer l'email depuis le backend
+    private fetchCurrentUserEmail(): void {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('ð Aucun token trouvé, impossible de récupérer l\'utilisateur');
+        return;
+      }
+
+      // Appeler un endpoint pour récupérer l'utilisateur courant
+      // Pour l'instant, nous allons utiliser une approche simple: vérifier s'il y a un userId
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        console.log('ð UserId trouvé:', userId);
+        // Stocker temporairement pour le filtrage
+        this.tempUserId = userId;
+      }
+    }
+
     // Computed properties for filter counts
     get totalCount(): number {
       return this.immatriculations.length;
@@ -269,8 +434,64 @@ export class PublicationsFiscalesComponent implements OnInit {
   
     ngOnInit(): void {
       this.loadUserName();
+      this.loadPublications();
     }
   
+    private loadPublications(): void {
+      console.log('ð Début du chargement des publications...');
+      console.log('ð Publications avant chargement:', this.publications.length);
+      console.log('ð Envoi de la requête GET /api/publications...');
+      
+      // Utiliser la pagination avec 10 items par page
+      const filters = {
+        page: this.currentPage,
+        size: this.itemsPerPage,
+        sortBy: 'createdAt',
+        sortDir: 'desc'
+      };
+      
+      console.log('ð Filtres de pagination:', filters);
+      
+      this.publicationService.getPublications(filters).subscribe({
+        next: (response) => {
+          console.log('ð Réponse brute du backend:', response);
+          console.log('ð response.data:', response.data);
+          console.log('ð Type de response.data:', typeof response.data);
+          console.log('ð Longueur de response.data:', response.data ? response.data.length : 'null');
+          
+          // Afficher les informations de pagination
+          if (response.pagination) {
+            console.log('ð Informations de pagination:', response.pagination);
+            console.log('ð Page actuelle:', response.pagination.current_page);
+            console.log('ð Total des pages:', response.pagination.total_pages);
+            console.log('ð Total des items:', response.pagination.total_items);
+            console.log('ð Items par page:', response.pagination.items_per_page);
+            
+            // Mettre à jour les propriétés de pagination
+            this.paginationInfo = response.pagination;
+            this.currentPage = response.pagination.current_page;
+            this.totalItems = response.pagination.total_items;
+            this.totalPages = response.pagination.total_pages;
+            this.itemsPerPage = response.pagination.items_per_page;
+          }
+          
+          this.publications = response.data || [];
+          this.filteredPublications = [...this.publications]; // Initialiser filteredPublications
+          console.log('✅ Publications chargées depuis la BDD:', this.publications);
+          console.log('📏 Nombre final de publications:', this.publications.length);
+          console.log('📋 Publications après mise à jour:', this.publications.map(p => ({ id: p.id, title: p.title, author: p.createdBy })));
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors du chargement des publications:', error);
+          console.error('📊 Status:', error.status);
+          console.error('📝 Message:', error.message);
+          console.error('📋 Erreur complète:', error);
+          // Garder les publications statiques en cas d'erreur
+          console.log('📋 Publications conservées (statiques):', this.publications.length);
+        }
+      });
+    }
+
     private loadUserName(): void {
       try {
         // Essayer de récupérer le nom depuis userInfo d'abord
@@ -632,7 +853,7 @@ export class PublicationsFiscalesComponent implements OnInit {
       });
     }
   
-    setFilter(filter: 'all' | 'PHYSIQUE' | 'MORALE'): void {
+    setFilter(filter: 'all' | 'my'): void {
       this.activeFilter = filter;
       this.applyFilter();
     }
@@ -640,64 +861,126 @@ export class PublicationsFiscalesComponent implements OnInit {
     private applyFilter(): void {
       let filtered: any[];
       
-      // Filtrer par type de contribuable
+      console.log('ð applyFilter appelé - activeFilter:', this.activeFilter);
+      console.log('ð Nombre total de publications:', this.publications.length);
+      console.log('ð Publications disponibles:', this.publications.map(p => ({ id: p.id, title: p.title, createdBy: p.createdBy })));
+      
+      // Filtrer les publications
       if (this.activeFilter === 'all') {
-        filtered = [...this.immatriculations];
-      } else {
-        filtered = this.immatriculations.filter(
-          immatriculation => immatriculation.typeContribuable === this.activeFilter
-        );
-      }
-      
-      // Filtrer par nationalité
-      if (this.nationaliteFilter !== 'tous') {
-        filtered = filtered.filter(imm => {
-          const immNationalite = imm.nationalite || 'tunisienne'; // Par défaut tunisien
-          if (this.nationaliteFilter === 'tunisien') {
-            return immNationalite === 'tunisienne';
-          } else if (this.nationaliteFilter === 'etranger') {
-            return immNationalite !== 'tunisienne';
+        filtered = [...this.publications];
+        console.log('â Filtrage: Toutes les publications -', filtered.length, 'publications');
+      } else if (this.activeFilter === 'my') {
+        // Filtrer les publication créées par l'utilisateur connecté
+        const currentUserEmail = this.getCurrentUserEmail();
+        const userId = localStorage.getItem('userId');
+        
+        console.log('ð Filtrage Mes publications - Email utilisateur:', currentUserEmail);
+        console.log('ð Filtrage Mes publications - UserId:', userId);
+        console.log('ð Publications disponibles:', this.publications.map(p => {
+          // Log complet de la structure de la publication
+          console.log('ð Structure complète de la publication:', p.title, p);
+          return {
+            id: p.id,
+            title: p.title,
+            createdByEmail: p.createdByEmail,
+            createdBy: p.createdBy,
+            createdByName: p.createdByName,
+            createdById: p.createdBy?.id || p.createdById,
+            // Ajouter tous les champs possibles pour le débogage
+            createdByObj: p.createdBy,
+            createdByIdField: p.createdById,
+            createdByUserId: p.createdBy?.idUtilisateur,
+            createdByUserIdField: p.createdByUserId,
+            allFields: Object.keys(p)
+          };
+        }));
+        
+        filtered = this.publications.filter(publication => {
+          // Vérifier si la publication appartient à l'utilisateur connecté
+          let isMatch = false;
+          
+          // Vérifier par ID utilisateur (champ createdBy du DTO)
+          if (userId) {
+            isMatch = publication.createdBy == userId || 
+                     publication.createdBy === parseInt(userId);
           }
-          return true;
+          
+          // Vérifier par email utilisateur (plus fiable)
+          if (currentUserEmail && !isMatch) {
+            isMatch = publication.createdByEmail === currentUserEmail ||
+                     publication.createdBy?.email === currentUserEmail ||
+                     publication.createdByName?.toLowerCase().includes(currentUserEmail.split('@')[0].toLowerCase());
+          }
+          
+          // Vérifier par ID dans l'objet createdBy imbriqué
+          if (!isMatch && userId && publication.createdBy?.idUtilisateur) {
+            isMatch = publication.createdBy.idUtilisateur == parseInt(userId);
+          }
+          
+          // Vérifier par ID direct dans l'objet createdBy
+          if (!isMatch && userId && publication.createdBy?.id) {
+            isMatch = publication.createdBy.id == parseInt(userId);
+          }
+          
+          console.log('ð Vérification publication:', publication.title, 
+                     '- createdBy:', publication.createdBy, 
+                     '- createdByEmail:', publication.createdByEmail,
+                     '- userId:', userId, 
+                     '- currentUserEmail:', currentUserEmail,
+                     '->', isMatch);
+          return isMatch;
         });
+        
+        console.log('ð Résultat filtrage Mes publications:', filtered.length, 'publications trouvées');
+      } else {
+        filtered = [...this.publications];
       }
       
-      // Filtrer par statut si applicable
-      if (this.statusFilter !== 'all') {
-        filtered = filtered.filter(
-          immatriculation => immatriculation.status === this.statusFilter
-        );
-      }
-      
-      // Filtrer par recherche
-      if (this.searchTerm && this.searchTerm.trim().length > 0) {
-        const searchLower = this.searchTerm.toLowerCase().trim();
-        filtered = filtered.filter(
-          immatriculation => {
-            // Rechercher dans plusieurs champs
-            const searchableFields = [
-              immatriculation.dossierNumber || '',
-              immatriculation.nom || '',
-              immatriculation.prenom || '',
-              immatriculation.raisonSociale || '',
-              immatriculation.email || '',
-              immatriculation.telephone || '',
-              immatriculation.cin || '',
-              immatriculation.matriculeFiscal || ''
-            ];
             
-            return searchableFields.some(field => 
-              field.toLowerCase().includes(searchLower)
-            );
-          }
-        );
+      // Appliquer le filtre de recherche
+      if (this.searchTerm && this.searchTerm.trim() !== '') {
+        const searchLower = this.searchTerm.toLowerCase().trim();
+        console.log('ð Terme de recherche:', this.searchTerm);
+        console.log('ð Terme de recherche (lowercase):', searchLower);
+        console.log('ð Publications avant recherche:', filtered.length);
+        
+        filtered = filtered.filter(publication => {
+          // Rechercher dans le titre, le contenu, le résumé et le nom de l'auteur
+          const searchableFields = [
+            publication.title || '',
+            publication.summary || '',
+            publication.content || '',
+            publication.createdByName || ''
+          ];
+          
+          console.log('ð Publication:', publication.title);
+          console.log('ð Champs recherchables:', searchableFields);
+          
+          const matches = searchableFields.some(field => {
+            const fieldLower = field.toLowerCase();
+            const matches = fieldLower.includes(searchLower);
+            console.log('  - Champ:', field, '->', matches);
+            return matches;
+          });
+          
+          console.log('ð Résultat final pour', publication.title, ':', matches);
+          return matches;
+        });
+        
+        console.log('ð Publications après recherche:', filtered.length);
       }
       
-      // Appliquer le tri
-      this.filteredImmatriculations = this.sortImmatriculations(filtered);
+      // Appliquer le filtrage final
+      this.filteredPublications = filtered;
     }
   
     onSearchChange(): void {
+      this.applyFilter();
+    }
+
+    // Méthode pour effacer la recherche
+    clearSearch(): void {
+      this.searchTerm = '';
       this.applyFilter();
     }
   
@@ -747,16 +1030,54 @@ export class PublicationsFiscalesComponent implements OnInit {
       return statusLabels[status] || status;
     }
   
-    formatDate(dateString: string): string {
-      if (!dateString) return 'N/A';
+    formatDate(dateInput: any): string {
+      if (!dateInput) return 'N/A';
+      
       try {
-        const date = new Date(dateString);
+        let date: Date;
+        
+        // Si c'est déjà un objet Date
+        if (dateInput instanceof Date) {
+          date = dateInput;
+        }
+        // Si c'est une chaîne de caractères
+        else if (typeof dateInput === 'string') {
+          // Gérer le format ISO (ex: 2026-04-22T12:00:00)
+          if (dateInput.includes('T')) {
+            date = new Date(dateInput);
+          }
+          // Gérer d'autres formats
+          else {
+            date = new Date(dateInput);
+          }
+        }
+        // Si c'est un nombre (timestamp)
+        else if (typeof dateInput === 'number') {
+          date = new Date(dateInput);
+        }
+        // Si c'est un objet avec des propriétés de date
+        else if (typeof dateInput === 'object' && dateInput.year) {
+          date = new Date(dateInput.year, dateInput.monthValue - 1, dateInput.dayOfMonth, 
+                         dateInput.hour || 0, dateInput.minute || 0, dateInput.second || 0);
+        }
+        else {
+          return 'N/A';
+        }
+        
+        // Vérifier si la date est valide
+        if (isNaN(date.getTime())) {
+          console.warn('Date invalide:', dateInput);
+          return 'N/A';
+        }
+        
         return date.toLocaleDateString('fr-FR', {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric'
         });
-      } catch {
+        
+      } catch (error) {
+        console.error('Erreur de formatage de date:', error, 'pour:', dateInput);
         return 'N/A';
       }
     }
@@ -1482,35 +1803,117 @@ export class PublicationsFiscalesComponent implements OnInit {
     this.isCreatingPublication = false;
   }
 
-  submitCreatePublication(): void {
+  saveAsDraft(): void {
+    console.log('🚀 saveAsDraft appelé');
+    
     // Synchroniser d'abord le contenu CKEditor avec le formulaire
     this.syncContentWithForm();
+    console.log('📝 Form synchronisé:', this.newPublicationForm);
 
-    if (!this.newPublicationForm.title || !this.newPublicationForm.summary.trim() || !this.newPublicationForm.content) {
-      this.showNotification('Veuillez remplir les champs obligatoires (titre, résumé, contenu).', 'warning');
+    if (!this.newPublicationForm.title || !this.newPublicationForm.content) {
+      console.log('⚠️ Validation échouée - champs manquants');
+      this.showNotification('Veuillez remplir les champs obligatoires (titre, contenu).', 'warning');
       return;
     }
 
-    this.isCreatingPublication = true;
+    console.log('✅ Validation réussie');
+    console.log('ð Tags actuels dans this.publicationTags:', this.publicationTags);
+    console.log('ð Nombre de tags actuels:', this.publicationTags.length);
+    this.isSavingDraft = true;
 
-    const publicationToAdd = {
-      id: Date.now(),
+    const publicationRequest = {
       title: this.newPublicationForm.title,
-      summary: this.newPublicationForm.summary.trim(),
+      summary: this.newPublicationForm.content.substring(0, 200) + '...', // Générer un résumé auto
       content: this.newPublicationForm.content,
-      author: this.userName || 'Agent DGI',
       language: this.newPublicationForm.language || 'fr',
-      status: 'DRAFT',
-      created_at: new Date().toISOString(),
       is_pinned: this.newPublicationForm.is_pinned,
       image_url: this.newPublicationForm.image_url.trim(),
-      scheduled_at: this.newPublicationForm.schedule_type === 'later' ? this.newPublicationForm.scheduled_at : null,
+      status: 'DRAFT' as const, // Explicitement défini comme brouillon
       ai_generated_tags: [...this.publicationTags]
     };
 
-    this.publications = [publicationToAdd, ...this.publications];
-    this.closeCreatePublicationModal();
-    this.showNotification('Publication créée avec succès en brouillon.', 'success');
+    console.log('📦 Request créé:', publicationRequest);
+    console.log('🖼️ Image file:', this.selectedImageFile);
+    console.log('📦 Tags dans le request:', publicationRequest.ai_generated_tags);
+    console.log('📦 Type des tags:', typeof publicationRequest.ai_generated_tags);
+    console.log('📦 Nombre de tags:', Array.isArray(publicationRequest.ai_generated_tags) ? publicationRequest.ai_generated_tags.length : 0);
+    
+    // Utiliser le service pour créer le brouillon
+    console.log('🔄 Appel du service createDraft...');
+    this.publicationService.createDraft(publicationRequest, this.selectedImageFile || undefined).subscribe({
+      next: (createdPublication) => {
+        console.log('✅ Brouillon créé:', createdPublication);
+        // Ajouter au début du tableau
+        this.publications.unshift(createdPublication);
+        // Rafraîchir les publications filtrées pour afficher immédiatement le nouveau brouillon
+        this.applyFilter();
+        this.showNotification('Publication sauvegardée en brouillon !', 'success');
+        this.isSavingDraft = false;
+        this.closeCreatePublicationModal();
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors de la création du brouillon:', error);
+        this.showNotification('Erreur lors de la sauvegarde du brouillon', 'error');
+        this.isSavingDraft = false;
+      }
+    });
+  }
+
+  submitCreatePublication(): void {
+    console.log('🚀 submitCreatePublication appelé');
+    
+    // Synchroniser d'abord le contenu CKEditor avec le formulaire
+    this.syncContentWithForm();
+    console.log('📝 Form synchronisé:', this.newPublicationForm);
+
+    if (!this.newPublicationForm.title || !this.newPublicationForm.content) {
+      console.log('⚠️ Validation échouée - champs manquants');
+      this.showNotification('Veuillez remplir les champs obligatoires (titre, contenu).', 'warning');
+      return;
+    }
+
+    console.log('✅ Validation réussie');
+    console.log('ð Tags actuels dans this.publicationTags:', this.publicationTags);
+    console.log('ð Nombre de tags actuels:', this.publicationTags.length);
+    this.isCreatingPublication = true;
+
+    const publicationRequest = {
+      title: this.newPublicationForm.title,
+      summary: this.newPublicationForm.content.substring(0, 200) + '...', // Générer un résumé auto
+      content: this.newPublicationForm.content,
+      language: this.newPublicationForm.language || 'fr',
+      is_pinned: this.newPublicationForm.is_pinned,
+      image_url: this.newPublicationForm.image_url.trim(),
+      scheduled_at: this.newPublicationForm.schedule_type === 'later' ? this.newPublicationForm.scheduled_at : undefined,
+      status: (this.newPublicationForm.schedule_type === 'later' ? 'SCHEDULED' : 'PUBLISHED') as 'SCHEDULED' | 'PUBLISHED', // PUBLISHED pour publication immédiate
+      ai_generated_tags: [...this.publicationTags]
+    };
+
+    console.log('ð Request créé:', publicationRequest);
+    console.log('ð Image file:', this.selectedImageFile);
+    console.log('ð Tags dans le request:', publicationRequest.ai_generated_tags);
+    console.log('ð Type des tags:', typeof publicationRequest.ai_generated_tags);
+    console.log('ð Nombre de tags:', Array.isArray(publicationRequest.ai_generated_tags) ? publicationRequest.ai_generated_tags.length : 0);
+
+    // Utiliser le service pour créer la publication
+    console.log('ð Appel du service...');
+    this.publicationService.createPublication(publicationRequest, this.selectedImageFile || undefined).subscribe({
+      next: (createdPublication) => {
+        console.log('✅ Publication créée:', createdPublication);
+        // Ajouter au début du tableau
+        this.publications.unshift(createdPublication);
+        // Rafraîchir les publications filtrées pour afficher immédiatement la nouvelle publication
+        this.applyFilter();
+        this.showNotification('Publication créée avec succès !', 'success');
+        this.isCreatingPublication = false;
+        this.closeCreatePublicationModal();
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors de la création de la publication:', error);
+        this.showNotification('Erreur lors de la création de la publication', 'error');
+        this.isCreatingPublication = false;
+      }
+    });
   }
 
   private resetCreatePublicationForm(): void {
@@ -1541,6 +1944,451 @@ export class PublicationsFiscalesComponent implements OnInit {
 
   removePublicationTag(tag: string): void {
     this.publicationTags = this.publicationTags.filter(t => t !== tag);
+  }
+
+  // Méthodes pour gérer les tags existants
+  toggleExistingTags(): void {
+    this.showExistingTags = !this.showExistingTags;
+    if (this.showExistingTags && this.existingTags.length === 0) {
+      this.loadExistingTags();
+    }
+  }
+
+  loadExistingTags(): void {
+    console.log('ð Chargement des tags existants depuis le backend...');
+    
+    // Charger toutes les publications avec une grande page size pour obtenir tous les tags
+    const filters = {
+      page: 0,
+      size: 1000, // Taille de page grande pour obtenir toutes les publications
+      sortBy: 'createdAt',
+      sortDir: 'desc'
+    };
+    
+    console.log('ð Filtres utilisés pour charger les tags:', filters);
+    
+    this.publicationService.getPublications(filters).subscribe({
+      next: (response) => {
+        console.log('ð Réponse complète du backend:', response);
+        console.log('ð Structure de la réponse:', {
+          hasData: !!response.data,
+          dataType: typeof response.data,
+          isArray: Array.isArray(response.data),
+          dataLength: response.data?.length || 0,
+          hasPagination: !!response.pagination,
+          pagination: response.pagination
+        });
+        
+        const allTags = new Set<string>();
+        
+        if (response.data && Array.isArray(response.data)) {
+          console.log('ð Publications chargées pour les tags:', response.data.length);
+          
+          response.data.forEach((publication, index) => {
+            // Pour la première publication, afficher toutes les clés et valeurs
+            if (index === 0) {
+              console.log('ð Publication complète (première publication):', publication);
+              console.log('ð Toutes les clés de la publication:', Object.keys(publication));
+              console.log('ð Toutes les valeurs de la publication:');
+              Object.entries(publication).forEach(([key, value]) => {
+                console.log(`  - ${key}:`, value);
+              });
+            }
+            
+            console.log(`ð Publication ${index + 1}:`, {
+              id: publication.id,
+              title: publication.title,
+              fullObject: publication,
+              ai_generated_tags: publication.ai_generated_tags,
+              tagsType: typeof publication.ai_generated_tags,
+              isArray: Array.isArray(publication.ai_generated_tags),
+              allKeys: Object.keys(publication)
+            });
+            
+            // Vérifier tous les champs possibles pour les tags
+            let foundTags = null;
+            
+            // Vérifier aiGeneratedTags (champ principal) - utiliser une approche plus sûre
+            const publicationAny = publication as any;
+            if (publicationAny.aiGeneratedTags !== undefined) {
+              console.log('ð Champ aiGeneratedTags trouvé:', publicationAny.aiGeneratedTags);
+              foundTags = publicationAny.aiGeneratedTags;
+            }
+            
+            const tags = foundTags;
+            
+            if (tags && Array.isArray(tags)) {
+              console.log(`ð Tags trouvés pour la publication ${index + 1}:`, tags);
+              tags.forEach((tag: string) => {
+                if (tag && tag.trim()) {
+                  allTags.add(tag.trim());
+                  console.log('ð Tag ajouté:', tag.trim());
+                }
+              });
+            } else {
+              console.log(`ð Pas de tags valides pour la publication ${index + 1}:`, publication.title);
+              console.log('ð Valeur de ai_generated_tags:', publication.ai_generated_tags);
+            }
+          });
+        } else {
+          console.log('ð Aucune donnée de publication trouvée ou format invalide');
+        }
+        
+        this.existingTags = Array.from(allTags).sort();
+        console.log('ð Tags existants finaux:', this.existingTags);
+        console.log('ð Nombre total de tags uniques:', this.existingTags.length);
+        console.log('ð État de showExistingTags:', this.showExistingTags);
+      },
+      error: (error) => {
+        console.error('ð Erreur lors du chargement des tags existants:', error);
+        console.log('ð Tentative de chargement depuis les publications locales...');
+        // En cas d'erreur, essayer avec les publications locales
+        this.loadExistingTagsFromLocal();
+      }
+    });
+  }
+  
+  loadExistingTagsFromLocal(): void {
+    console.log('ð Chargement des tags existants depuis les publications locales...');
+    console.log('ð Nombre de publications disponibles:', this.publications.length);
+    
+    // Extraire tous les tags des publications existantes
+    const allTags = new Set<string>();
+    
+    this.publications.forEach((publication, index) => {
+      console.log(`ð Publication ${index + 1}:`, {
+        id: publication.id,
+        title: publication.title,
+        ai_generated_tags: publication.ai_generated_tags,
+        tagsType: typeof publication.ai_generated_tags,
+        isArray: Array.isArray(publication.ai_generated_tags)
+      });
+      
+      // Vérifier les tags avec différents noms de champs possibles
+      const tags = publication.ai_generated_tags;
+      
+      if (tags && Array.isArray(tags)) {
+        tags.forEach((tag: string) => {
+          if (tag && tag.trim()) {
+            allTags.add(tag.trim());
+            console.log('ð Tag trouvé:', tag.trim());
+          }
+        });
+      } else {
+        console.log('ð Pas de tags ou format invalide pour la publication:', publication.title);
+      }
+    });
+
+    this.existingTags = Array.from(allTags).sort();
+    console.log('ð Tags existants chargés:', this.existingTags);
+    console.log('ð Nombre total de tags uniques:', this.existingTags.length);
+  }
+
+  addExistingTag(tag: string): void {
+    if (!this.publicationTags.includes(tag)) {
+      this.publicationTags = [...this.publicationTags, tag];
+      console.log('ð Tag ajouté depuis les existants:', tag);
+    }
+  }
+
+  isTagAlreadyAdded(tag: string): boolean {
+    return this.publicationTags.includes(tag);
+  }
+
+  // ==================== MÉTHODES DE PAGINATION ====================
+
+  goToPage(page: number): void {
+    if (page >= 0 && page < this.totalPages && page !== this.currentPage) {
+      this.currentPage = page;
+      this.loadPublications();
+    }
+  }
+
+  // Méthode wrapper pour le template
+  navigateToPage(page: any): void {
+    if (this.isPageNumber(page)) {
+      this.goToPage(page as number);
+    }
+  }
+
+  goToPreviousPage(): void {
+    if (this.currentPage > 0) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  goToNextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
+
+  getPageNumbers(): (number | string)[] {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+    
+    if (this.totalPages <= maxVisiblePages) {
+      // Afficher toutes les pages si peu de pages
+      for (let i = 0; i < this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Afficher les pages avec ellipsis
+      pages.push(0); // Première page
+      
+      if (this.currentPage > 2) {
+        pages.push('...');
+      }
+      
+      // Pages autour de la page actuelle
+      const start = Math.max(1, Math.min(this.currentPage - 1, this.totalPages - 3));
+      const end = Math.min(this.totalPages - 2, Math.max(this.currentPage + 1, 2));
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      if (this.currentPage < this.totalPages - 3) {
+        pages.push('...');
+      }
+      
+      pages.push(this.totalPages - 1); // Dernière page
+    }
+    
+    return pages;
+  }
+
+  getStartItem(): number {
+    return this.totalItems === 0 ? 0 : this.currentPage * this.itemsPerPage + 1;
+  }
+
+  getEndItem(): number {
+    const end = this.currentPage * this.itemsPerPage + this.itemsPerPage;
+    return Math.min(end, this.totalItems);
+  }
+
+  isPageNumber(page: any): boolean {
+    return typeof page === 'number' && !isNaN(page);
+  }
+
+  canNavigateToPage(page: any): boolean {
+    return this.isPageNumber(page) && page !== '...' && page >= 0 && page < this.totalPages;
+  }
+
+  // ==================== MÉTHODES DE DÉTAILS DE PUBLICATION ====================
+
+  viewPublicationDetails(publication: any): void {
+    this.selectedPublicationForDetails = publication;
+    this.showPublicationDetailsModal = true;
+    console.log('ð Affichage des détails pour la publication:', publication.title);
+  }
+
+  closePublicationDetailsModal(): void {
+    this.showPublicationDetailsModal = false;
+    this.selectedPublicationForDetails = null;
+  }
+
+  // Méthodes pour la modification de publication
+  editPublication(publication: any): void {
+    this.selectedPublicationForEdit = publication;
+    
+    console.log('ð Publication complète pour modification:', publication);
+    console.log('ð Clés de la publication:', Object.keys(publication));
+    console.log('ð Valeur de imageUrl:', publication.imageUrl);
+    console.log('ð Type de imageUrl:', typeof publication.imageUrl);
+    console.log('ð ImageUrl existe?', !!publication.imageUrl);
+    
+    // Remplir le formulaire avec les données de la publication
+    this.editPublicationForm = {
+      title: publication.title || '',
+      content: publication.content || '',
+      summary: publication.summary || '',
+      imageUrl: publication.imageUrl || '',
+      language: publication.language || 'fr',
+      tags: publication.aiGeneratedTags || []
+    };
+    
+    // Initialiser les éditeurs CKEditor
+    this.ckEditorTitle = publication.title || '';
+    this.ckEditorContent = publication.content || '';
+    
+    // Initialiser la prévisualisation de l'image existante
+    // Ne pas mettre l'URL dans editImagePreview pour laisser getImageUrl() faire la transformation
+    this.editImagePreview = null; // Toujours null pour les images existantes
+    this.selectedEditImageFile = null;
+    
+    console.log('ð editImagePreview défini:', this.editImagePreview);
+    console.log('ð editPublicationForm.imageUrl:', this.editPublicationForm.imageUrl);
+    
+    // Déboguer le traitement de l'URL
+    if (publication.imageUrl) {
+      this.debugImageUrl(publication.imageUrl);
+    }
+    
+    this.showEditPublicationModal = true;
+    console.log('ð Ouverture de la modal de modification pour:', publication.title);
+    console.log('ð Modal ouverte:', this.showEditPublicationModal);
+  }
+
+  closeEditPublicationModal(): void {
+    this.showEditPublicationModal = false;
+    this.selectedPublicationForEdit = null;
+    this.editPublicationForm = {
+      title: '',
+      content: '',
+      summary: '',
+      imageUrl: '',
+      language: 'fr',
+      tags: [] as string[]
+    };
+    this.isEditingPublication = false;
+    
+    // Nettoyer les propriétés d'image
+    this.editImagePreview = null;
+    this.selectedEditImageFile = null;
+    this.isUploadingEditImage = false;
+  }
+
+  updatePublication(): void {
+    if (!this.selectedPublicationForEdit) return;
+    
+    this.isEditingPublication = true;
+    
+    // D'abord uploader l'image si nécessaire
+    this.uploadEditImage().then((imageUrl) => {
+      const updatedPublication = {
+        ...this.selectedPublicationForEdit,
+        title: this.ckEditorTitle || this.editPublicationForm.title,
+        content: this.ckEditorContent || this.editPublicationForm.content,
+        summary: this.editPublicationForm.summary,
+        imageUrl: imageUrl || this.editPublicationForm.imageUrl,
+        language: this.editPublicationForm.language,
+        aiGeneratedTags: this.editPublicationForm.tags
+      };
+      
+      console.log('ð Mise à jour de la publication:', updatedPublication);
+      
+      // Appeler le service pour mettre à jour la publication
+      this.publicationService.updatePublication(this.selectedPublicationForEdit.id, updatedPublication).subscribe({
+        next: (response) => {
+          console.log('ð Publication mise à jour avec succès:', response);
+          this.isEditingPublication = false;
+          this.closeEditPublicationModal();
+          this.loadPublications(); // Recharger les publications
+          this.showSuccessMessage('Publication mise à jour avec succès');
+        },
+        error: (error) => {
+          console.error('ð Erreur lors de la mise à jour de la publication:', error);
+          this.isEditingPublication = false;
+          this.showErrorMessage('Erreur lors de la mise à jour de la publication');
+        }
+      });
+    }).catch((error) => {
+      console.error('ð Erreur lors de l\'upload de l\'image:', error);
+      this.isEditingPublication = false;
+      this.showErrorMessage('Erreur lors de l\'upload de l\'image');
+    });
+  }
+
+  // Gestion des tags dans le formulaire de modification
+  addEditTag(event: any): void {
+    const input = event.target;
+    const tag = input.value.trim();
+    
+    if (tag && !this.editPublicationForm.tags.includes(tag)) {
+      this.editPublicationForm.tags.push(tag);
+      input.value = '';
+      console.log('ð Tag ajouté à la modification:', tag);
+    }
+  }
+
+  removeEditTag(tag: string): void {
+    const index = this.editPublicationForm.tags.indexOf(tag);
+    if (index > -1) {
+      this.editPublicationForm.tags.splice(index, 1);
+      console.log('ð Tag supprimé de la modification:', tag);
+    }
+  }
+
+  addEditTagFromExisting(tag: string): void {
+    if (!this.editPublicationForm.tags.includes(tag)) {
+      this.editPublicationForm.tags.push(tag);
+      console.log('ð Tag existant ajouté à la modification:', tag);
+    }
+  }
+
+  // Gestion de l'image pour la modification
+  onEditImageUpload(event: any): void {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      this.selectedEditImageFile = file;
+      
+      // Créer une URL pour l'aperçu
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.editImagePreview = e.target?.result as string;
+        console.log('ð Image de modification chargée:', file.name);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.error('ð Fichier invalide. Veuillez sélectionner une image.');
+      // Réinitialiser l'input
+      event.target.value = '';
+    }
+  }
+
+  removeEditImage(): void {
+    this.selectedEditImageFile = null;
+    this.editImagePreview = null;
+    this.editPublicationForm.imageUrl = '';
+    console.log('ð Image de modification supprimée');
+  }
+
+  // Méthode pour téléverser l'image de modification
+  uploadEditImage(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!this.selectedEditImageFile) {
+        resolve(this.editPublicationForm.imageUrl || '');
+        return;
+      }
+
+      this.isUploadingEditImage = true;
+      
+      // Créer FormData pour l'upload
+      const formData = new FormData();
+      formData.append('image', this.selectedEditImageFile);
+      
+      // Simuler l'upload (remplacer par votre véritable API)
+      setTimeout(() => {
+        const imageUrl = `/assets/img/publication/${Date.now()}_${this.selectedEditImageFile!.name}`;
+        this.isUploadingEditImage = false;
+        console.log('ð Image de modification uploadée:', imageUrl);
+        resolve(imageUrl);
+      }, 1500);
+    });
+  }
+
+  
+  // Gestion des changements dans les éditeurs CKEditor pour la modification
+  onEditTitleChange(): void {
+    this.editPublicationForm.title = this.ckEditorTitle;
+  }
+
+  onEditContentChange(): void {
+    this.editPublicationForm.content = this.ckEditorContent;
+  }
+
+  // Messages de succès/erreur
+  showSuccessMessage(message: string): void {
+    // Implémenter l'affichage d'un message de succès
+    console.log('ð Succès:', message);
+    // Vous pouvez utiliser un toast ou une notification ici
+  }
+
+  showErrorMessage(message: string): void {
+    // Implémenter l'affichage d'un message d'erreur
+    console.error('ð Erreur:', message);
+    // Vous pouvez utiliser un toast ou une notification ici
   }
 
   // Fonction pour générer des tags avec l'API de Groq
@@ -1686,15 +2534,6 @@ export class PublicationsFiscalesComponent implements OnInit {
   }
 
   // Méthodes pour la gestion des publications
-  viewPublicationDetails(publication: any): void {
-    console.log('Voir les détails de la publication:', publication);
-    // TODO: Ouvrir un modal pour voir les détails
-  }
-
-  editPublication(publication: any): void {
-    console.log('Modifier la publication:', publication);
-    // TODO: Ouvrir un modal pour modifier la publication
-  }
 
   togglePin(publication: any): void {
     console.log('Basculer le statut épinglé:', publication);
@@ -1713,10 +2552,12 @@ export class PublicationsFiscalesComponent implements OnInit {
       'PENDING': 'En attente',
       'VALIDATED': 'Validé',
       'PUBLISHED': 'Publié',
+      'SCHEDULED': 'Programmé',
       'REJECTED': 'Rejeté',
       'ARCHIVED': 'Archivé'
     };
-    return statusLabels[status] || status;
+    const label = statusLabels[status] || status;
+    return label;
   }
 }
 

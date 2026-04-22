@@ -5,7 +5,7 @@ export interface Publication {
   content: string;
   summary: string;
   image_url: string;
-  status: 'DRAFT' | 'PENDING' | 'VALIDATED' | 'PUBLISHED' | 'REJECTED' | 'ARCHIVED' | 'DELETED';
+  status: 'DRAFT' | 'PENDING' | 'VALIDATED' | 'PUBLISHED' | 'SCHEDULED' | 'REJECTED' | 'ARCHIVED' | 'DELETED';
   is_pinned: boolean;
   views_count: number;
   likes_count: number;
@@ -85,6 +85,7 @@ export interface CreatePublicationRequest {
   image_url?: string;
   is_pinned?: boolean;
   scheduled_at?: string;
+  status?: Publication['status'];
   ai_generated_tags?: string[];
   language?: string;
 }

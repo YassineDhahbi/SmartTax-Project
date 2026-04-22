@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { 
   Publication, 
@@ -17,6 +17,15 @@ export class PublicationService {
   private readonly apiUrl = 'http://localhost:8080/api/publications';
 
   constructor(private http: HttpClient) {}
+
+  // Méthode pour obtenir les headers avec le token JWT
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json'
+    });
+  }
 
   // ==================== GET OPERATIONS ====================
 
@@ -69,17 +78,54 @@ export class PublicationService {
   // ==================== CREATE OPERATIONS ====================
 
   /**
-   * Créer une nouvelle publication
+   * Méthode helper pour créer avec FormData et image
    */
-  createPublication(publication: CreatePublicationRequest): Observable<Publication> {
-    return this.http.post<Publication>(this.apiUrl, publication);
+  private createWithImage(publication: CreatePublicationRequest, image?: File): Observable<Publication> {
+    const formData = new FormData();
+    
+    // Ajouter les données de la publication
+    const publicationData = {
+      title: publication.title,
+      summary: publication.summary,
+      content: publication.content,
+      image_url: publication.image_url,
+      language: publication.language || 'fr',
+      is_pinned: publication.is_pinned || false,
+      scheduled_at: publication.scheduled_at,
+      status: publication.status,
+      aiGeneratedTags: publication.ai_generated_tags || []
+    };
+    
+    console.log('📤 Données publicationData avant envoi:', publicationData);
+    console.log('📤 Tags dans publicationData:', publicationData.aiGeneratedTags);
+    console.log('📤 Type des tags dans publicationData:', typeof publicationData.aiGeneratedTags);
+    
+    formData.append('publication', new Blob([JSON.stringify(publicationData)], { type: 'application/json' }));
+    
+    // Log du contenu FormData pour débogage
+    console.log('📤 FormData créé - publication blob ajouté');
+    
+    // Ajouter l'image si fournie
+    if (image) {
+      formData.append('image', image);
+      console.log('📤 Image ajoutée au FormData:', image.name);
+    }
+    
+    return this.http.post<Publication>(this.apiUrl, formData, { headers: this.getAuthHeaders() });
+  }
+
+  /**
+   * Créer une nouvelle publication avec support d'image
+   */
+  createPublication(publication: CreatePublicationRequest, image?: File): Observable<Publication> {
+    return this.createWithImage(publication, image);
   }
 
   /**
    * Créer un brouillon
    */
-  createDraft(publication: Partial<CreatePublicationRequest>): Observable<Publication> {
-    return this.http.post<Publication>(`${this.apiUrl}/draft`, publication);
+  createDraft(publication: CreatePublicationRequest, image?: File): Observable<Publication> {
+    return this.createWithImage(publication, image);
   }
 
   // ==================== UPDATE OPERATIONS ====================
