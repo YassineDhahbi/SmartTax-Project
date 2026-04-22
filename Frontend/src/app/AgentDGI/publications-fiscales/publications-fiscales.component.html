@@ -39,9 +39,9 @@
                           (click)="clearSearch()"
                           title="Effacer la recherche">
                     <i class="fa-solid fa-times"></i>
-                  </button>
-                </div>
-              </div>
+              </button>
+            </div>
+            </div>
               <button class="da__filterBtn da__filterBtn--primary da__filterBtn--create" (click)="createPublication()">
                 <i class="fa-solid fa-plus"></i>
                 <span>Nouvelle publication</span>
@@ -96,22 +96,38 @@
                     <td>{{ getAuthorName(publication) || 'Non spécifié' }}</td>
                 
                     <td>
+                      <ng-container *ngIf="canManagePublication(publication); else readonlyStatus">
+                        <div class="da__statusEditor">
+                          <select
+                            class="da__statusSelect"
+                            [class.da__statusSelect--scheduled]="publication.status === 'SCHEDULED'"
+                            [ngModel]="publication.status"
+                            (ngModelChange)="updatePublicationStatusFromList(publication, $event)">
+                            <option value="DRAFT">Brouillon</option>
+                            <option value="PUBLISHED">Publié</option>
+                            <option value="SCHEDULED" disabled>Planifié</option>
+                          </select>
+                        </div>
+                      </ng-container>
+                      <ng-template #readonlyStatus>
                       <span class="da__status" [attr.data-status]="publication.status?.toLowerCase()">
                         {{ getStatusLabel(publication.status) }}
                       </span>
+                      </ng-template>
                     </td>
                     <td>{{ formatDate(publication.createdAt) }}</td>
                     <td class="da__center">
                       <button class="da__rowBtn da__rowBtn--view" (click)="viewPublicationDetails(publication)" title="Voir les détails">
                         <i class="fa-solid fa-eye"></i>
                       </button>
-                     
+                      <ng-container *ngIf="canManagePublication(publication)">
                       <button class="da__rowBtn da__rowBtn--edit" (click)="editPublication(publication)" title="Modifier">
                         <i class="fa-solid fa-edit"></i>
                       </button>
                       <button class="da__rowBtn da__rowBtn--danger" (click)="deletePublication(publication)" title="Supprimer">
                         <i class="fa-solid fa-trash"></i>
                       </button>
+                      </ng-container>
                     </td>
                   </tr>
                   <tr *ngIf="publications.length === 0">
@@ -454,6 +470,40 @@
   </div>
 </div>
 
+<!-- Modal de confirmation de suppression publication -->
+<div *ngIf="showDeletePublicationModal" class="da__modalOverlay" (click)="closeDeletePublicationModal()">
+  <div class="da__modal da__modal--details" (click)="$event.stopPropagation()">
+    <div class="da__modalHeader">
+      <div class="da__modalTitle">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Confirmer la suppression</span>
+      </div>
+      <button class="da__modalClose" (click)="closeDeletePublicationModal()" type="button" aria-label="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="da__modalBody">
+      <p class="da__publicationLead" style="margin-bottom: 0;">
+        Voulez-vous vraiment supprimer cette publication ?
+      </p>
+      <div style="margin-top: 12px; color: var(--text); font-weight: 600;">
+        {{ selectedPublicationForDelete?.title || 'Sans titre' }}
+      </div>
+    </div>
+
+    <div class="da__modalFooter">
+      <button class="da__btn da__btn--secondary" type="button" (click)="closeDeletePublicationModal()">
+        Annuler
+      </button>
+      <button class="da__btn da__btn--danger" type="button" (click)="confirmDeletePublication()">
+        <i class="fa-solid fa-trash"></i>
+        Supprimer
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal de modification de publication -->
 <div *ngIf="showEditPublicationModal" class="da__modalOverlay" (click)="closeEditPublicationModal()">
   <div class="da__modal da__modal--edit" (click)="$event.stopPropagation()">
@@ -507,6 +557,63 @@
                   </ckeditor>
                 </div>
               </div>
+
+              <!-- Tags -->
+              <div class="da__publicationFormGroup">
+                <label class="da__publicationLabel" for="edit-pub-tags">Tags</label>
+                <div class="da__publicationEditorWrap">
+                  <div class="da__tagsInputContainer">
+                    <input 
+                      type="text" 
+                      class="da__tagsInput"
+                      placeholder="Ajouter un tag et appuyer sur Entrée"
+                      (keydown.enter)="addEditTag($event)"
+                      id="edit-pub-tags">
+                    <button class="da__tagsAddBtn" type="button" (click)="generateTagsFromDescription()">
+                      <i class="fa-solid fa-magic"></i>
+                      Générer
+                    </button>
+                  </div>
+                  
+                  <!-- Tags actuels -->
+                  <div class="da__tagsList" *ngIf="editPublicationForm.tags.length > 0">
+                    <span class="da__tag" *ngFor="let tag of editPublicationForm.tags">
+                      {{ tag }}
+                      <button class="da__tagRemove" (click)="removeEditTag(tag)" type="button">
+                        <i class="fa-solid fa-times"></i>
+                      </button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tags existants liés aux tags -->
+              <div class="da__publicationFormGroup">
+                <label class="da__publicationLabel">Tags précédemment utilisés</label>
+                <div class="da__existingTagsSection">
+                  <button type="button" 
+                          class="da__existingTagsToggle" 
+                          (click)="toggleExistingTags()">
+                    <i class="fa-solid fa-clock-rotate-left" [class.fa-rotate-180]="showExistingTags"></i>
+                    <span>{{ showExistingTags ? 'Masquer' : 'Afficher' }} les tags précédemment utilisés</span>
+                    <span class="da__tagCount" *ngIf="existingTags.length > 0">{{ existingTags.length }}</span>
+                  </button>
+                  
+                  <div class="da__existingTagsContainer" 
+                       *ngIf="showExistingTags && existingTags.length > 0">
+                    <div class="da__existingTagsGrid">
+                      <div class="da__existingTag" 
+                           *ngFor="let tag of existingTags"
+                           [class.da__existingTag--added]="editPublicationForm.tags.includes(tag)"
+                           (click)="addEditTagFromExisting(tag)">
+                        <i class="fa-solid fa-tag"></i>
+                        <span>{{ tag }}</span>
+                        <i class="fa-solid fa-check" *ngIf="editPublicationForm.tags.includes(tag)"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -515,7 +622,7 @@
             <div class="da__card">
               <div class="da__cardHeader">
                 <i class="fa-solid fa-image"></i>
-                <h3>Médias et étiquettes</h3>
+                <h3>Médias</h3>
               </div>
               
               <!-- Image de la publication -->
@@ -566,69 +673,6 @@
                 </div>
               </div>
 
-              <!-- Tags -->
-              <div class="da__publicationFormGroup">
-                <label class="da__publicationLabel" for="edit-pub-tags">Tags</label>
-                <div class="da__publicationEditorWrap">
-                  <div class="da__tagsInputContainer">
-                    <input 
-                      type="text" 
-                      class="da__tagsInput"
-                      placeholder="Ajouter un tag et appuyer sur Entrée"
-                      (keydown.enter)="addEditTag($event)"
-                      id="edit-pub-tags">
-                    <button class="da__tagsAddBtn" type="button" (click)="generateTagsFromDescription()">
-                      <i class="fa-solid fa-magic"></i>
-                      Générer
-                    </button>
-                  </div>
-                  
-                  <!-- Tags actuels -->
-                  <div class="da__tagsList" *ngIf="editPublicationForm.tags.length > 0">
-                    <span class="da__tag" *ngFor="let tag of editPublicationForm.tags">
-                      {{ tag }}
-                      <button class="da__tagRemove" (click)="removeEditTag(tag)" type="button">
-                        <i class="fa-solid fa-times"></i>
-                      </button>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section pleine largeur : Tags existants -->
-        <div class="da__formSection da__formSection--full">
-          <div class="da__card">
-            <div class="da__cardHeader">
-              <i class="fa-solid fa-clock-rotate-left"></i>
-              <h3>Tags précédemment utilisés</h3>
-            </div>
-            
-            <!-- Tags existants -->
-            <div class="da__existingTagsSection">
-              <button type="button" 
-                      class="da__existingTagsToggle" 
-                      (click)="toggleExistingTags()">
-                <i class="fa-solid fa-clock-rotate-left" [class.fa-rotate-180]="showExistingTags"></i>
-                <span>{{ showExistingTags ? 'Masquer' : 'Afficher' }} les tags précédemment utilisés</span>
-                <span class="da__tagCount" *ngIf="existingTags.length > 0">{{ existingTags.length }}</span>
-              </button>
-              
-              <div class="da__existingTagsContainer" 
-                   *ngIf="showExistingTags && existingTags.length > 0">
-                <div class="da__existingTagsGrid">
-                  <div class="da__existingTag" 
-                       *ngFor="let tag of existingTags"
-                       [class.da__existingTag--added]="editPublicationForm.tags.includes(tag)"
-                       (click)="addEditTagFromExisting(tag)">
-                    <i class="fa-solid fa-tag"></i>
-                    <span>{{ tag }}</span>
-                    <i class="fa-solid fa-check" *ngIf="editPublicationForm.tags.includes(tag)"></i>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

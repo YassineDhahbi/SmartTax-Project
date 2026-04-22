@@ -1,3 +1,69 @@
+.da__statusEditor {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.da__statusSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid rgba(99, 102, 241, 0.32);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(79, 70, 229, 0.12) 100%);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  min-width: 122px;
+  padding: 7px 34px 7px 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.da__statusEditor::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid rgba(199, 210, 254, 0.95);
+  border-bottom: 2px solid rgba(199, 210, 254, 0.95);
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-60%) rotate(45deg);
+  pointer-events: none;
+}
+
+.da__statusSelect:hover {
+  border-color: rgba(99, 102, 241, 0.55);
+  background:
+    linear-gradient(135deg, rgba(99, 102, 241, 0.24) 0%, rgba(79, 70, 229, 0.18) 100%);
+  transform: translateY(-1px);
+}
+
+.da__statusSelect:focus {
+  outline: none;
+  border-color: rgba(99, 102, 241, 0.72);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22), 0 6px 14px rgba(99, 102, 241, 0.2);
+}
+
+.da__statusSelect--scheduled {
+  border-color: rgba(245, 158, 11, 0.6);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.28) 0%, rgba(217, 119, 6, 0.2) 100%);
+  color: #fde68a;
+}
+
+.da__statusSelect--scheduled:hover {
+  border-color: rgba(245, 158, 11, 0.8);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.34) 0%, rgba(217, 119, 6, 0.26) 100%);
+}
+
+.da__statusSelect option {
+  background: #1f2937;
+  color: #f3f4f6;
+  font-weight: 600;
+}
 :host{
   --bg-0:#0b1220;
   --bg-1:#0d1526;
@@ -5219,6 +5285,20 @@
 }
 
 @media (max-width: 768px) {
+  .da__modal--edit .da__formGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .da__modal--edit .da__card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .da__modal--edit .da__formSection--full {
+    margin-top: 10px;
+  }
+
   .da__publicationComposer {
     grid-template-columns: 1fr;
   }
@@ -6965,6 +7045,15 @@
     linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%);
 }
 
+/* Edit modal should not reuse the create modal 2-column wrapper. */
+.da__modal--edit .da__publicationComposer {
+  display: block;
+}
+
+.da__modal--edit .da__publicationForm {
+  width: 100%;
+}
+
 .da__modal--edit .da__modalBody::-webkit-scrollbar {
   width: 8px;
 }
@@ -6997,8 +7086,51 @@
   position: relative;
 }
 
+/* Layout structure for edit modal (avoid stacked consecutive fields). */
+.da__modal--edit .da__formGrid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.95fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.da__modal--edit .da__formColumn {
+  min-width: 0;
+}
+
+.da__modal--edit .da__card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 18px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  backdrop-filter: blur(4px);
+}
+
+.da__modal--edit .da__cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.da__modal--edit .da__cardHeader i {
+  color: var(--brand);
+}
+
+.da__modal--edit .da__cardHeader h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.da__modal--edit .da__formSection--full {
+  margin-top: 16px;
+}
+
 .da__modal--edit .da__publicationFormGroup {
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   position: relative;
 }
 

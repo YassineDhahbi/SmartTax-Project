@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
 import { EmailService } from '../../services/email/email.service';
@@ -136,6 +137,8 @@ export class PublicationsFiscalesComponent implements OnInit {
     // Modal de modification de publication
     showEditPublicationModal = false;
     selectedPublicationForEdit: any = null;
+    showDeletePublicationModal = false;
+    selectedPublicationForDelete: any = null;
     editPublicationForm = {
       title: '',
       content: '',
@@ -390,13 +393,10 @@ export class PublicationsFiscalesComponent implements OnInit {
         }
         
         // Si aucun email trouvé, essayer de le récupérer depuis le backend
-        console.log('ð Email non trouvé dans localStorage, tentative de récupération depuis le backend...');
         this.fetchCurrentUserEmail();
         
-        console.log('ð Aucun email valide trouvé, retour de chaîne vide');
         return '';
       } catch (error) {
-        console.error('Erreur lors de la récupération de l\'utilisateur:', error);
         return '';
       }
     }
@@ -405,7 +405,6 @@ export class PublicationsFiscalesComponent implements OnInit {
     private fetchCurrentUserEmail(): void {
       const token = localStorage.getItem('token');
       if (!token) {
-        console.log('ð Aucun token trouvé, impossible de récupérer l\'utilisateur');
         return;
       }
 
@@ -413,7 +412,6 @@ export class PublicationsFiscalesComponent implements OnInit {
       // Pour l'instant, nous allons utiliser une approche simple: vérifier s'il y a un userId
       const userId = localStorage.getItem('userId');
       if (userId) {
-        console.log('ð UserId trouvé:', userId);
         // Stocker temporairement pour le filtrage
         this.tempUserId = userId;
       }
@@ -438,9 +436,7 @@ export class PublicationsFiscalesComponent implements OnInit {
     }
   
     private loadPublications(): void {
-      console.log('ð Début du chargement des publications...');
-      console.log('ð Publications avant chargement:', this.publications.length);
-      console.log('ð Envoi de la requête GET /api/publications...');
+      
       
       // Utiliser la pagination avec 10 items par page
       const filters = {
@@ -454,18 +450,11 @@ export class PublicationsFiscalesComponent implements OnInit {
       
       this.publicationService.getPublications(filters).subscribe({
         next: (response) => {
-          console.log('ð Réponse brute du backend:', response);
-          console.log('ð response.data:', response.data);
-          console.log('ð Type de response.data:', typeof response.data);
-          console.log('ð Longueur de response.data:', response.data ? response.data.length : 'null');
+     
           
           // Afficher les informations de pagination
           if (response.pagination) {
-            console.log('ð Informations de pagination:', response.pagination);
-            console.log('ð Page actuelle:', response.pagination.current_page);
-            console.log('ð Total des pages:', response.pagination.total_pages);
-            console.log('ð Total des items:', response.pagination.total_items);
-            console.log('ð Items par page:', response.pagination.items_per_page);
+      
             
             // Mettre à jour les propriétés de pagination
             this.paginationInfo = response.pagination;
@@ -487,7 +476,6 @@ export class PublicationsFiscalesComponent implements OnInit {
           console.error('📝 Message:', error.message);
           console.error('📋 Erreur complète:', error);
           // Garder les publications statiques en cas d'erreur
-          console.log('📋 Publications conservées (statiques):', this.publications.length);
         }
       });
     }
@@ -2035,13 +2023,11 @@ export class PublicationsFiscalesComponent implements OnInit {
         }
         
         this.existingTags = Array.from(allTags).sort();
-        console.log('ð Tags existants finaux:', this.existingTags);
-        console.log('ð Nombre total de tags uniques:', this.existingTags.length);
-        console.log('ð État de showExistingTags:', this.showExistingTags);
+       
       },
       error: (error) => {
         console.error('ð Erreur lors du chargement des tags existants:', error);
-        console.log('ð Tentative de chargement depuis les publications locales...');
+       
         // En cas d'erreur, essayer avec les publications locales
         this.loadExistingTagsFromLocal();
       }
@@ -2049,8 +2035,7 @@ export class PublicationsFiscalesComponent implements OnInit {
   }
   
   loadExistingTagsFromLocal(): void {
-    console.log('ð Chargement des tags existants depuis les publications locales...');
-    console.log('ð Nombre de publications disponibles:', this.publications.length);
+    
     
     // Extraire tous les tags des publications existantes
     const allTags = new Set<string>();
@@ -2080,8 +2065,7 @@ export class PublicationsFiscalesComponent implements OnInit {
     });
 
     this.existingTags = Array.from(allTags).sort();
-    console.log('ð Tags existants chargés:', this.existingTags);
-    console.log('ð Nombre total de tags uniques:', this.existingTags.length);
+    
   }
 
   addExistingTag(tag: string): void {
@@ -2251,25 +2235,37 @@ export class PublicationsFiscalesComponent implements OnInit {
 
   updatePublication(): void {
     if (!this.selectedPublicationForEdit) return;
+    const publicationId = this.selectedPublicationForEdit.id ?? this.selectedPublicationForEdit.idPublication;
+    if (!publicationId) {
+      console.error('❌ ID publication introuvable pour la mise à jour:', this.selectedPublicationForEdit);
+      this.showErrorMessage('ID de la publication introuvable. Veuillez recharger la liste.');
+      return;
+    }
     
     this.isEditingPublication = true;
     
-    // D'abord uploader l'image si nécessaire
-    this.uploadEditImage().then((imageUrl) => {
+    try {
+      const cleanedTitle = this.stripHtml(this.ckEditorTitle || this.editPublicationForm.title || this.selectedPublicationForEdit?.title || '');
+      const cleanedContent = this.stripHtml(this.ckEditorContent || this.editPublicationForm.content || this.selectedPublicationForEdit?.content || '');
+      const cleanedSummary = this.stripHtml(this.editPublicationForm.summary || this.selectedPublicationForEdit?.summary || '');
+
       const updatedPublication = {
-        ...this.selectedPublicationForEdit,
-        title: this.ckEditorTitle || this.editPublicationForm.title,
-        content: this.ckEditorContent || this.editPublicationForm.content,
-        summary: this.editPublicationForm.summary,
-        imageUrl: imageUrl || this.editPublicationForm.imageUrl,
-        language: this.editPublicationForm.language,
-        aiGeneratedTags: this.editPublicationForm.tags
+        title: cleanedTitle,
+        content: cleanedContent,
+        summary: cleanedSummary || (cleanedContent ? cleanedContent.substring(0, 200) + '...' : ''),
+        imageUrl: this.editPublicationForm.imageUrl || this.selectedPublicationForEdit?.imageUrl || '',
+        language: this.editPublicationForm.language || this.selectedPublicationForEdit?.language || 'fr',
+        aiGeneratedTags: this.editPublicationForm.tags || []
       };
       
       console.log('ð Mise à jour de la publication:', updatedPublication);
       
+      const updateRequest$: Observable<any> = this.selectedEditImageFile
+        ? this.publicationService.updatePublicationWithImage(publicationId, updatedPublication, this.selectedEditImageFile)
+        : this.publicationService.updatePublication(publicationId, updatedPublication);
+
       // Appeler le service pour mettre à jour la publication
-      this.publicationService.updatePublication(this.selectedPublicationForEdit.id, updatedPublication).subscribe({
+      updateRequest$.subscribe({
         next: (response) => {
           console.log('ð Publication mise à jour avec succès:', response);
           this.isEditingPublication = false;
@@ -2283,11 +2279,11 @@ export class PublicationsFiscalesComponent implements OnInit {
           this.showErrorMessage('Erreur lors de la mise à jour de la publication');
         }
       });
-    }).catch((error) => {
-      console.error('ð Erreur lors de l\'upload de l\'image:', error);
+    } catch (error) {
+      console.error('ð Erreur lors de la préparation de la mise à jour:', error);
       this.isEditingPublication = false;
-      this.showErrorMessage('Erreur lors de l\'upload de l\'image');
-    });
+      this.showErrorMessage('Erreur lors de la mise à jour de la publication');
+    }
   }
 
   // Gestion des tags dans le formulaire de modification
@@ -2371,11 +2367,11 @@ export class PublicationsFiscalesComponent implements OnInit {
   
   // Gestion des changements dans les éditeurs CKEditor pour la modification
   onEditTitleChange(): void {
-    this.editPublicationForm.title = this.ckEditorTitle;
+    this.editPublicationForm.title = this.stripHtml(this.ckEditorTitle);
   }
 
   onEditContentChange(): void {
-    this.editPublicationForm.content = this.ckEditorContent;
+    this.editPublicationForm.content = this.stripHtml(this.ckEditorContent);
   }
 
   // Messages de succès/erreur
@@ -2541,11 +2537,86 @@ export class PublicationsFiscalesComponent implements OnInit {
   }
 
   deletePublication(publication: any): void {
-    console.log('Supprimer la publication:', publication);
-    // TODO: Ouvrir une confirmation et supprimer
+    this.selectedPublicationForDelete = publication;
+    this.showDeletePublicationModal = true;
+  }
+
+  updatePublicationStatusFromList(publication: any, newStatus: 'DRAFT' | 'PUBLISHED'): void {
+    if (!publication?.id || !newStatus || publication.status === newStatus) {
+      return;
+    }
+
+    this.publicationService.updatePublicationStatus(publication.id, newStatus).subscribe({
+      next: (updatedPublication) => {
+        publication.status = updatedPublication?.status || newStatus;
+        this.showSuccessMessage('Statut de la publication mis à jour.');
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors de la mise à jour du statut:', error);
+        this.showErrorMessage('Erreur lors de la mise à jour du statut');
+      }
+    });
+  }
+
+  closeDeletePublicationModal(): void {
+    this.showDeletePublicationModal = false;
+    this.selectedPublicationForDelete = null;
+  }
+
+  confirmDeletePublication(): void {
+    if (!this.selectedPublicationForDelete?.id) {
+      this.showErrorMessage('Publication invalide pour la suppression.');
+      this.closeDeletePublicationModal();
+      return;
+    }
+
+    const publicationId = this.selectedPublicationForDelete.id;
+
+    this.publicationService.deletePublication(publicationId).subscribe({
+      next: () => {
+        this.publications = this.publications.filter(p => p.id !== publicationId);
+        this.applyFilter();
+        this.showSuccessMessage('Publication supprimée avec succès.');
+        this.closeDeletePublicationModal();
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors de la suppression de la publication:', error);
+        this.showErrorMessage('Erreur lors de la suppression de la publication');
+      }
+    });
   }
 
   // Méthodes utilitaires pour les publications
+  canManagePublication(publication: any): boolean {
+    if (!publication) {
+      return false;
+    }
+
+    const userIdRaw = localStorage.getItem('userId');
+    const userId = userIdRaw ? parseInt(userIdRaw, 10) : null;
+    const currentUserEmail = this.getCurrentUserEmail()?.toLowerCase();
+
+    if (userId !== null && !Number.isNaN(userId)) {
+      if (publication.createdBy === userId || publication.createdById === userId || publication.createdByUserId === userId) {
+        return true;
+      }
+      if (publication.createdBy && typeof publication.createdBy === 'object') {
+        if (publication.createdBy.id === userId || publication.createdBy.idUtilisateur === userId) {
+          return true;
+        }
+      }
+    }
+
+    if (currentUserEmail) {
+      const publicationEmail = (publication.createdByEmail || publication.createdBy?.email || '').toLowerCase();
+      if (publicationEmail && publicationEmail === currentUserEmail) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   getStatusLabel(status: string): string {
     const statusLabels: { [key: string]: string } = {
       'DRAFT': 'Brouillon',

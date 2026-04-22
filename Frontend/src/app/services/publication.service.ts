@@ -82,18 +82,19 @@ export class PublicationService {
    */
   private createWithImage(publication: CreatePublicationRequest, image?: File): Observable<Publication> {
     const formData = new FormData();
+    const payload: any = publication as any;
     
     // Ajouter les données de la publication
     const publicationData = {
-      title: publication.title,
-      summary: publication.summary,
-      content: publication.content,
-      image_url: publication.image_url,
-      language: publication.language || 'fr',
-      is_pinned: publication.is_pinned || false,
-      scheduled_at: publication.scheduled_at,
-      status: publication.status,
-      aiGeneratedTags: publication.ai_generated_tags || []
+      title: payload.title,
+      summary: payload.summary,
+      content: payload.content,
+      imageUrl: payload.image_url ?? payload.imageUrl,
+      language: payload.language || 'fr',
+      isPinned: payload.is_pinned ?? payload.isPinned ?? false,
+      scheduledAt: payload.scheduled_at ?? payload.scheduledAt,
+      status: payload.status,
+      aiGeneratedTags: payload.ai_generated_tags ?? payload.aiGeneratedTags ?? []
     };
     
     console.log('📤 Données publicationData avant envoi:', publicationData);
@@ -134,7 +135,19 @@ export class PublicationService {
    * Mettre à jour une publication
    */
   updatePublication(id: number, publication: UpdatePublicationRequest): Observable<Publication> {
-    return this.http.put<Publication>(`${this.apiUrl}/${id}`, publication);
+    return this.http.put<Publication>(`${this.apiUrl}/${id}`, publication, { headers: this.getAuthHeaders() });
+  }
+
+  /**
+   * Mettre à jour une publication avec image (multipart)
+   */
+  updatePublicationWithImage(id: number, publication: UpdatePublicationRequest, image?: File): Observable<Publication> {
+    const formData = new FormData();
+    formData.append('publication', JSON.stringify(publication));
+    if (image) {
+      formData.append('image', image);
+    }
+    return this.http.put<Publication>(`${this.apiUrl}/${id}`, formData, { headers: this.getAuthHeaders() });
   }
 
   /**
@@ -142,7 +155,7 @@ export class PublicationService {
    */
   updatePublicationStatus(id: number, status: Publication['status'], rejectionReason?: string): Observable<Publication> {
     const body = { status, rejection_reason: rejectionReason };
-    return this.http.patch<Publication>(`${this.apiUrl}/${id}/status`, body);
+    return this.http.patch<Publication>(`${this.apiUrl}/${id}/status`, body, { headers: this.getAuthHeaders() });
   }
 
   /**
@@ -165,7 +178,7 @@ export class PublicationService {
    * Supprimer une publication (soft delete)
    */
   deletePublication(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
   }
 
   /**
