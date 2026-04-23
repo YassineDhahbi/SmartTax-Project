@@ -46,6 +46,12 @@
                 <i class="fa-solid fa-plus"></i>
                 <span>Nouvelle publication</span>
               </button>
+              <button class="da__filterBtn da__filterBtn--calendar"
+                      [class.da__filterBtn--active]="showCalendarView"
+                      (click)="toggleCalendarView()">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Calendrier</span>
+              </button>
             </div>
             
          
@@ -59,8 +65,57 @@
               <p>Chargement des publications...</p>
             </div>
 
+            <div class="da__calendarSection" *ngIf="!loading && showCalendarView">
+              <div class="da__calendarCard">
+                <div class="da__calendarHeader">
+                  <button class="da__calendarNavBtn" type="button" (click)="previousCalendarMonth()">
+                    <i class="fa-solid fa-chevron-left"></i>
+                  </button>
+                  <h4>{{ calendarMonthLabel }}</h4>
+                  <button class="da__calendarNavBtn" type="button" (click)="nextCalendarMonth()">
+                    <i class="fa-solid fa-chevron-right"></i>
+                  </button>
+                </div>
+
+                <div class="da__calendarWeekdays">
+                  <span *ngFor="let weekDay of calendarWeekDays">{{ weekDay }}</span>
+                </div>
+
+                <div class="da__calendarGrid">
+                  <button class="da__calendarDay"
+                          type="button"
+                          *ngFor="let day of calendarDays"
+                          [class.da__calendarDay--outside]="!day.inCurrentMonth"
+                          [class.da__calendarDay--today]="day.isToday"
+                          [class.da__calendarDay--selected]="isSelectedCalendarDay(day.key)"
+                          (click)="selectCalendarDay(day)">
+                    <span>{{ day.day }}</span>
+                    <i *ngIf="hasCalendarNote(day.key)" class="fa-solid fa-note-sticky"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="da__calendarNoteCard">
+                <div class="da__calendarNoteHead">
+                  <h4>Notes de la date</h4>
+                  <span *ngIf="selectedCalendarKey">{{ selectedCalendarKey }}</span>
+                </div>
+                <textarea class="da__calendarNoteInput"
+                          [(ngModel)]="selectedCalendarNote"
+                          [disabled]="!selectedCalendarKey"
+                          placeholder="Sélectionnez un jour puis écrivez votre note ici..."></textarea>
+                <button class="da__btn da__btn--primary da__calendarSaveBtn"
+                        type="button"
+                        [disabled]="!selectedCalendarKey"
+                        (click)="saveCalendarNote()">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  Enregistrer la note
+                </button>
+              </div>
+            </div>
+
             <!-- Tableau des publications -->
-            <div class="da__tableWrap" *ngIf="!loading">
+            <div class="da__tableWrap" *ngIf="!loading && !showCalendarView">
               <table class="da__table" aria-label="Liste des publications">
                 <thead>
                   <tr>

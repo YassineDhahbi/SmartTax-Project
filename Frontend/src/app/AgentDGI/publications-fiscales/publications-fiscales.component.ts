@@ -284,6 +284,12 @@ export class PublicationsFiscalesComponent implements OnInit {
     
     // Search properties
     searchTerm: string = '';
+    showCalendarView = false;
+    calendarCurrentDate = new Date();
+    calendarDays: Array<{ date: Date; key: string; day: number; inCurrentMonth: boolean; isToday: boolean }> = [];
+    selectedCalendarKey: string | null = null;
+    selectedCalendarNote = '';
+    readonly calendarWeekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
     
     // Méthode pour extraire le nom de l'auteur depuis le DTO
     getAuthorName(publication: any): string {
@@ -433,6 +439,8 @@ export class PublicationsFiscalesComponent implements OnInit {
     ngOnInit(): void {
       this.loadUserName();
       this.loadPublications();
+      this.loadCalendarNotes();
+      this.generateCalendarDays();
     }
   
     private loadPublications(): void {
@@ -845,6 +853,131 @@ export class PublicationsFiscalesComponent implements OnInit {
       this.activeFilter = filter;
       this.applyFilter();
     }
+
+  toggleCalendarView(): void {
+    this.showCalendarView = !this.showCalendarView;
+    if (this.showCalendarView) {
+      this.generateCalendarDays();
+    }
+  }
+
+  get calendarMonthLabel(): string {
+    return this.calendarCurrentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  }
+
+  previousCalendarMonth(): void {
+    this.calendarCurrentDate = new Date(
+      this.calendarCurrentDate.getFullYear(),
+      this.calendarCurrentDate.getMonth() - 1,
+      1
+    );
+    this.generateCalendarDays();
+  }
+
+  nextCalendarMonth(): void {
+    this.calendarCurrentDate = new Date(
+      this.calendarCurrentDate.getFullYear(),
+      this.calendarCurrentDate.getMonth() + 1,
+      1
+    );
+    this.generateCalendarDays();
+  }
+
+  selectCalendarDay(day: { key: string }): void {
+    this.selectedCalendarKey = day.key;
+    const notes = this.getCalendarNotesMap();
+    this.selectedCalendarNote = notes[day.key] || '';
+  }
+
+  saveCalendarNote(): void {
+    if (!this.selectedCalendarKey) {
+      this.showNotification('Sélectionnez une date pour ajouter une note.', 'warning');
+      return;
+    }
+
+    const notes = this.getCalendarNotesMap();
+    const cleanedNote = this.selectedCalendarNote.trim();
+
+    if (cleanedNote) {
+      notes[this.selectedCalendarKey] = cleanedNote;
+    } else {
+      delete notes[this.selectedCalendarKey];
+    }
+
+    localStorage.setItem('publication_calendar_notes', JSON.stringify(notes));
+    this.showNotification('Note enregistrée avec succès.', 'success');
+  }
+
+  hasCalendarNote(dayKey: string): boolean {
+    const notes = this.getCalendarNotesMap();
+    return !!notes[dayKey]?.trim();
+  }
+
+  isSelectedCalendarDay(dayKey: string): boolean {
+    return this.selectedCalendarKey === dayKey;
+  }
+
+  private generateCalendarDays(): void {
+    const year = this.calendarCurrentDate.getFullYear();
+    const month = this.calendarCurrentDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    const startOffset = (firstDay.getDay() + 6) % 7;
+    const endOffset = 6 - ((lastDay.getDay() + 6) % 7);
+
+    const startDate = new Date(year, month, 1 - startOffset);
+    const endDate = new Date(year, month + 1, lastDay.getDate() + endOffset);
+
+    const days: Array<{ date: Date; key: string; day: number; inCurrentMonth: boolean; isToday: boolean }> = [];
+    const todayKey = this.toDateKey(new Date());
+
+    for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+      const current = new Date(date);
+      const key = this.toDateKey(current);
+      days.push({
+        date: current,
+        key,
+        day: current.getDate(),
+        inCurrentMonth: current.getMonth() === month,
+        isToday: key === todayKey
+      });
+    }
+
+    this.calendarDays = days;
+
+    if (this.selectedCalendarKey) {
+      const notes = this.getCalendarNotesMap();
+      this.selectedCalendarNote = notes[this.selectedCalendarKey] || '';
+    }
+  }
+
+  private toDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private loadCalendarNotes(): void {
+    try {
+      this.getCalendarNotesMap();
+    } catch (error) {
+      console.error('Erreur chargement notes calendrier:', error);
+    }
+  }
+
+  private getCalendarNotesMap(): Record<string, string> {
+    try {
+      const notes = localStorage.getItem('publication_calendar_notes');
+      if (!notes) {
+        return {};
+      }
+      return JSON.parse(notes);
+    } catch {
+      return {};
+    }
+  }
   
     private applyFilter(): void {
       let filtered: any[];

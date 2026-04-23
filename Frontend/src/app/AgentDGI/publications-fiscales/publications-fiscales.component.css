@@ -8101,3 +8101,194 @@
 .da[data-theme="light"] .da__modal--edit .da__btn--secondary:hover {
   background: rgba(2, 6, 23, 0.08);
 }
+
+.da__filterBtn--calendar {
+  border-color: rgba(99, 102, 241, 0.36);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.12));
+}
+
+.da__filterBtn--calendar:hover {
+  border-color: rgba(129, 140, 248, 0.56);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.28), rgba(79, 70, 229, 0.18));
+}
+
+.da__calendarSection {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 18px;
+}
+
+.da__calendarCard,
+.da__calendarNoteCard {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--stroke);
+  border-radius: 16px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
+}
+
+.da__calendarCard {
+  padding: 18px;
+}
+
+.da__calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.da__calendarHeader h4 {
+  margin: 0;
+  text-transform: capitalize;
+  font-size: 1.02rem;
+  letter-spacing: 0.02em;
+}
+
+.da__calendarNavBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--stroke-2);
+  background: rgba(99, 102, 241, 0.16);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.da__calendarNavBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(129, 140, 248, 0.55);
+}
+
+.da__calendarWeekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.da__calendarWeekdays span {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.da__calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.da__calendarDay {
+  min-height: 58px;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.da__calendarDay:hover {
+  transform: translateY(-2px);
+  border-color: rgba(129, 140, 248, 0.52);
+  background: rgba(99, 102, 241, 0.16);
+}
+
+.da__calendarDay i {
+  font-size: 0.72rem;
+  color: #facc15;
+}
+
+.da__calendarDay--outside {
+  opacity: 0.45;
+}
+
+.da__calendarDay--today {
+  border-color: rgba(34, 197, 94, 0.64);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.28);
+}
+
+.da__calendarDay--selected {
+  border-color: rgba(99, 102, 241, 0.9);
+  background: rgba(99, 102, 241, 0.26);
+}
+
+.da__calendarNoteCard {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.da__calendarNoteHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.da__calendarNoteHead h4 {
+  margin: 0;
+}
+
+.da__calendarNoteHead span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.da__calendarNoteInput {
+  width: 100%;
+  min-height: 210px;
+  resize: vertical;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.da__calendarNoteInput:focus {
+  border-color: rgba(99, 102, 241, 0.75);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.da__calendarSaveBtn {
+  margin-top: 12px;
+  align-self: flex-start;
+}
+
+.da[data-theme="light"] .da__calendarCard,
+.da[data-theme="light"] .da__calendarNoteCard {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.74));
+  border-color: rgba(15, 23, 42, 0.11);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
+}
+
+.da[data-theme="light"] .da__calendarDay {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: rgba(15, 23, 42, 0.1);
+  color: rgba(2, 6, 23, 0.9);
+}
+
+.da[data-theme="light"] .da__calendarNoteInput {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 23, 42, 0.14);
+  color: rgba(2, 6, 23, 0.9);
+}
+
+@media (max-width: 1000px) {
+  .da__calendarSection {
+    grid-template-columns: 1fr;
+  }
+}
