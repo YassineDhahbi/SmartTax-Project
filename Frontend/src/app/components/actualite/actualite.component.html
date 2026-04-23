@@ -14,12 +14,6 @@
                                 Restez informé des dernières nouvelles et mises à jour de la Direction Générale des Impôts
                             </p>
                         </div>
-                        <div class="actualite-search">
-                            <div class="search-box">
-                                <input type="text" class="search-input" placeholder="Rechercher une actualité...">
-                                <button class="search-btn"><i class="fas fa-search"></i></button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -40,188 +34,126 @@
                         <p class="section-subtitle">
                             Consultez les actualités fiscales et les annonces importantes
                         </p>
+                        <div class="actualite-search actualite-search--section">
+                            <div class="actualite-search-row">
+                                <div class="search-box modern-search-box modern-search-box--section">
+                                    <i class="fas fa-search modern-search-icon"></i>
+                                    <input type="text"
+                                           class="search-input modern-search-input"
+                                           placeholder="Rechercher dans les publications..."
+                                           [(ngModel)]="searchTerm"
+                                           (input)="onSearchChange()">
+                                    <button class="modern-search-clear"
+                                            type="button"
+                                            *ngIf="searchTerm"
+                                            (click)="clearSearch()"
+                                            aria-label="Effacer la recherche">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            <div class="actualite-sort-wrap">
+                                <label for="actualiteFilter" class="actualite-sort-label">Afficher :</label>
+                                <select id="actualiteFilter"
+                                        class="actualite-sort-select"
+                                        [(ngModel)]="publicationFilter"
+                                        (change)="onPublicationFilterChange()">
+                                    <option value="all">Toutes les publications</option>
+                                    <option value="favorites">Mes favoris</option>
+                                </select>
+                                <label for="actualiteSort" class="actualite-sort-label">Trier par :</label>
+                                <select id="actualiteSort"
+                                        class="actualite-sort-select"
+                                        [(ngModel)]="sortOrder"
+                                        (change)="onSortChange()">
+                                    <option value="newest">Plus récentes d'abord</option>
+                                    <option value="oldest">Plus anciennes d'abord</option>
+                                </select>
+                            </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <div class="row g-4">
-                <!-- Actualité 1 -->
-                <div class="col-lg-4 col-md-6">
+                <div class="col-12 text-center" *ngIf="loading">
+                    <p>Chargement des publications...</p>
+                </div>
+
+                <div class="col-lg-4 col-md-6" *ngFor="let publication of paginatedPublications">
                     <div class="actualite-card">
                         <div class="actualite-image">
-                            <img src="assets/img/actualite/actualite1.jpg" alt="Nouvelle plateforme digitale">
+                            <img [src]="getPublicationImage(publication)"
+                                 [alt]="publication.title || 'Publication'"
+                                 (error)="onImageError($event)">
                             <div class="actualite-date">
-                                <span class="day">15</span>
-                                <span class="month">Mars</span>
-                                <span class="year">2026</span>
+                                <span class="day">{{ formatDay(publication.createdAt || publication.created_at || publication.publishedAt || publication.published_at) }}</span>
+                                <span class="month">{{ formatMonth(publication.createdAt || publication.created_at || publication.publishedAt || publication.published_at) }}</span>
+                                <span class="year">{{ formatYear(publication.createdAt || publication.created_at || publication.publishedAt || publication.published_at) }}</span>
                             </div>
                         </div>
                         <div class="actualite-content">
-                            <div class="actualite-category">
-                                <span class="category-badge digital">Digital</span>
+                            <div class="actualite-top-meta">
+                                <span><i class="far fa-user"></i> By {{ getCreatorName(publication) }}</span>
+                                <div class="actualite-stats-meta">
+                                    <span><i class="far fa-comments"></i> {{ getCommentsCount(publication) }} Comments</span>
+                                    <span><i class="far fa-thumbs-up"></i> {{ getLikesCount(publication) }} Likes</span>
+                                    <span><i class="far fa-thumbs-down"></i> {{ getDislikesCount(publication) }} Dislikes</span>
+                                </div>
                             </div>
-                            <h3 class="actualite-title">Lancement de la nouvelle plateforme SmartTax 2.0</h3>
+                            <div class="actualite-category">
+                                
+                            </div>
+                            <h3 class="actualite-title">
+                                <span>{{ publication.title || 'Sans titre' }}</span>
+                                <button class="actualite-favorite-btn"
+                                        type="button"
+                                        [class.is-favorite]="isFavorite(publication)"
+                                        (click)="toggleFavorite(publication)"
+                                        aria-label="Ajouter aux favoris">
+                                    <i class="fa-star" [class.fa-solid]="isFavorite(publication)" [class.fa-regular]="!isFavorite(publication)"></i>
+                                </button>
+                            </h3>
                             <p class="actualite-excerpt">
-                                Découvrez notre nouvelle plateforme entièrement repensée pour une expérience utilisateur optimale.
+                                {{ publication.summary || (publication.content ? (publication.content | slice:0:140) + '...' : 'Aucun résumé disponible.') }}
                             </p>
                             <div class="actualite-meta">
-                                <span class="reading-time"><i class="fas fa-clock"></i> 3 min de lecture</span>
-                                <a href="#" class="read-more">Lire la suite <i class="fas fa-arrow-right"></i></a>
+                                <span class="category-badge digital">Publication fiscale</span>
+                                <a class="actualite-detail-btn"
+                                   [routerLink]="['/DetailActualite']"
+                                   [queryParams]="{ id: publication.id }">
+                                    <span>Détail</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Actualité 2 -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="actualite-card">
-                        <div class="actualite-image">
-                            <img src="assets/img/actualite/actualite2.jpg" alt="Campagne de sensibilisation">
-                            <div class="actualite-date">
-                                <span class="day">12</span>
-                                <span class="month">Mars</span>
-                                <span class="year">2026</span>
-                            </div>
-                        </div>
-                        <div class="actualite-content">
-                            <div class="actualite-category">
-                                <span class="category-badge fiscal">Fiscal</span>
-                            </div>
-                            <h3 class="actualite-title">Campagne de sensibilisation : Déclaration en ligne</h3>
-                            <p class="actualite-excerpt">
-                                Rejoignez notre campagne pour encourager la déclaration fiscale en ligne et simplifier vos démarches.
-                            </p>
-                            <div class="actualite-meta">
-                                <span class="reading-time"><i class="fas fa-clock"></i> 5 min de lecture</span>
-                                <a href="#" class="read-more">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Actualité 3 -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="actualite-card">
-                        <div class="actualite-image">
-                            <img src="assets/img/actualite/actualite3.jpg" alt="Nouveaux services">
-                            <div class="actualite-date">
-                                <span class="day">10</span>
-                                <span class="month">Mars</span>
-                                <span class="year">2026</span>
-                            </div>
-                        </div>
-                        <div class="actualite-content">
-                            <div class="actualite-category">
-                                <span class="category-badge service">Service</span>
-                            </div>
-                            <h3 class="actualite-title">Nouveaux services disponibles sur SmartTax</h3>
-                            <p class="actualite-excerpt">
-                                Découvrez les nouveaux fonctionnalités et services ajoutés pour faciliter vos démarches fiscales.
-                            </p>
-                            <div class="actualite-meta">
-                                <span class="reading-time"><i class="fas fa-clock"></i> 4 min de lecture</span>
-                                <a href="#" class="read-more">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Actualité 4 -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="actualite-card">
-                        <div class="actualite-image">
-                            <img src="assets/img/actualite/actualite4.jpg" alt="Webinaire fiscal">
-                            <div class="actualite-date">
-                                <span class="day">08</span>
-                                <span class="month">Mars</span>
-                                <span class="year">2026</span>
-                            </div>
-                        </div>
-                        <div class="actualite-content">
-                            <div class="actualite-category">
-                                <span class="category-badge evenement">Événement</span>
-                            </div>
-                            <h3 class="actualite-title">Webinaire : Optimisation fiscale pour PME</h3>
-                            <p class="actualite-excerpt">
-                                Inscrivez-vous à notre webinaire gratuit sur l'optimisation fiscale pour les petites et moyennes entreprises.
-                            </p>
-                            <div class="actualite-meta">
-                                <span class="reading-time"><i class="fas fa-clock"></i> 2 min de lecture</span>
-                                <a href="#" class="read-more">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Actualité 5 -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="actualite-card">
-                        <div class="actualite-image">
-                            <img src="assets/img/actualite/actualite5.jpg" alt="Mise à jour réglementaire">
-                            <div class="actualite-date">
-                                <span class="day">05</span>
-                                <span class="month">Mars</span>
-                                <span class="year">2026</span>
-                            </div>
-                        </div>
-                        <div class="actualite-content">
-                            <div class="actualite-category">
-                                <span class="category-badge reglementaire">Réglementaire</span>
-                            </div>
-                            <h3 class="actualite-title">Mise à jour réglementaire : Nouveaux taux applicables</h3>
-                            <p class="actualite-excerpt">
-                                Consultez les nouvelles dispositions réglementaires et les taux d'imposition mis à jour pour 2026.
-                            </p>
-                            <div class="actualite-meta">
-                                <span class="reading-time"><i class="fas fa-clock"></i> 6 min de lecture</span>
-                                <a href="#" class="read-more">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Actualité 6 -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="actualite-card">
-                        <div class="actualite-image">
-                            <img src="assets/img/actualite/actualite6.jpg" alt="Partenariat">
-                            <div class="actualite-date">
-                                <span class="day">03</span>
-                                <span class="month">Mars</span>
-                                <span class="year">2026</span>
-                            </div>
-                        </div>
-                        <div class="actualite-content">
-                            <div class="actualite-category">
-                                <span class="category-badge partenariat">Partenariat</span>
-                            </div>
-                            <h3 class="actualite-title">Partenariat avec les banques pour paiement en ligne</h3>
-                            <p class="actualite-excerpt">
-                                Nouveau partenariat stratégique pour faciliter le paiement des impôts en ligne via les applications bancaires.
-                            </p>
-                            <div class="actualite-meta">
-                                <span class="reading-time"><i class="fas fa-clock"></i> 3 min de lecture</span>
-                                <a href="#" class="read-more">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
+
+                <div class="col-12 text-center" *ngIf="!loading && filteredPublications.length === 0">
+                    <p>Aucune publication trouvée.</p>
                 </div>
             </div>
-            
-            <!-- Pagination -->
-            <div class="row mt-5">
+
+            <div class="row mt-5" *ngIf="!loading && filteredPublications.length > itemsPerPage">
                 <div class="col-lg-12">
                     <div class="pagination-wrapper">
                         <nav aria-label="Pagination des actualités">
-                            <ul class="pagination">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1"><i class="fas fa-chevron-left"></i></a>
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item" [class.disabled]="currentPage === 1">
+                                    <button class="page-link" type="button" (click)="goToPreviousPage()">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
                                 </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#"><i class="fas fa-chevron-right"></i></a>
+                                <li class="page-item"
+                                    *ngFor="let page of pages"
+                                    [class.active]="page === currentPage">
+                                    <button class="page-link" type="button" (click)="goToPage(page)">{{ page }}</button>
+                                </li>
+                                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                                    <button class="page-link" type="button" (click)="goToNextPage()">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
                                 </li>
                             </ul>
                         </nav>

@@ -17143,6 +17143,7 @@ label {
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
 .actualite-category {
@@ -17190,20 +17191,39 @@ label {
 }
 
 .actualite-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 15px;
-  line-height: 1.4;
-  flex: 1;
+  font-size: 20px;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 6px;
+  line-height: 1.35;
+  letter-spacing: -0.2px;
+  min-height: 54px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.3s ease;
 }
 
 .actualite-excerpt {
-  color: #6c757d;
+  color: #4b5563;
   font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 20px;
+  line-height: 1.7;
+  margin-bottom: 10px;
   flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 72px;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.actualite-card:hover .actualite-title {
+  color: #0B5EA8;
 }
 
 .actualite-meta {
@@ -17433,11 +17453,13 @@ label {
   }
   
   .actualite-title {
-    font-size: 16px;
+    font-size: 17px;
+    min-height: 48px;
   }
   
   .actualite-excerpt {
     font-size: 13px;
+    min-height: 66px;
   }
   
   .actualite-content {

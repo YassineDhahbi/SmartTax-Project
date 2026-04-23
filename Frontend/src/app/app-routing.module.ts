@@ -21,6 +21,7 @@ import { UtilisateursAdminComponent } from './Admin/utilisateurs-admin/utilisate
 import { ProfileAdminComponent } from './Admin/profile-admin/profile-admin.component';
 import { ImmatriculationAdminComponent } from './Admin/immatriculation-admin/immatriculation-admin.component';
 import { PublicationsFiscalesComponent } from './AgentDGI/publications-fiscales/publications-fiscales.component';
+import { DetailActualiteComponent } from './components/detail-actualite/detail-actualite.component';
 
 import { AuthGuard } from './guards/auth.guard';
 
@@ -34,6 +35,7 @@ const routes: Routes = [
   { path: 'service', component: BlogComponent },
   { path: 'about', component: AboutComponent },
   { path: 'actualite', component: ActualiteComponent },
+  { path: 'DetailActualite', component: DetailActualiteComponent },
   { path: 'Document Telecharger', component: DocumentTelechargerComponent },
   { path: 'Document Fiscale', component: DocumentFiscalComponent },
   { path: 'Immatriculation', component: ImmatriculationComponent },
