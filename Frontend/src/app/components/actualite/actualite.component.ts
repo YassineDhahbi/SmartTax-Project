@@ -17,11 +17,13 @@ export class ActualiteComponent implements OnInit {
   currentPage = 1;
   readonly itemsPerPage = 6;
   favoritePublicationIds: number[] = [];
+  pinnedPublicationIds: number[] = [];
 
   constructor(private publicationService: PublicationService) {}
 
   ngOnInit(): void {
     this.loadFavorites();
+    this.loadPinnedPublications();
     this.loadPublications();
   }
 
@@ -182,6 +184,30 @@ export class ActualiteComponent implements OnInit {
     return !!publicationId && this.favoritePublicationIds.includes(publicationId);
   }
 
+  togglePin(publication: any): void {
+    const publicationId = Number(publication?.id);
+    if (!publicationId) {
+      return;
+    }
+
+    if (this.pinnedPublicationIds.includes(publicationId)) {
+      this.pinnedPublicationIds = this.pinnedPublicationIds.filter((id) => id !== publicationId);
+    } else {
+      this.pinnedPublicationIds = [...this.pinnedPublicationIds, publicationId];
+    }
+
+    localStorage.setItem('actualite_pinned_publications', JSON.stringify(this.pinnedPublicationIds));
+    // Mise à jour immédiate de l'affichage sans rechargement de page
+    this.applyFiltersAndSort();
+    this.currentPage = 1;
+  }
+
+  isPinned(publication: any): boolean {
+    const publicationId = Number(publication?.id);
+    const pinnedFromBackend = !!(publication?.isPinned ?? publication?.is_pinned);
+    return pinnedFromBackend || (!!publicationId && this.pinnedPublicationIds.includes(publicationId));
+  }
+
   formatDay(dateInput: any): string {
     const date = this.parseDate(dateInput);
     return date ? `${date.getDate()}`.padStart(2, '0') : '--';
@@ -209,6 +235,12 @@ export class ActualiteComponent implements OnInit {
 
   private sortPublications(publications: any[]): any[] {
     return publications.sort((a, b) => {
+      const isPinnedA = this.isPinned(a) ? 1 : 0;
+      const isPinnedB = this.isPinned(b) ? 1 : 0;
+      if (isPinnedA !== isPinnedB) {
+        return isPinnedB - isPinnedA; // épinglées toujours en premier
+      }
+
       const dateA = this.parseDate(a?.createdAt || a?.created_at || a?.publishedAt || a?.published_at)?.getTime() || 0;
       const dateB = this.parseDate(b?.createdAt || b?.created_at || b?.publishedAt || b?.published_at)?.getTime() || 0;
       return this.sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
@@ -226,6 +258,22 @@ export class ActualiteComponent implements OnInit {
       this.favoritePublicationIds = Array.isArray(parsed) ? parsed.map((id) => Number(id)).filter((id) => !Number.isNaN(id)) : [];
     } catch {
       this.favoritePublicationIds = [];
+    }
+  }
+
+  private loadPinnedPublications(): void {
+    try {
+      const rawPinned = localStorage.getItem('actualite_pinned_publications');
+      if (!rawPinned) {
+        this.pinnedPublicationIds = [];
+        return;
+      }
+      const parsed = JSON.parse(rawPinned);
+      this.pinnedPublicationIds = Array.isArray(parsed)
+        ? parsed.map((id) => Number(id)).filter((id) => !Number.isNaN(id))
+        : [];
+    } catch {
+      this.pinnedPublicationIds = [];
     }
   }
 

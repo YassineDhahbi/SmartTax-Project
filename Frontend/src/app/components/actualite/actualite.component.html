@@ -119,12 +119,21 @@
                             </p>
                             <div class="actualite-meta">
                                 <span class="category-badge digital">Publication fiscale</span>
-                                <a class="actualite-detail-btn"
-                                   [routerLink]="['/DetailActualite']"
-                                   [queryParams]="{ id: publication.id }">
-                                    <span>Détail</span>
-                                    <i class="fas fa-arrow-right"></i>
-                                </a>
+                                <div class="actualite-actions">
+                                    <button class="actualite-pin-btn"
+                                            type="button"
+                                            [class.is-pinned]="isPinned(publication)"
+                                            (click)="togglePin(publication)">
+                                        <i class="fa-thumbtack" [class.fa-solid]="isPinned(publication)" [class.fa-regular]="!isPinned(publication)"></i>
+                                        <span>{{ isPinned(publication) ? 'Épinglée' : 'Pin' }}</span>
+                                    </button>
+                                    <a class="actualite-detail-btn"
+                                       [routerLink]="['/DetailActualite']"
+                                       [queryParams]="{ id: publication.id }">
+                                        <span>Détail</span>
+                                        <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

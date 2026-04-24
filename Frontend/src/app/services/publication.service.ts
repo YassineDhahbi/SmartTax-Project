@@ -83,13 +83,15 @@ export class PublicationService {
   private createWithImage(publication: CreatePublicationRequest, image?: File): Observable<Publication> {
     const formData = new FormData();
     const payload: any = publication as any;
+    const rawImageUrl = payload.image_url ?? payload.imageUrl;
+    const hasBase64Image = typeof rawImageUrl === 'string' && rawImageUrl.startsWith('data:image/');
     
     // Ajouter les données de la publication
     const publicationData = {
       title: payload.title,
       summary: payload.summary,
       content: payload.content,
-      imageUrl: payload.image_url ?? payload.imageUrl,
+      imageUrl: image ? null : (hasBase64Image ? null : rawImageUrl),
       language: payload.language || 'fr',
       isPinned: payload.is_pinned ?? payload.isPinned ?? false,
       scheduledAt: payload.scheduled_at ?? payload.scheduledAt,
@@ -162,7 +164,7 @@ export class PublicationService {
    * Épingler/désépingler une publication
    */
   togglePinPublication(id: number): Observable<Publication> {
-    return this.http.patch<Publication>(`${this.apiUrl}/${id}/pin`, {});
+    return this.http.put<Publication>(`${this.apiUrl}/${id}/pin`, {}, { headers: this.getAuthHeaders() });
   }
 
   /**
@@ -201,14 +203,22 @@ export class PublicationService {
    * Ajouter un like à une publication
    */
   likePublication(id: number): Observable<Publication> {
-    return this.http.post<Publication>(`${this.apiUrl}/${id}/like`, {});
+    const params = new HttpParams().set('interactionType', 'like');
+    return this.http.post<Publication>(`${this.apiUrl}/${id}/interact`, {}, {
+      params,
+      headers: this.getAuthHeaders()
+    });
   }
 
   /**
    * Ajouter un dislike à une publication
    */
   dislikePublication(id: number): Observable<Publication> {
-    return this.http.post<Publication>(`${this.apiUrl}/${id}/dislike`, {});
+    const params = new HttpParams().set('interactionType', 'dislike');
+    return this.http.post<Publication>(`${this.apiUrl}/${id}/interact`, {}, {
+      params,
+      headers: this.getAuthHeaders()
+    });
   }
 
   /**
@@ -237,6 +247,30 @@ export class PublicationService {
    */
   incrementViews(id: number): Observable<Publication> {
     return this.http.patch<Publication>(`${this.apiUrl}/${id}/views`, {});
+  }
+
+  // ==================== COMMENTS ====================
+
+  getPublicationComments(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${id}/comments`);
+  }
+
+  addPublicationComment(id: number, content: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/comments`, { content }, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  updatePublicationComment(publicationId: number, commentId: number, content: string): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${publicationId}/comments/${commentId}`, { content }, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  deletePublicationComment(publicationId: number, commentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${publicationId}/comments/${commentId}`, {
+      headers: this.getAuthHeaders()
+    });
   }
 
   // ==================== VALIDATION ====================

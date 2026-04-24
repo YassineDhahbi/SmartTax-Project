@@ -42,32 +42,36 @@
                                     </div>
                                     <div class="blog-details">
                                         <h3 class="blog-details-title mb-20">{{ publication.title || 'Sans titre' }}</h3>
-                                        <p class="mb-10">
-                                            {{ publication.summary || 'Aucun résumé disponible.' }}
-                                        </p>
+                                      
                                         <p class="mb-10">
                                             {{ publication.content || 'Aucun contenu disponible.' }}
                                         </p>
-										<blockquote class="blockqoute">
-											It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using orem psum is that it has a more-or-less the majority have suffered alteration normal distribution.
-                                            <h6 class="blockqoute-author">Mark Crawford</h6>
-                                            <i class="fal fa-quote-right blockqoute-icon"></i>
-                                        </blockquote>
-										<p class="mb-20">
-											In a free hour when our power of choice is untrammelled and when nothing prevents our being able to do what we like best, every pleasure is to be welcomed and every pain avoided. But in certain circumstances and owing to the claims of duty or the obligations of business it will frequently occur that pleasures have to be repudiated and annoyances accepted. The wise man therefore always holds in these matters to this principle of selection.
-										</p>
 
-                                        <div class="row">
-                                            <div class="col-md-6 mb-20">
-                                                <img src="assets/img/blog/01.jpg" alt="">
-                                            </div>
-                                            <div class="col-md-6 mb-20">
-                                                <img src="assets/img/blog/02.jpg" alt="">
-                                            </div>
+                                        <div class="publication-reaction-bar" *ngIf="isUserLoggedIn">
+                                            <button type="button"
+                                                    class="reaction-btn reaction-btn--like"
+                                                    [class.reaction-btn--active]="userReaction === 'like'"
+                                                    (click)="onLike()">
+                                                <i class="fa-solid fa-thumbs-up"></i>
+                                                <span>Like</span>
+                                                <strong>{{ getLikesCount() }}</strong>
+                                            </button>
+                                            <button type="button"
+                                                    class="reaction-btn reaction-btn--dislike"
+                                                    [class.reaction-btn--active]="userReaction === 'dislike'"
+                                                    (click)="onDislike()">
+                                                <i class="fa-solid fa-thumbs-down"></i>
+                                                <span>Dislike</span>
+                                                <strong>{{ getDislikesCount() }}</strong>
+                                            </button>
                                         </div>
-                                        <p class="mb-20">
-											Power of choice is untrammelled and when nothing prevents our being able to do what we like best, every pleasure is to be welcomed and every pain avoided. But in certain circumstances and owing to the claims of duty or the obligations of business it will frequently occur that pleasures have to be repudiated and annoyances accepted. The wise man therefore always holds in these matters to this principle of selection.
-										</p>
+                                        <p class="reaction-login-hint" *ngIf="!isUserLoggedIn">
+                                            Connectez-vous pour liker ou disliker cette publication.
+                                        </p>
+									
+									
+
+                                
                                         <hr>
 										<div class="blog-details-tag pb-20">
 											<h5>Tags : </h5>
@@ -77,89 +81,120 @@
 											</ul>
 										</div>
                                     </div>
-                                    <div class="blog-author">
-                                        <div class="blog-author-img">
-                                            <img src="assets/img/blog/author.jpg" alt="">
-                                        </div>
-                                        <div class="author-info">
-                                            <h6>Author</h6>
-                                            <h3 class="author-name">Shelly Frederick</h3>
-                                            <p>It is a long established fact that a reader will be distracted by the abcd readable content of a page when looking at its layout  that more less.</p>
-                                            <div class="author-social">
-                                                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                                                <a href="#"><i class="fab fa-x-twitter"></i></a>
-                                                <a href="#"><i class="fab fa-instagram"></i></a>
-                                                <a href="#"><i class="fab fa-whatsapp"></i></a>
-                                                <a href="#"><i class="fab fa-youtube"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
+                               
                                 </div>
                                 <div class="blog-comment">
-                                    <h3>Comments (20)</h3>
+                                    <h3>Comments ({{ getCommentsCount() }})</h3>
                                     <div class="blog-comment-wrap">
-                                        <div class="blog-comment-item">
-                                            <img src="assets/img/blog/com-1.jpg" alt="thumb">
+                                        <div class="blog-comment-item" *ngFor="let comment of comments">
+                                            <img class="comment-avatar"
+                                                 [src]="(comment.photo || comment.userPhoto || comment.user_photo) ? ((comment.photo || comment.userPhoto || comment.user_photo) + '?t=' + commentImageTimestamp) : '/assets/img/team/icondefaut.webp'"
+                                                 alt="comment-avatar"
+                                                 (error)="onCommentImageError($event)">
                                             <div class="blog-comment-content">
-                                                <h5>Rosa Fossum</h5>
-                                                <span><i class="far fa-clock"></i> Jan 23, 2025</span>
-                                                <p>There are many variations of passages the majority have suffered in some injected humour or randomised words which don't look even slightly believable.</p>
-                                                <a href="#"><i class="far fa-reply"></i> Reply</a>
+                                                <h5>{{ comment.userFullName || 'Utilisateur' }}</h5>
+                                                <span><i class="far fa-clock"></i> {{ formatCommentDate(comment) }}</span>
+                                                <p *ngIf="editingCommentId !== comment.id">{{ comment.content }}</p>
+                                                <div class="comment-edit-box" *ngIf="editingCommentId === comment.id">
+                                                    <textarea class="form-control"
+                                                              rows="3"
+                                                              [(ngModel)]="editingCommentContent"
+                                                              [disabled]="isSubmittingComment"></textarea>
+                                                    <div class="comment-actions-row">
+                                                        <button type="button"
+                                                                class="theme-btn theme-btn-sm"
+                                                                (click)="saveEditComment(comment)"
+                                                                [disabled]="isSubmittingComment">
+                                                            Enregistrer
+                                                        </button>
+                                                        <button type="button"
+                                                                class="theme-btn theme-btn-sm theme-btn-outline"
+                                                                (click)="cancelEditComment()"
+                                                                [disabled]="isSubmittingComment">
+                                                            Annuler
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="comment-actions-row"
+                                                     *ngIf="canManageComment(comment) && editingCommentId !== comment.id">
+                                                    <button type="button"
+                                                            class="comment-action-icon"
+                                                            title="Modifier"
+                                                            aria-label="Modifier le commentaire"
+                                                            (click)="startEditComment(comment)">
+                                                        <i class="far fa-pen"></i>
+                                                    </button>
+                                                    <button type="button"
+                                                            class="comment-action-icon comment-action-icon--danger"
+                                                            title="Supprimer"
+                                                            aria-label="Supprimer le commentaire"
+                                                            (click)="askDeleteComment(comment)">
+                                                        <i class="far fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="blog-comment-item reply">
-                                            <img src="assets/img/blog/com-2.jpg" alt="thumb">
-                                            <div class="blog-comment-content">
-                                                <h5>Timothy Stone</h5>
-                                                <span><i class="far fa-clock"></i> Jan 23, 2025</span>
-                                                <p>There are many variations of passages the majority have suffered in some injected humour or randomised words which don't look even slightly believable.</p>
-                                                <a href="#"><i class="far fa-reply"></i> Reply</a>
-                                            </div>
-                                        </div>
-                                        <div class="blog-comment-item">
-                                            <img src="assets/img/blog/com-3.jpg" alt="thumb">
-                                            <div class="blog-comment-content">
-                                                <h5>Stacey Anthony</h5>
-                                                <span><i class="far fa-clock"></i> Jan 23, 2025</span>
-                                                <p>There are many variations of passages the majority have suffered in some injected humour or randomised words which don't look even slightly believable.</p>
-                                                <a href="#"><i class="far fa-reply"></i> Reply</a>
-                                            </div>
-                                        </div>
+                                        <p class="comment-empty-state" *ngIf="comments.length === 0">
+                                            Aucun commentaire pour le moment.
+                                        </p>
                                     </div>
                                     <div class="blog-comment-form">
-                                        <h3>Leave A Comment</h3>
-                                        <form action="#">
+                                        <h3>Mettre Votre Commentaire</h3>
+                                        <form (ngSubmit)="submitComment()">
                                             <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <div class="form-icon">
-                                                            <i class="far fa-user-tie"></i>
-                                                            <input type="text" class="form-control" name="name"
-                                                            placeholder="Your Name*" required>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <div class="form-icon">
-                                                            <i class="far fa-envelope"></i>
-                                                            <input type="email" class="form-control" name="email"
-                                                                placeholder="Your Email*" required>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                                 <div class="col-md-12">
                                                     <div class="form-group">
                                                         <div class="form-icon">
                                                             <i class="far fa-pen"></i>
-                                                            <textarea name="message" cols="30" rows="5" class="form-control"
-                                                            placeholder="Your Comment*" required></textarea>
+                                                            <textarea name="message"
+                                                            cols="30"
+                                                            rows="5"
+                                                            class="form-control"
+                                                            placeholder="Votre commentaire..."
+                                                            [(ngModel)]="commentContent"
+                                                            [disabled]="!isUserLoggedIn || isSubmittingComment"
+                                                            required></textarea>
                                                         </div>
                                                     </div>
-                                                    <button type="submit" class="theme-btn">Post Comment <i class="far fa-paper-plane"></i></button>
+                                                    <p class="reaction-login-hint" *ngIf="!isUserLoggedIn">
+                                                        Connectez-vous pour ajouter un commentaire.
+                                                    </p>
+                                                    <div class="comment-notice"
+                                                         *ngIf="commentNotice"
+                                                         [class.comment-notice--success]="commentNoticeType === 'success'"
+                                                         [class.comment-notice--error]="commentNoticeType === 'error'">
+                                                        {{ commentNotice }}
+                                                    </div>
+                                                    <p class="comment-error" *ngIf="commentError">{{ commentError }}</p>
+                                                    <button type="submit"
+                                                            class="theme-btn"
+                                                            [disabled]="!isUserLoggedIn || isSubmittingComment">
+                                                        {{ isSubmittingComment ? 'Publication...' : 'Post Comment' }}
+                                                        <i class="far fa-paper-plane"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </form>
+                                    </div>
+                                </div>
+                                <div class="comment-delete-modal-backdrop" *ngIf="commentToDelete">
+                                    <div class="comment-delete-modal">
+                                        <h4>Confirmer la suppression</h4>
+                                        <p>Voulez-vous vraiment supprimer ce commentaire ? Cette action est irréversible.</p>
+                                        <div class="comment-actions-row">
+                                            <button type="button"
+                                                    class="theme-btn theme-btn-sm theme-btn-outline"
+                                                    (click)="cancelDeleteComment()"
+                                                    [disabled]="isSubmittingComment">
+                                                Annuler
+                                            </button>
+                                            <button type="button"
+                                                    class="theme-btn theme-btn-sm comment-delete-confirm-btn"
+                                                    (click)="confirmDeleteComment()"
+                                                    [disabled]="isSubmittingComment">
+                                                {{ isSubmittingComment ? 'Suppression...' : 'Supprimer' }}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -168,86 +203,39 @@
                     <div class="col-lg-4">
                         <aside class="blog-sidebar">
                             <!-- search-->
-                            <div class="widget search">
-                                <h5 class="widget-title">Search</h5>
-                                <div class="search-form">
-                                    <form action="#">
-                                        <div class="form-group">
-                                            <input type="text" class="form-control" placeholder="Search Here...">
-                                            <button type="submit"><i class="far fa-search"></i></button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
+                     
 
-                            <!-- category -->
-                            <div class="widget category">
-                                <h5 class="widget-title">Category</h5>
-                                <div class="category-list">
-                                    <a href="#"><i class="far fa-arrow-right"></i>Assisted Living<span>(10)</span></a>
-                                    <a href="#"><i class="far fa-arrow-right"></i>Nursing Care<span>(15)</span></a>
-                                    <a href="#"><i class="far fa-arrow-right"></i>Medical & Health<span>(20)</span></a>
-                                    <a href="#"><i class="far fa-arrow-right"></i>Physical Assistance<span>(30)</span></a>
-                                    <a href="#"><i class="far fa-arrow-right"></i>Residential Care<span>(25)</span></a>
-                                </div>
-                            </div>
+                       
 
                             <!-- recent post -->
                             <div class="widget recent-post">
-                                <h5 class="widget-title">Recent Post</h5>
-                                <div class="recent-post-item">
+                                <h5 class="widget-title">Publications ayant les mêmes tags</h5>
+                                <div class="recent-post-item" *ngFor="let related of relatedPublications">
                                     <div class="recent-post-img">
-                                        <img src="assets/img/blog/bs-1.jpg" alt="thumb">
+                                        <img [src]="getRelatedPublicationImage(related)"
+                                             [alt]="related.title || 'Publication liée'"
+                                             (error)="onImageError($event)">
                                     </div>
                                     <div class="recent-post-info">
-                                        <h6><a href="#">There are many variatio of passage majority.</a></h6>
-                                        <span><i class="far fa-clock"></i>Jan 23, 2025</span>
+                                        <h6>
+                                            <a [routerLink]="['/DetailActualite']" [queryParams]="{ id: related.id }">
+                                                {{ related.title || 'Sans titre' }}
+                                            </a>
+                                        </h6>
+                                        <span><i class="far fa-clock"></i>{{ formatRelatedDate(related) }}</span>
                                     </div>
                                 </div>
-                                <div class="recent-post-item">
-                                    <div class="recent-post-img">
-                                        <img src="assets/img/blog/bs-2.jpg" alt="thumb">
-                                    </div>
-                                    <div class="recent-post-info">
-                                        <h6><a href="#">There are many variatio of passage majority.</a></h6>
-                                        <span><i class="far fa-clock"></i>Jan 23, 2025</span>
-                                    </div>
-                                </div>
-                                <div class="recent-post-item">
-                                    <div class="recent-post-img">
-                                        <img src="assets/img/blog/bs-3.jpg" alt="thumb">
-                                    </div>
-                                    <div class="recent-post-info">
-                                        <h6><a href="#">There are many variatio of passage majority.</a></h6>
-                                        <span><i class="far fa-clock"></i>Jan 23, 2025</span>
-                                    </div>
-                                </div>
+                                <p *ngIf="relatedPublications.length === 0">Aucune publication liée trouvée.</p>
                             </div>
 
-                            <!-- social share -->
-                            <div class="widget social">
-                                <h5 class="widget-title">Follow Us</h5>
-                                <div class="social-link">
-                                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                                    <a href="#"><i class="fab fa-x-twitter"></i></a>
-                                    <a href="#"><i class="fab fa-dribbble"></i></a>
-                                    <a href="#"><i class="fab fa-whatsapp"></i></a>
-                                    <a href="#"><i class="fab fa-youtube"></i></a>
-                                </div>
-                            </div>
+                      
 
                             <!-- Recent Post -->
                             <div class="widget tag">
-                                <h5 class="widget-title">Popular Tags</h5>
+                                <h5 class="widget-title">Les Populaire Tags</h5>
                                 <div class="tag-list">
-                                    <a href="#">Senior</a>
-                                    <a href="#">Care</a>
-                                    <a href="#">Elderly</a>
-                                    <a href="#">Medical</a>
-                                    <a href="#">Health</a>
-                                    <a href="#">Nurse</a>
-                                    <a href="#">Transport</a>
-                                    <a href="#">Personal</a>
+                                    <a href="#" *ngFor="let tag of popularTags">{{ tag }}</a>
+                                    <a href="#" *ngIf="popularTags.length === 0">Aucun tag</a>
                                 </div>
                             </div>
 

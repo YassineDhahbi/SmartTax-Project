@@ -131,7 +131,6 @@ export class AuthService {
     
     // Vérifier si la session a dépassé 4 heures depuis le début
     if (now - sessionStartTime > this.SESSION_DURATION) {
-      console.log('Session expirée par durée totale');
       return false;
     }
     

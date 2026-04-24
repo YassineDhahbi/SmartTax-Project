@@ -2665,8 +2665,40 @@ export class PublicationsFiscalesComponent implements OnInit {
   // Méthodes pour la gestion des publications
 
   togglePin(publication: any): void {
-    console.log('Basculer le statut épinglé:', publication);
-    // TODO: Appeler le service pour épingler/désépingler
+    if (!publication?.id) {
+      this.showErrorMessage('Publication invalide pour épinglage.');
+      return;
+    }
+
+    this.publicationService.togglePinPublication(publication.id).subscribe({
+      next: (updatedPublication: any) => {
+        const nextPinned = !!(updatedPublication?.isPinned ?? updatedPublication?.is_pinned);
+        publication.isPinned = nextPinned;
+        publication.is_pinned = nextPinned;
+
+        if (this.selectedPublicationForDetails?.id === publication.id) {
+          this.selectedPublicationForDetails = {
+            ...this.selectedPublicationForDetails,
+            ...updatedPublication,
+            isPinned: nextPinned,
+            is_pinned: nextPinned
+          };
+        }
+
+        this.publications = this.publications.map((item) =>
+          item?.id === publication.id
+            ? { ...item, ...updatedPublication, isPinned: nextPinned, is_pinned: nextPinned }
+            : item
+        );
+        this.applyFilter();
+
+        this.showSuccessMessage(nextPinned ? 'Publication épinglée avec succès.' : 'Publication désépinglée avec succès.');
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors du pin/unpin publication:', error);
+        this.showErrorMessage("Erreur lors de la mise à jour de l'épinglage.");
+      }
+    });
   }
 
   deletePublication(publication: any): void {

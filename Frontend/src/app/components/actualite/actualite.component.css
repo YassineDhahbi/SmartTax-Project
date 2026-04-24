@@ -40,6 +40,12 @@
   gap: 12px;
 }
 
+.actualite-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .actualite-top-meta {
   display: flex;
   flex-wrap: wrap;
@@ -97,6 +103,35 @@
 
 .actualite-detail-btn:active {
   transform: translateY(0);
+}
+
+.actualite-pin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 1px solid rgba(11, 94, 168, 0.2);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0b5ea8;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.15px;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(2, 32, 71, 0.08);
+  transition: all 0.2s ease;
+}
+
+.actualite-pin-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(11, 94, 168, 0.38);
+  box-shadow: 0 10px 18px rgba(2, 32, 71, 0.12);
+}
+
+.actualite-pin-btn.is-pinned {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  border-color: transparent;
+  color: #ffffff;
 }
 
 .modern-search-box {

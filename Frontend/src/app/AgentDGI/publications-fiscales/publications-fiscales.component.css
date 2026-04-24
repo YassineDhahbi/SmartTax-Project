@@ -1,3 +1,12 @@
+.da__modal--details .da__btn--pin {
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
+.da__modal--details .da__btn--pin:hover {
+  background: #e0e7ff;
+}
 .da__statusEditor {
   display: inline-flex;
   align-items: center;

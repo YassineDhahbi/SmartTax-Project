@@ -517,6 +517,14 @@
     </div>
 
     <div class="da__modalFooter">
+      <button
+        *ngIf="selectedPublicationForDetails && canManagePublication(selectedPublicationForDetails)"
+        class="da__btn da__btn--pin"
+        type="button"
+        (click)="togglePin(selectedPublicationForDetails)">
+        <i class="fa-solid" [ngClass]="(selectedPublicationForDetails.isPinned || selectedPublicationForDetails.is_pinned) ? 'fa-thumbtack-slash' : 'fa-thumbtack'"></i>
+        {{ (selectedPublicationForDetails.isPinned || selectedPublicationForDetails.is_pinned) ? 'Désépingler' : 'Épingler en avant' }}
+      </button>
       <button class="da__btn da__btn--secondary" (click)="closePublicationDetailsModal()">
         <i class="fa-solid fa-times"></i>
         Fermer
