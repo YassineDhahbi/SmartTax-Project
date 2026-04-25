@@ -129,6 +129,17 @@
                 <div class="da__statsChartWrap" *ngIf="filteredPublications.length > 0; else statsEmpty">
                   <canvas id="da-publication-stats-chart"></canvas>
                 </div>
+                <div class="da__statsHeader da__statsHeader--secondary" *ngIf="filteredPublications.length > 0">
+                  <h4>Sentiment des commentaires (Pie Chart)</h4>
+                  <p>Répartition Positive / Neutre / Négative</p>
+                </div>
+                <div class="da__statsChartWrap da__statsChartWrap--pie" *ngIf="filteredPublications.length > 0">
+                  <p class="da__statsLoading" *ngIf="isLoadingSentimentStats">Analyse des commentaires en cours...</p>
+                  <canvas id="da-comment-sentiment-pie-chart" *ngIf="!isLoadingSentimentStats"></canvas>
+                  <p class="da__statsLoading" *ngIf="!isLoadingSentimentStats && commentSentimentStats.positive === 0 && commentSentimentStats.neutral === 0 && commentSentimentStats.negative === 0">
+                    Aucun commentaire à analyser.
+                  </p>
+                </div>
                 <ng-template #statsEmpty>
                   <div class="da__emptyState">
                     <div class="da__emptyIcon">
@@ -539,6 +550,124 @@
             {{ tag }}
           </span>
         </div>
+      </div>
+
+      <div class="da__detailsComments">
+        <h3 class="da__detailsSectionTitle">
+          <i class="fa-solid fa-comments"></i>
+          Commentaires ({{ selectedPublicationComments.length }})
+        </h3>
+
+        <div class="da__detailsCommentsList" *ngIf="!isLoadingPublicationComments && selectedPublicationComments.length > 0">
+          <div class="da__detailsCommentItem" *ngFor="let comment of selectedPublicationComments">
+            <div class="da__detailsCommentHead">
+              <div class="da__detailsCommentUser">
+                <img class="da__detailsCommentAvatar"
+                     [src]="getPublicationCommentUserImage(comment)"
+                     alt="avatar-commentaire"
+                     (error)="onPublicationCommentImageError($event)">
+                <h4>
+                  {{ comment.userFullName || 'Utilisateur' }}
+                  <span class="da__agentBadge" *ngIf="isAgentPublicationComment(comment)">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Agent DGI
+                  </span>
+                </h4>
+              </div>
+              <span>{{ formatPublicationCommentDate(comment) }}</span>
+            </div>
+            <div class="da__sentimentBadge" [ngClass]="getCommentSentimentClass(comment)">
+              <i class="fa-solid fa-wave-square"></i>
+              Sentiment: {{ getCommentSentimentLabel(comment) }}
+            </div>
+            <p *ngIf="editingPublicationCommentId !== comment.id">{{ comment.content || 'Commentaire vide' }}</p>
+
+            <div class="da__detailsCommentEditBox" *ngIf="editingPublicationCommentId === comment.id">
+              <textarea class="da__detailsCommentTextarea"
+                        rows="3"
+                        [(ngModel)]="editingPublicationCommentContent"
+                        name="editingPublicationCommentContent"
+                        [disabled]="isSubmittingPublicationComment"></textarea>
+              <div class="da__detailsCommentFormActions">
+                <button type="button"
+                        class="da__btn da__btn--primary"
+                        (click)="saveEditPublicationDetailComment(comment)"
+                        [disabled]="isSubmittingPublicationComment">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  Enregistrer
+                </button>
+                <button type="button"
+                        class="da__btn da__btn--secondary"
+                        (click)="cancelEditPublicationDetailComment()"
+                        [disabled]="isSubmittingPublicationComment">
+                  <i class="fa-solid fa-xmark"></i>
+                  Annuler
+                </button>
+              </div>
+            </div>
+
+            <div class="da__detailsCommentActions"
+                 *ngIf="canManagePublicationDetailComment(comment) && editingPublicationCommentId !== comment.id">
+              <button type="button"
+                      class="da__detailsCommentActionBtn"
+                      title="Modifier"
+                      aria-label="Modifier commentaire"
+                      (click)="startEditPublicationDetailComment(comment)">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </button>
+              <button type="button"
+                      class="da__detailsCommentActionBtn da__detailsCommentActionBtn--danger"
+                      title="Supprimer"
+                      aria-label="Supprimer commentaire"
+                      (click)="deletePublicationDetailComment(comment)">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="da__detailsCommentsState" *ngIf="isLoadingPublicationComments">
+          Chargement des commentaires...
+        </div>
+
+        <div class="da__detailsCommentsState da__detailsCommentsState--error" *ngIf="!isLoadingPublicationComments && publicationCommentsError">
+          {{ publicationCommentsError }}
+        </div>
+
+        <div class="da__detailsCommentsState" *ngIf="!isLoadingPublicationComments && !publicationCommentsError && selectedPublicationComments.length === 0">
+          Aucun commentaire pour cette publication.
+        </div>
+
+        <form class="da__detailsCommentForm" (ngSubmit)="submitPublicationDetailsComment()">
+          <label for="da-detail-comment-input">Ajouter un commentaire</label>
+          <textarea id="da-detail-comment-input"
+                    class="da__detailsCommentTextarea"
+                    rows="3"
+                    [(ngModel)]="publicationCommentContent"
+                    name="publicationCommentContent"
+                    [disabled]="isSubmittingPublicationComment || !canAddCommentInDetails"
+                    placeholder="Écrire un commentaire..."></textarea>
+
+          <p class="da__detailsCommentsState" *ngIf="!canAddCommentInDetails">
+            Connectez-vous pour ajouter un commentaire.
+          </p>
+
+          <div class="da__detailsCommentFormActions">
+            <button type="submit"
+                    class="da__btn da__btn--primary"
+                    [disabled]="isSubmittingPublicationComment || !canAddCommentInDetails">
+              <i class="fa-solid fa-paper-plane"></i>
+              {{ isSubmittingPublicationComment ? 'Publication...' : 'Publier commentaire' }}
+            </button>
+          </div>
+
+          <div class="da__detailsCommentNotice"
+               *ngIf="publicationCommentNotice"
+               [class.da__detailsCommentNotice--success]="publicationCommentNoticeType === 'success'"
+               [class.da__detailsCommentNotice--error]="publicationCommentNoticeType === 'error'">
+            {{ publicationCommentNotice }}
+          </div>
+        </form>
       </div>
 
       <!-- Informations techniques -->

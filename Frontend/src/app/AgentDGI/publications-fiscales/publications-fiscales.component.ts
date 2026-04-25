@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, forkJoin, of } from 'rxjs';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
 import { EmailService } from '../../services/email/email.service';
@@ -73,6 +73,8 @@ interface AlertItem {
   styleUrls: ['./publications-fiscales.component.css']
 })
 export class PublicationsFiscalesComponent implements OnInit {
+    readonly fallbackCommentAvatar = '/assets/img/team/icondefaut.webp';
+    publicationCommentImageTimestamp = Date.now();
 
    userName = 'Agent';
   
@@ -134,6 +136,15 @@ export class PublicationsFiscalesComponent implements OnInit {
     // Modal de détails de publication
     showPublicationDetailsModal = false;
     selectedPublicationForDetails: any = null;
+    selectedPublicationComments: any[] = [];
+    isLoadingPublicationComments = false;
+    publicationCommentsError = '';
+    publicationCommentContent = '';
+    isSubmittingPublicationComment = false;
+    publicationCommentNotice = '';
+    publicationCommentNoticeType: 'success' | 'error' = 'success';
+    editingPublicationCommentId: number | null = null;
+    editingPublicationCommentContent = '';
     
     // Modal de modification de publication
     showEditPublicationModal = false;
@@ -296,6 +307,10 @@ export class PublicationsFiscalesComponent implements OnInit {
     selectedCalendarNote = '';
     readonly calendarWeekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
     private publicationStatsChart: Chart | null = null;
+    private publicationSentimentChart: Chart<'pie', number[], unknown> | null = null;
+    isLoadingSentimentStats = false;
+    commentSentimentStats = { positive: 0, neutral: 0, negative: 0 };
+    private sentimentStatsRequestId = 0;
     
     // Méthode pour extraire le nom de l'auteur depuis le DTO
     getAuthorName(publication: any): string {
@@ -877,9 +892,13 @@ export class PublicationsFiscalesComponent implements OnInit {
     if (this.showStatisticsView) {
       this.showCalendarView = false;
       this.cdr.detectChanges();
-      setTimeout(() => this.refreshPublicationStatsChart(), 80);
+      setTimeout(() => {
+        this.refreshPublicationStatsChart();
+        this.loadCommentSentimentStats();
+      }, 80);
     } else {
       this.destroyPublicationStatsChart();
+      this.destroyPublicationSentimentChart();
     }
   }
 
@@ -1116,6 +1135,7 @@ export class PublicationsFiscalesComponent implements OnInit {
       // Appliquer le filtrage final
       this.filteredPublications = filtered;
       this.refreshPublicationStatsChart();
+      this.loadCommentSentimentStats();
     }
   
     onSearchChange(): void {
@@ -1213,6 +1233,123 @@ export class PublicationsFiscalesComponent implements OnInit {
           this.publicationStatsChart?.destroy();
         });
         this.publicationStatsChart = null;
+      }
+    }
+
+    private loadCommentSentimentStats(): void {
+      if (!this.showStatisticsView) {
+        return;
+      }
+
+      const publications = (this.filteredPublications || []).slice(0, 10);
+      if (publications.length === 0) {
+        this.commentSentimentStats = { positive: 0, neutral: 0, negative: 0 };
+        this.destroyPublicationSentimentChart();
+        return;
+      }
+
+      const requestId = ++this.sentimentStatsRequestId;
+      this.isLoadingSentimentStats = true;
+      this.destroyPublicationSentimentChart();
+      const requests = publications.map((publication: any) =>
+        this.publicationService.getPublicationComments(Number(publication?.id)).pipe(
+          catchError(() => of([]))
+        )
+      );
+
+      forkJoin(requests).subscribe({
+        next: (commentsGroups: any[]) => {
+          if (requestId !== this.sentimentStatsRequestId) {
+            return;
+          }
+
+          const stats = { positive: 0, neutral: 0, negative: 0 };
+          commentsGroups.flat().forEach((comment: any) => {
+            const label = `${comment?.sentimentLabel || comment?.sentiment_label || 'NEUTRAL'}`.toUpperCase();
+            if (label === 'POSITIVE') {
+              stats.positive += 1;
+            } else if (label === 'NEGATIVE') {
+              stats.negative += 1;
+            } else {
+              stats.neutral += 1;
+            }
+          });
+
+          this.commentSentimentStats = stats;
+          this.isLoadingSentimentStats = false;
+          this.cdr.detectChanges();
+          setTimeout(() => this.refreshPublicationSentimentPieChart(), 0);
+        },
+        error: () => {
+          if (requestId !== this.sentimentStatsRequestId) {
+            return;
+          }
+          this.commentSentimentStats = { positive: 0, neutral: 0, negative: 0 };
+          this.isLoadingSentimentStats = false;
+          this.destroyPublicationSentimentChart();
+        }
+      });
+    }
+
+    private refreshPublicationSentimentPieChart(): void {
+      if (!this.showStatisticsView) {
+        return;
+      }
+
+      const canvas = document.getElementById('da-comment-sentiment-pie-chart') as HTMLCanvasElement | null;
+      if (!canvas) {
+        setTimeout(() => this.refreshPublicationSentimentPieChart(), 60);
+        return;
+      }
+
+      this.destroyPublicationSentimentChart();
+
+      const values = [
+        this.commentSentimentStats.positive,
+        this.commentSentimentStats.neutral,
+        this.commentSentimentStats.negative
+      ];
+
+      if (values.every((value) => value === 0)) {
+        return;
+      }
+
+      const config: ChartConfiguration<'pie'> = {
+        type: 'pie',
+        data: {
+          labels: ['Positif', 'Neutre', 'Negatif'],
+          datasets: [
+            {
+              data: values,
+              backgroundColor: ['rgba(34, 197, 94, 0.82)', 'rgba(148, 163, 184, 0.82)', 'rgba(239, 68, 68, 0.82)'],
+              borderColor: ['rgba(22, 163, 74, 1)', 'rgba(100, 116, 139, 1)', 'rgba(220, 38, 38, 1)'],
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      };
+
+      this.ngZone.runOutsideAngular(() => {
+        this.publicationSentimentChart = new Chart(canvas, config);
+      });
+    }
+
+    private destroyPublicationSentimentChart(): void {
+      if (this.publicationSentimentChart) {
+        this.ngZone.runOutsideAngular(() => {
+          this.publicationSentimentChart?.destroy();
+        });
+        this.publicationSentimentChart = null;
       }
     }
 
@@ -2417,12 +2554,284 @@ export class PublicationsFiscalesComponent implements OnInit {
   viewPublicationDetails(publication: any): void {
     this.selectedPublicationForDetails = publication;
     this.showPublicationDetailsModal = true;
+    this.loadPublicationDetailsComments(Number(publication?.id));
     console.log('ð Affichage des détails pour la publication:', publication.title);
   }
 
   closePublicationDetailsModal(): void {
     this.showPublicationDetailsModal = false;
     this.selectedPublicationForDetails = null;
+    this.selectedPublicationComments = [];
+    this.isLoadingPublicationComments = false;
+    this.publicationCommentsError = '';
+    this.publicationCommentContent = '';
+    this.isSubmittingPublicationComment = false;
+    this.publicationCommentNotice = '';
+    this.editingPublicationCommentId = null;
+    this.editingPublicationCommentContent = '';
+  }
+
+  private loadPublicationDetailsComments(publicationId: number): void {
+    if (!publicationId) {
+      this.selectedPublicationComments = [];
+      return;
+    }
+
+    this.isLoadingPublicationComments = true;
+    this.publicationCommentsError = '';
+    this.selectedPublicationComments = [];
+
+    this.publicationService.getPublicationComments(publicationId).subscribe({
+      next: (comments: any[]) => {
+        this.selectedPublicationComments = Array.isArray(comments) ? comments : [];
+        this.publicationCommentImageTimestamp = Date.now();
+        this.isLoadingPublicationComments = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des commentaires de la publication:', error);
+        this.selectedPublicationComments = [];
+        this.publicationCommentsError = 'Impossible de charger les commentaires.';
+        this.isLoadingPublicationComments = false;
+      }
+    });
+  }
+
+  formatPublicationCommentDate(comment: any): string {
+    const rawDate = comment?.createdAt || comment?.created_at || comment?.updatedAt || comment?.updated_at;
+    if (!rawDate) {
+      return 'Date inconnue';
+    }
+
+    const date = new Date(rawDate);
+    if (Number.isNaN(date.getTime())) {
+      return 'Date inconnue';
+    }
+
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  getCommentSentimentLabel(comment: any): string {
+    const raw = `${comment?.sentimentLabel || comment?.sentiment_label || 'NEUTRAL'}`.toUpperCase();
+    if (raw === 'POSITIVE') {
+      return 'Positif';
+    }
+    if (raw === 'NEGATIVE') {
+      return 'Negatif';
+    }
+    return 'Neutre';
+  }
+
+  getCommentSentimentClass(comment: any): string {
+    const raw = `${comment?.sentimentLabel || comment?.sentiment_label || 'NEUTRAL'}`.toUpperCase();
+    if (raw === 'POSITIVE') {
+      return 'da__sentimentBadge--positive';
+    }
+    if (raw === 'NEGATIVE') {
+      return 'da__sentimentBadge--negative';
+    }
+    return 'da__sentimentBadge--neutral';
+  }
+
+  getPublicationCommentUserImage(comment: any): string {
+    const rawPhoto = (
+      comment?.photo ||
+      comment?.userPhoto ||
+      comment?.user_photo ||
+      comment?.utilisateur?.photo ||
+      ''
+    );
+    const photo = `${rawPhoto}`.trim();
+    if (!photo) {
+      return this.fallbackCommentAvatar;
+    }
+    return `${photo}?t=${this.publicationCommentImageTimestamp}`;
+  }
+
+  onPublicationCommentImageError(event: Event): void {
+    const img = event.target as HTMLImageElement | null;
+    if (img) {
+      img.src = this.fallbackCommentAvatar;
+    }
+  }
+
+  get canAddCommentInDetails(): boolean {
+    return !!localStorage.getItem('token');
+  }
+
+  submitPublicationDetailsComment(): void {
+    const publicationId = Number(this.selectedPublicationForDetails?.id);
+    if (!publicationId || this.isSubmittingPublicationComment) {
+      return;
+    }
+
+    if (!this.canAddCommentInDetails) {
+      this.showPublicationCommentNotice('Connectez-vous pour ajouter un commentaire.', 'error');
+      return;
+    }
+
+    const content = this.publicationCommentContent.trim();
+    if (!content) {
+      this.showPublicationCommentNotice('Le commentaire ne doit pas être vide.', 'error');
+      return;
+    }
+
+    this.isSubmittingPublicationComment = true;
+    this.publicationCommentNotice = '';
+
+    this.publicationService.addPublicationComment(publicationId, content).subscribe({
+      next: (createdComment: any) => {
+        this.selectedPublicationComments = [createdComment, ...this.selectedPublicationComments];
+        this.publicationCommentImageTimestamp = Date.now();
+        this.publicationCommentContent = '';
+        this.syncPublicationCommentCount(publicationId, this.selectedPublicationComments.length);
+        this.showPublicationCommentNotice('Commentaire ajouté avec succès.', 'success');
+        this.isSubmittingPublicationComment = false;
+      },
+      error: (error) => {
+        const rawMessage = `${error?.error?.message || ''}`.trim();
+        const message = rawMessage || "Impossible d'ajouter le commentaire.";
+        this.showPublicationCommentNotice(message, 'error');
+        this.isSubmittingPublicationComment = false;
+      }
+    });
+  }
+
+  canManagePublicationDetailComment(comment: any): boolean {
+    const currentUserIdRaw = localStorage.getItem('userId');
+    const currentUserId = currentUserIdRaw ? Number(currentUserIdRaw) : NaN;
+    if (!currentUserIdRaw || Number.isNaN(currentUserId)) {
+      return false;
+    }
+    return Number(comment?.userId) === currentUserId;
+  }
+
+  isAgentPublicationComment(comment: any): boolean {
+    const role = (localStorage.getItem('role') || '').toUpperCase();
+    const currentUserIdRaw = localStorage.getItem('userId');
+    const currentUserId = currentUserIdRaw ? Number(currentUserIdRaw) : NaN;
+    const isCurrentUserComment = !!currentUserIdRaw && !Number.isNaN(currentUserId) && Number(comment?.userId) === currentUserId;
+
+    if (isCurrentUserComment) {
+      return role.includes('AGENT');
+    }
+
+    const commentRole = `${comment?.userRole || comment?.role || comment?.user_type || ''}`.toUpperCase();
+    return commentRole.includes('AGENT');
+  }
+
+  startEditPublicationDetailComment(comment: any): void {
+    if (!this.canManagePublicationDetailComment(comment)) {
+      return;
+    }
+    this.editingPublicationCommentId = Number(comment?.id);
+    this.editingPublicationCommentContent = `${comment?.content || ''}`.trim();
+  }
+
+  cancelEditPublicationDetailComment(): void {
+    this.editingPublicationCommentId = null;
+    this.editingPublicationCommentContent = '';
+  }
+
+  saveEditPublicationDetailComment(comment: any): void {
+    const publicationId = Number(this.selectedPublicationForDetails?.id);
+    const commentId = Number(comment?.id);
+    const content = this.editingPublicationCommentContent.trim();
+
+    if (!publicationId || !commentId || !content || this.isSubmittingPublicationComment) {
+      return;
+    }
+    if (!this.canManagePublicationDetailComment(comment)) {
+      return;
+    }
+
+    this.isSubmittingPublicationComment = true;
+    this.publicationCommentNotice = '';
+
+    this.publicationService.updatePublicationComment(publicationId, commentId, content).subscribe({
+      next: (updatedComment: any) => {
+        this.selectedPublicationComments = this.selectedPublicationComments.map((item: any) =>
+          Number(item?.id) === commentId ? { ...item, ...updatedComment } : item
+        );
+        this.cancelEditPublicationDetailComment();
+        this.showPublicationCommentNotice('Commentaire modifié avec succès.', 'success');
+        this.isSubmittingPublicationComment = false;
+      },
+      error: (error) => {
+        const rawMessage = `${error?.error?.message || ''}`.trim();
+        const message = rawMessage || "Impossible de modifier ce commentaire.";
+        this.showPublicationCommentNotice(message, 'error');
+        this.isSubmittingPublicationComment = false;
+      }
+    });
+  }
+
+  deletePublicationDetailComment(comment: any): void {
+    const publicationId = Number(this.selectedPublicationForDetails?.id);
+    const commentId = Number(comment?.id);
+
+    if (!publicationId || !commentId || this.isSubmittingPublicationComment) {
+      return;
+    }
+    if (!this.canManagePublicationDetailComment(comment)) {
+      return;
+    }
+
+    this.isSubmittingPublicationComment = true;
+    this.publicationCommentNotice = '';
+
+    this.publicationService.deletePublicationComment(publicationId, commentId).subscribe({
+      next: () => {
+        this.selectedPublicationComments = this.selectedPublicationComments.filter((item: any) => Number(item?.id) !== commentId);
+        if (this.editingPublicationCommentId === commentId) {
+          this.cancelEditPublicationDetailComment();
+        }
+        this.syncPublicationCommentCount(publicationId, this.selectedPublicationComments.length);
+        this.showPublicationCommentNotice('Commentaire supprimé avec succès.', 'success');
+        this.isSubmittingPublicationComment = false;
+      },
+      error: (error) => {
+        const rawMessage = `${error?.error?.message || ''}`.trim();
+        const message = rawMessage || "Impossible de supprimer ce commentaire.";
+        this.showPublicationCommentNotice(message, 'error');
+        this.isSubmittingPublicationComment = false;
+      }
+    });
+  }
+
+  private showPublicationCommentNotice(message: string, type: 'success' | 'error'): void {
+    this.publicationCommentNotice = message;
+    this.publicationCommentNoticeType = type;
+    setTimeout(() => {
+      this.publicationCommentNotice = '';
+    }, 3500);
+  }
+
+  private syncPublicationCommentCount(publicationId: number, count: number): void {
+    if (this.selectedPublicationForDetails?.id === publicationId) {
+      this.selectedPublicationForDetails = {
+        ...this.selectedPublicationForDetails,
+        commentsCount: count,
+        comments_count: count
+      };
+    }
+
+    this.publications = this.publications.map((publication: any) =>
+      Number(publication?.id) === publicationId
+        ? { ...publication, commentsCount: count, comments_count: count }
+        : publication
+    );
+
+    this.filteredPublications = this.filteredPublications.map((publication: any) =>
+      Number(publication?.id) === publicationId
+        ? { ...publication, commentsCount: count, comments_count: count }
+        : publication
+    );
   }
 
   // Méthodes pour la modification de publication

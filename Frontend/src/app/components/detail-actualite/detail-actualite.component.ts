@@ -180,7 +180,13 @@ export class DetailActualiteComponent implements OnInit {
   }
 
   submitComment(): void {
-    if (!this.isUserLoggedIn || this.isSubmittingComment || !this.publication?.id) {
+    if (!this.isUserLoggedIn) {
+      this.commentError = '';
+      this.showCommentNotice('Connectez-vous pour ajouter un commentaire.', 'error');
+      return;
+    }
+
+    if (this.isSubmittingComment || !this.publication?.id) {
       return;
     }
 
@@ -220,6 +226,37 @@ export class DetailActualiteComponent implements OnInit {
       return false;
     }
     return Number(comment?.userId) === this.currentUserId;
+  }
+
+  isAgentComment(comment: any): boolean {
+    const currentRole = (localStorage.getItem('role') || '').toUpperCase();
+    const currentUserIdRaw = localStorage.getItem('userId');
+    const currentUserId = currentUserIdRaw ? Number(currentUserIdRaw) : NaN;
+    const isCurrentUserComment = !!currentUserIdRaw && !Number.isNaN(currentUserId) && Number(comment?.userId) === currentUserId;
+
+    if (isCurrentUserComment) {
+      return currentRole.includes('AGENT');
+    }
+
+    const commentRole = `${comment?.userRole || comment?.role || comment?.user_type || ''}`.toUpperCase();
+    if (commentRole.includes('AGENT')) {
+      return true;
+    }
+
+    // Fallback fort: sur cette page les publications sont créées par l'agent,
+    // donc si l'auteur du commentaire = auteur de la publication, on le marque agent.
+    const commentUserId = Number(comment?.userId);
+    const publicationCreatorId = Number(
+      this.publication?.createdById ??
+      this.publication?.createdByUserId ??
+      this.publication?.createdBy?.id ??
+      this.publication?.createdBy?.idUtilisateur ??
+      this.publication?.createdBy
+    );
+
+    return !Number.isNaN(commentUserId)
+      && !Number.isNaN(publicationCreatorId)
+      && commentUserId === publicationCreatorId;
   }
 
   startEditComment(comment: any): void {
@@ -381,7 +418,7 @@ export class DetailActualiteComponent implements OnInit {
   }
 
   onLike(): void {
-    if (!this.publication || this.isSubmittingReaction) {
+    if (!this.isUserLoggedIn || !this.publication || this.isSubmittingReaction) {
       return;
     }
     if (this.userReaction === 'like') {
@@ -391,7 +428,7 @@ export class DetailActualiteComponent implements OnInit {
   }
 
   onDislike(): void {
-    if (!this.publication || this.isSubmittingReaction) {
+    if (!this.isUserLoggedIn || !this.publication || this.isSubmittingReaction) {
       return;
     }
     if (this.userReaction === 'dislike') {

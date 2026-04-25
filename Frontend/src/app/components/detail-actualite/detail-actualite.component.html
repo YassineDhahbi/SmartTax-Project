@@ -92,7 +92,13 @@
                                                  alt="comment-avatar"
                                                  (error)="onCommentImageError($event)">
                                             <div class="blog-comment-content">
-                                                <h5>{{ comment.userFullName || 'Utilisateur' }}</h5>
+                                                <h5>
+                                                    {{ comment.userFullName || 'Utilisateur' }}
+                                                    <span class="comment-agent-badge" *ngIf="isAgentComment(comment)">
+                                                        <i class="fa-solid fa-shield-halved"></i>
+                                                        Agent DGI
+                                                    </span>
+                                                </h5>
                                                 <span><i class="far fa-clock"></i> {{ formatCommentDate(comment) }}</span>
                                                 <p *ngIf="editingCommentId !== comment.id">{{ comment.content }}</p>
                                                 <div class="comment-edit-box" *ngIf="editingCommentId === comment.id">
@@ -138,7 +144,7 @@
                                             Aucun commentaire pour le moment.
                                         </p>
                                     </div>
-                                    <div class="blog-comment-form">
+                                    <div class="blog-comment-form" *ngIf="isUserLoggedIn; else commentLoginRequired">
                                         <h3>Mettre Votre Commentaire</h3>
                                         <form (ngSubmit)="submitComment()">
                                             <div class="row">
@@ -152,13 +158,10 @@
                                                             class="form-control"
                                                             placeholder="Votre commentaire..."
                                                             [(ngModel)]="commentContent"
-                                                            [disabled]="!isUserLoggedIn || isSubmittingComment"
+                                                            [disabled]="isSubmittingComment"
                                                             required></textarea>
                                                         </div>
                                                     </div>
-                                                    <p class="reaction-login-hint" *ngIf="!isUserLoggedIn">
-                                                        Connectez-vous pour ajouter un commentaire.
-                                                    </p>
                                                     <div class="comment-notice"
                                                          *ngIf="commentNotice"
                                                          [class.comment-notice--success]="commentNoticeType === 'success'"
@@ -168,7 +171,7 @@
                                                     <p class="comment-error" *ngIf="commentError">{{ commentError }}</p>
                                                     <button type="submit"
                                                             class="theme-btn"
-                                                            [disabled]="!isUserLoggedIn || isSubmittingComment">
+                                                            [disabled]="isSubmittingComment">
                                                         {{ isSubmittingComment ? 'Publication...' : 'Post Comment' }}
                                                         <i class="far fa-paper-plane"></i>
                                                     </button>
@@ -176,6 +179,14 @@
                                             </div>
                                         </form>
                                     </div>
+                                    <ng-template #commentLoginRequired>
+                                        <div class="blog-comment-form">
+                                            <h3>Mettre Votre Commentaire</h3>
+                                            <p class="reaction-login-hint">
+                                                Connectez-vous pour ajouter un commentaire, comme pour les likes/dislikes.
+                                            </p>
+                                        </div>
+                                    </ng-template>
                                 </div>
                                 <div class="comment-delete-modal-backdrop" *ngIf="commentToDelete">
                                     <div class="comment-delete-modal">

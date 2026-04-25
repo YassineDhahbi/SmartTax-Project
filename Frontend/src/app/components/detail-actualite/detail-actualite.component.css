@@ -330,6 +330,26 @@
   .blog-single .blog-comment-content h5 {
     color:  var(--color-dark);
     font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .comment-agent-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #34d6db;
+    color: #ffffff;
+    line-height: 1;
+    box-shadow: 0 3px 10px rgba(22, 147, 249, 0.35);
   }
 
   .comment-error {
