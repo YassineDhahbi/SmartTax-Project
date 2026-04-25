@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ImmatriculationService } from '../../services/immatriculation.service';
@@ -9,6 +9,7 @@ import { Immatriculation } from '../../models/immatriculation.model';
 import jsPDF from 'jspdf';
 import * as QRCode from 'qrcode';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 type Tone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger';
 
@@ -196,11 +197,14 @@ export class PublicationsFiscalesComponent implements OnInit {
     constructor(
       private http: HttpClient,
       private cdr: ChangeDetectorRef,
+      private ngZone: NgZone,
       private immatriculationService: ImmatriculationService,
       private trashService: TrashService,
       private emailService: EmailService,
       private publicationService: PublicationService
-    ) {}
+    ) {
+      Chart.register(...registerables);
+    }
   
     // Méthode pour formater l'adresse avec gouvernorat et ville
     formatAdresse(immatriculation: any): string {
@@ -285,11 +289,13 @@ export class PublicationsFiscalesComponent implements OnInit {
     // Search properties
     searchTerm: string = '';
     showCalendarView = false;
+    showStatisticsView = false;
     calendarCurrentDate = new Date();
     calendarDays: Array<{ date: Date; key: string; day: number; inCurrentMonth: boolean; isToday: boolean }> = [];
     selectedCalendarKey: string | null = null;
     selectedCalendarNote = '';
     readonly calendarWeekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    private publicationStatsChart: Chart | null = null;
     
     // Méthode pour extraire le nom de l'auteur depuis le DTO
     getAuthorName(publication: any): string {
@@ -477,6 +483,7 @@ export class PublicationsFiscalesComponent implements OnInit {
           console.log('✅ Publications chargées depuis la BDD:', this.publications);
           console.log('📏 Nombre final de publications:', this.publications.length);
           console.log('📋 Publications après mise à jour:', this.publications.map(p => ({ id: p.id, title: p.title, author: p.createdBy })));
+          this.refreshPublicationStatsChart();
         },
         error: (error) => {
           console.error('❌ Erreur lors du chargement des publications:', error);
@@ -857,7 +864,22 @@ export class PublicationsFiscalesComponent implements OnInit {
   toggleCalendarView(): void {
     this.showCalendarView = !this.showCalendarView;
     if (this.showCalendarView) {
+      this.showStatisticsView = false;
+      this.destroyPublicationStatsChart();
+    }
+    if (this.showCalendarView) {
       this.generateCalendarDays();
+    }
+  }
+
+  toggleStatisticsView(): void {
+    this.showStatisticsView = !this.showStatisticsView;
+    if (this.showStatisticsView) {
+      this.showCalendarView = false;
+      this.cdr.detectChanges();
+      setTimeout(() => this.refreshPublicationStatsChart(), 80);
+    } else {
+      this.destroyPublicationStatsChart();
     }
   }
 
@@ -1093,6 +1115,7 @@ export class PublicationsFiscalesComponent implements OnInit {
       
       // Appliquer le filtrage final
       this.filteredPublications = filtered;
+      this.refreshPublicationStatsChart();
     }
   
     onSearchChange(): void {
@@ -1103,6 +1126,103 @@ export class PublicationsFiscalesComponent implements OnInit {
     clearSearch(): void {
       this.searchTerm = '';
       this.applyFilter();
+    }
+
+    private refreshPublicationStatsChart(): void {
+      if (!this.showStatisticsView) {
+        return;
+      }
+
+      const canvas = document.getElementById('da-publication-stats-chart') as HTMLCanvasElement | null;
+      if (!canvas) {
+        return;
+      }
+
+      this.destroyPublicationStatsChart();
+
+      const publications = (this.filteredPublications || []).slice(0, 10);
+      if (publications.length === 0) {
+        return;
+      }
+
+      const labels = publications.map((publication: any, index: number) => {
+        const title = publication?.title ? String(publication.title) : `Publication ${index + 1}`;
+        return title.length > 22 ? `${title.substring(0, 22)}...` : title;
+      });
+
+      const likesData = publications.map((p: any) => Number(p?.likesCount ?? p?.likes_count ?? 0));
+      const dislikesData = publications.map((p: any) => Number(p?.dislikesCount ?? p?.dislikes_count ?? 0));
+      const commentsData = publications.map((p: any) => this.getPublicationCommentsCount(p));
+
+      const config: ChartConfiguration<'bar'> = {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "J'aime",
+              data: likesData,
+              backgroundColor: 'rgba(34, 197, 94, 0.7)',
+              borderColor: 'rgba(22, 163, 74, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Dislikes',
+              data: dislikesData,
+              backgroundColor: 'rgba(239, 68, 68, 0.7)',
+              borderColor: 'rgba(220, 38, 38, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Commentaires',
+              data: commentsData,
+              backgroundColor: 'rgba(14, 165, 233, 0.7)',
+              borderColor: 'rgba(2, 132, 199, 1)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: {
+            legend: {
+              position: 'top'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      };
+
+      this.ngZone.runOutsideAngular(() => {
+        this.publicationStatsChart = new Chart(canvas, config);
+      });
+    }
+
+    private destroyPublicationStatsChart(): void {
+      if (this.publicationStatsChart) {
+        this.ngZone.runOutsideAngular(() => {
+          this.publicationStatsChart?.destroy();
+        });
+        this.publicationStatsChart = null;
+      }
+    }
+
+    private getPublicationCommentsCount(publication: any): number {
+      return Number(
+        publication?.commentsCount ??
+        publication?.comments_count ??
+        publication?.comments?.length ??
+        0
+      );
     }
   
     toggleTask(t: TaskItem): void {

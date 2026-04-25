@@ -52,6 +52,12 @@
                 <i class="fa-solid fa-calendar-days"></i>
                 <span>Calendrier</span>
               </button>
+              <button class="da__filterBtn da__filterBtn--stats"
+                      [class.da__filterBtn--active]="showStatisticsView"
+                      (click)="toggleStatisticsView()">
+                <i class="fa-solid fa-chart-column"></i>
+                <span>Statistique</span>
+              </button>
             </div>
             
          
@@ -114,8 +120,31 @@
               </div>
             </div>
 
+            <div class="da__statsSection" *ngIf="!loading && showStatisticsView">
+              <div class="da__statsCard">
+                <div class="da__statsHeader">
+                  <h4>Statistiques des publications (Top 10)</h4>
+                  <p>Nombre de likes, dislikes et commentaires par publication</p>
+                </div>
+                <div class="da__statsChartWrap" *ngIf="filteredPublications.length > 0; else statsEmpty">
+                  <canvas id="da-publication-stats-chart"></canvas>
+                </div>
+                <ng-template #statsEmpty>
+                  <div class="da__emptyState">
+                    <div class="da__emptyIcon">
+                      <i class="fa-solid fa-chart-column"></i>
+                    </div>
+                    <div class="da__emptyText">
+                      <h4>Aucune publication pour les statistiques</h4>
+                      <p>Ajoutez des publications pour afficher le graphique.</p>
+                    </div>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+
             <!-- Tableau des publications -->
-            <div class="da__tableWrap" *ngIf="!loading && !showCalendarView">
+            <div class="da__tableWrap" *ngIf="!loading && !showCalendarView && !showStatisticsView">
               <table class="da__table" aria-label="Liste des publications">
                 <thead>
                   <tr>
