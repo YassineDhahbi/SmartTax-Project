@@ -121,6 +121,7 @@ export class PublicationsFiscalesComponent implements OnInit {
     
     publicationTagInput = '';
     publicationTags: string[] = [];
+    createPublicationErrors: { [key: string]: string } = {};
     
     // Tags existants pour réutilisation
     existingTags: string[] = [];
@@ -2188,9 +2189,9 @@ export class PublicationsFiscalesComponent implements OnInit {
     this.syncContentWithForm();
     console.log('📝 Form synchronisé:', this.newPublicationForm);
 
-    if (!this.newPublicationForm.title || !this.newPublicationForm.content) {
-      console.log('⚠️ Validation échouée - champs manquants');
-      this.showNotification('Veuillez remplir les champs obligatoires (titre, contenu).', 'warning');
+    if (!this.validateCreatePublicationForm(false)) {
+      console.log('⚠️ Validation échouée - formulaire invalide');
+      this.showNotification('Veuillez corriger les erreurs du formulaire.', 'warning');
       return;
     }
 
@@ -2244,9 +2245,9 @@ export class PublicationsFiscalesComponent implements OnInit {
     this.syncContentWithForm();
     console.log('📝 Form synchronisé:', this.newPublicationForm);
 
-    if (!this.newPublicationForm.title || !this.newPublicationForm.content) {
-      console.log('⚠️ Validation échouée - champs manquants');
-      this.showNotification('Veuillez remplir les champs obligatoires (titre, contenu).', 'warning');
+    if (!this.validateCreatePublicationForm(true)) {
+      console.log('⚠️ Validation échouée - formulaire invalide');
+      this.showNotification('Veuillez corriger les erreurs du formulaire.', 'warning');
       return;
     }
 
@@ -2307,6 +2308,7 @@ export class PublicationsFiscalesComponent implements OnInit {
     };
     this.publicationTagInput = '';
     this.publicationTags = [];
+    this.createPublicationErrors = {};
   }
 
   addPublicationTag(): void {
@@ -3119,17 +3121,26 @@ export class PublicationsFiscalesComponent implements OnInit {
   // Méthodes pour mettre à jour le formulaire en temps réel
   onTitleChange(): void {
     this.newPublicationForm.title = this.stripHtml(this.ckEditorTitle);
+    this.validateCreatePublicationForm(false);
   }
 
   onContentChange(): void {
     this.newPublicationForm.content = this.stripHtml(this.ckEditorContent);
+    this.validateCreatePublicationForm(false);
   }
 
   // Méthode pour gérer le téléchargement d'image
   onImageUpload(event: any): void {
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
+      const maxImageSizeBytes = 5 * 1024 * 1024;
+      if (file.size > maxImageSizeBytes) {
+        this.createPublicationErrors['image'] = 'Image trop volumineuse (max 5 MB).';
+        this.showNotification('Image trop volumineuse (max 5 MB).', 'warning');
+        return;
+      }
       this.selectedImageFile = file;
+      this.createPublicationErrors['image'] = '';
       
       // Créer une URL pour l'aperçu
       const reader = new FileReader();
@@ -3138,8 +3149,52 @@ export class PublicationsFiscalesComponent implements OnInit {
       };
       reader.readAsDataURL(file);
     } else {
-      alert('Veuillez sélectionner un fichier image valide.');
+      this.createPublicationErrors['image'] = 'Veuillez sélectionner un fichier image valide.';
+      this.showNotification('Veuillez sélectionner un fichier image valide.', 'warning');
     }
+  }
+
+  private validateCreatePublicationForm(requireScheduleDate: boolean): boolean {
+    const errors: { [key: string]: string } = {};
+    const title = (this.newPublicationForm.title || '').trim();
+    const content = (this.newPublicationForm.content || '').trim();
+    const scheduleType = this.newPublicationForm.schedule_type;
+    const scheduledAt = (this.newPublicationForm.scheduled_at || '').trim();
+
+    if (!title) {
+      errors['title'] = 'Le titre est obligatoire.';
+    } else if (title.length < 5) {
+      errors['title'] = 'Le titre doit contenir au moins 5 caractères.';
+    } else if (title.length > 180) {
+      errors['title'] = 'Le titre ne doit pas dépasser 180 caractères.';
+    }
+
+    if (!content) {
+      errors['content'] = 'Le contenu est obligatoire.';
+    } else if (content.length < 20) {
+      errors['content'] = 'Le contenu doit contenir au moins 20 caractères.';
+    }
+
+    if (scheduleType === 'later' && requireScheduleDate) {
+      if (!scheduledAt) {
+        errors['scheduled_at'] = 'La date de planification est obligatoire.';
+      } else {
+        const scheduledDate = new Date(scheduledAt);
+        const now = new Date();
+        if (Number.isNaN(scheduledDate.getTime())) {
+          errors['scheduled_at'] = 'Date de planification invalide.';
+        } else if (scheduledDate.getTime() <= now.getTime()) {
+          errors['scheduled_at'] = 'La planification doit être dans le futur.';
+        }
+      }
+    }
+
+    if (this.publicationTags.length > 20) {
+      errors['tags'] = 'Vous pouvez ajouter au maximum 20 tags.';
+    }
+
+    this.createPublicationErrors = errors;
+    return Object.keys(errors).length === 0;
   }
 
   // Fonction pour corriger les fautes dans le contenu avec l'API de Groq
@@ -3323,6 +3378,14 @@ export class PublicationsFiscalesComponent implements OnInit {
     };
     const label = statusLabels[status] || status;
     return label;
+  }
+
+  getPublicationLikesCount(publication: any): number {
+    return Number(publication?.likesCount ?? publication?.likes_count ?? 0);
+  }
+
+  getPublicationDislikesCount(publication: any): number {
+    return Number(publication?.dislikesCount ?? publication?.dislikes_count ?? 0);
   }
 }
 

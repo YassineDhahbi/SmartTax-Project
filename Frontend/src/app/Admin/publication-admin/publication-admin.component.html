@@ -1,0 +1,474 @@
+<div class="admin-dashboard">
+  <app-topbar></app-topbar>
+
+  <div class="layout">
+    <aside>
+      <app-side-admin></app-side-admin>
+    </aside>
+
+    <main class="content">
+      <section class="stats-grid">
+        <article class="stat-card" *ngFor="let stat of stats">
+          <p class="label">{{ stat.title }}</p>
+          <h3>{{ stat.value }}</h3>
+          <small>{{ stat.subtitle }}</small>
+          <span class="trend" [ngClass]="stat.trend">{{ stat.delta }}</span>
+        </article>
+      </section>
+
+      <section class="panel publications-panel">
+        <div class="panel-head">
+          <div>
+            <h3>Publications</h3>
+          </div>
+          <div class="panel-actions">
+            <span class="count">{{ getDisplayedCount() }} affichée(s) / {{ totalItems }} au total</span>
+          </div>
+        </div>
+
+        <div class="search-section">
+          <div class="search-bar-container">
+            <div class="search-bar">
+              <div class="search-input-wrapper">
+                <i class="fa-solid fa-search search-icon-main"></i>
+                <input
+                  type="text"
+                  class="search-input-main"
+                  [value]="searchTerm"
+                  (input)="onSearchChange($any($event.target).value)"
+                  placeholder="Rechercher par titre, résumé, slug ou auteur..."
+                />
+                <button class="search-clear-main" type="button" (click)="clearSearch()" *ngIf="searchTerm">
+                  <i class="fa-solid fa-times"></i>
+                </button>
+              </div>
+
+              <div class="search-actions">
+                <select class="filter-select" [value]="selectedStatus" (change)="onStatusFilterChange($any($event.target).value)">
+                  <option value="ALL">Tous les statuts</option>
+                  <option value="PUBLISHED">Publie</option>
+                  <option value="DRAFT">Brouillon</option>
+                  <option value="SCHEDULED">Planifie</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p *ngIf="loading" class="state">Chargement des publications...</p>
+        <p *ngIf="!loading && errorMessage" class="state error">{{ errorMessage }}</p>
+        <p *ngIf="!loading && !errorMessage && filteredPublications.length === 0" class="state">Aucune publication trouvée.</p>
+
+        <div class="table-wrap" *ngIf="!loading && !errorMessage && filteredPublications.length > 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Titre</th>
+                <th>Auteur</th>
+                <th>Statut</th>
+                <th>Date création</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let publication of filteredPublications">
+                <td class="image-cell">
+                  <div class="publication-image" *ngIf="getPublicationImage(publication); else noPublicationImage">
+                    <img
+                      [src]="getImageUrl(getPublicationImage(publication))"
+                      [alt]="publication.title || 'Image publication'"
+                      class="thumbnail"
+                      (error)="onImageError($event)"
+                    />
+                  </div>
+                  <ng-template #noPublicationImage>
+                    <div class="no-image">
+                      <span class="no-image-icon">?</span>
+                    </div>
+                  </ng-template>
+                </td>
+                <td>
+                  <div class="publication-cell">
+                    <strong>{{ publication.title }}</strong>
+                    <small>{{ publication.summary || '-' }}</small>
+                  </div>
+                </td>
+                <td>{{ getAuthorName(publication) }}</td>
+                <td>
+                  <div class="status-editor">
+                    <select
+                      class="status-select"
+                      [value]="publication.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT'"
+                      [disabled]="updatingStatusPublicationId === publication.id"
+                      (change)="updatePublicationStatusFromList(publication, $any($event.target).value)">
+                      <option value="DRAFT">Brouillon</option>
+                      <option value="PUBLISHED">Publié</option>
+                    </select>
+                  </div>
+                </td>
+                <td>{{ formatDate(getPublicationCreatedDate(publication)) }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="action-btn action-btn--report" type="button" title="Signalements" (click)="openReportsModal(publication)">
+                      <i class="fa-solid fa-flag"></i>
+                      <span class="action-badge">{{ getReportsCount(publication) }}</span>
+                    </button>
+                    <button class="action-btn" type="button" title="Voir" (click)="viewPublication(publication)">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button class="action-btn action-btn--edit" type="button" title="Modifier" (click)="editPublication(publication)">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button class="action-btn action-btn--danger" type="button" title="Supprimer" (click)="openDeletePublicationModal(publication)">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination-container" *ngIf="totalPages > 1">
+          <div class="pagination-info">
+            <span>Affichage de {{ getStartItem() }} à {{ getEndItem() }} sur {{ totalItems }} publications</span>
+          </div>
+          <div class="pagination-controls">
+            <button class="pagination-btn" [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="onPageChange(currentPage + 1)">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showPublicationDetailsModal && selectedPublicationForDetails" (click)="closePublicationDetailsModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Détails de la publication</h4>
+      <button type="button" class="modal-close" (click)="closePublicationDetailsModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="details-image-wrap">
+        <img
+          [src]="getImageUrl(getPublicationImage(selectedPublicationForDetails))"
+          [alt]="selectedPublicationForDetails.title || 'Image publication'"
+          class="details-image"
+          (error)="onImageError($event)"
+        />
+      </div>
+
+      <div class="details-grid">
+        <div class="detail-item detail-item--full">
+          <label>Titre</label>
+          <span>{{ selectedPublicationForDetails.title || '-' }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Auteur</label>
+          <span>{{ getAuthorName(selectedPublicationForDetails) }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Statut</label>
+          <span class="badge" [ngClass]="getStatusClass(selectedPublicationForDetails.status)">
+            {{ selectedPublicationForDetails.status }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <label>Date de création</label>
+          <span>{{ formatDate(getPublicationCreatedDate(selectedPublicationForDetails)) }}</span>
+        </div>
+      </div>
+
+      <div class="detail-item detail-item--full">
+        <label>Contenu</label>
+        <span class="details-content-text">{{ selectedPublicationForDetails.content || '-' }}</span>
+      </div>
+
+      <div class="details-metrics">
+        <div class="metric-card">
+          <i class="fa-solid fa-thumbs-up"></i>
+          <div>
+            <small>Likes</small>
+            <strong>{{ getLikesCount(selectedPublicationForDetails) }}</strong>
+          </div>
+        </div>
+        <div class="metric-card">
+          <i class="fa-solid fa-thumbs-down"></i>
+          <div>
+            <small>Dislikes</small>
+            <strong>{{ getDislikesCount(selectedPublicationForDetails) }}</strong>
+          </div>
+        </div>
+      </div>
+
+      
+
+      <div class="detail-item detail-item--full" *ngIf="selectedPublicationForDetails.ai_generated_tags?.length">
+        <label>Tags</label>
+        <div class="tags-wrap">
+          <span class="tag-chip" *ngFor="let tag of selectedPublicationForDetails.ai_generated_tags">{{ tag }}</span>
+        </div>
+      </div>
+
+      <div class="detail-item detail-item--full">
+        <label>Commentaires ({{ publicationComments.length }})</label>
+        <div class="comments-wrap">
+          <p *ngIf="isLoadingPublicationComments" class="comments-state">Chargement des commentaires...</p>
+          <p *ngIf="!isLoadingPublicationComments && publicationCommentsError" class="comments-state error">{{ publicationCommentsError }}</p>
+          <p *ngIf="!isLoadingPublicationComments && !publicationCommentsError && publicationComments.length === 0" class="comments-state">
+            Aucun commentaire pour cette publication.
+          </p>
+
+          <div class="comment-item" *ngFor="let comment of publicationComments">
+            <div class="comment-head">
+              <div class="comment-author-wrap">
+                <strong>{{ getCommentAuthor(comment) }}</strong>
+              </div>
+              <div class="comment-actions">
+                <small>{{ getCommentDate(comment) }}</small>
+                <button
+                  type="button"
+                  class="comment-delete-btn"
+                  title="Supprimer le commentaire"
+                  [disabled]="deletingCommentId === getCommentId(comment)"
+                  (click)="deleteComment(comment)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            <p class="comment-content">{{ comment.content || '-' }}</p>
+            <div class="comment-sentiment-badge" [ngClass]="getCommentSentimentClass(comment)">
+              <i class="fa-solid fa-wave-square"></i>
+              Sentiment: {{ getCommentSentimentLabel(comment) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--edit" (click)="editPublication(selectedPublicationForDetails)">
+        <i class="fa-solid fa-pen-to-square"></i>
+        Modifier
+      </button>
+      <button type="button" class="modal-btn modal-btn--danger" (click)="openDeletePublicationModal(selectedPublicationForDetails)">
+        <i class="fa-solid fa-trash"></i>
+        Supprimer
+      </button>
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closePublicationDetailsModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showReportsModal && selectedPublicationForReports" (click)="closeReportsModal()">
+  <div class="modal-card modal-card--reports" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Signalements de la publication</h4>
+      <button type="button" class="modal-close" (click)="closeReportsModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p class="reports-title"><strong>{{ selectedPublicationForReports.title || 'Sans titre' }}</strong></p>
+      <div class="reports-count-chip">
+        <i class="fa-solid fa-flag"></i>
+        {{ getReportsCount(selectedPublicationForReports) }} signalement(s)
+      </div>
+
+      <p class="reports-note" *ngIf="isLoadingPublicationReports">Chargement des signalements...</p>
+      <p class="reports-note reports-note--error" *ngIf="!isLoadingPublicationReports && publicationReportsError">{{ publicationReportsError }}</p>
+      <p class="reports-note" *ngIf="!isLoadingPublicationReports && !publicationReportsError && publicationReports.length === 0">
+        Aucun signalement pour cette publication.
+      </p>
+
+      <div class="reports-list" *ngIf="!isLoadingPublicationReports && !publicationReportsError && publicationReports.length > 0">
+        <div class="report-item" *ngFor="let report of publicationReports">
+          <div class="report-head">
+            <div class="report-author-block">
+              <strong>{{ getReportAuthor(report) }}</strong>
+              <span class="report-type-chip" [class.report-type-chip--comment]="getReportType(report) === 'COMMENT'">
+                {{ getReportTypeLabel(report) }}
+              </span>
+            </div>
+            <div class="report-head-actions">
+              <small>{{ getReportDate(report) }}</small>
+              <button
+                *ngIf="getReportType(report) === 'COMMENT'"
+                type="button"
+                class="report-delete-comment-btn"
+                title="Supprimer le commentaire"
+                [disabled]="deletingReportedCommentId === getReportCommentId(report)"
+                (click)="deleteReportedComment(report)">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+              <button
+                *ngIf="getReportType(report) === 'COMMENT'"
+                type="button"
+                class="report-block-comment-btn"
+                title="Bloquer l'utilisateur"
+                (click)="openBlockAuthorModal(report)">
+                <i class="fa-solid fa-ban"></i>
+              </button>
+              <button
+                *ngIf="getReportType(report) === 'COMMENT' && isReportUserBlocked(report)"
+                type="button"
+                class="report-unblock-comment-btn"
+                title="Debloquer l'utilisateur"
+                [disabled]="unblockingUserId === getReportUserId(report)"
+                (click)="unblockUserFromReport(report)">
+                <i class="fa-solid fa-unlock"></i>
+              </button>
+            </div>
+          </div>
+          <p class="report-reason">{{ getReportReason(report) }}</p>
+          <p class="report-comment-excerpt" *ngIf="getReportType(report) === 'COMMENT'">
+            <strong>Commentaire :</strong> {{ getCommentReportExcerpt(report) }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closeReportsModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showBlockAuthorModal && selectedReportForBlock" (click)="closeBlockAuthorModal()">
+  <div class="modal-card modal-card--reports" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Bloquer l'utilisateur</h4>
+      <button type="button" class="modal-close" (click)="closeBlockAuthorModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="reports-note">Utilisateur: <strong>{{ getReportAuthor(selectedReportForBlock) }}</strong></p>
+      <p class="reports-note" *ngIf="getCommentReportExcerpt(selectedReportForBlock)">
+        Commentaire: {{ getCommentReportExcerpt(selectedReportForBlock) }}
+      </p>
+
+      <label class="block-label">Duree du blocage</label>
+      <select class="modal-input" [value]="selectedBlockDuration" (change)="onBlockDurationChange($any($event.target).value)">
+        <option value="24">1 jour</option>
+        <option value="72">3 jours</option>
+        <option value="168">7 jours</option>
+        <option value="720">30 jours</option>
+        <option value="custom">Personnalise (heures)</option>
+      </select>
+
+      <div *ngIf="selectedBlockDuration === 'custom'" class="block-custom-hours">
+        <label class="block-label">Heures</label>
+        <input type="number" min="1" class="modal-input" [(ngModel)]="customBlockHours" />
+      </div>
+
+      <label class="block-label">Raison (optionnelle)</label>
+      <textarea class="modal-textarea" rows="3" [(ngModel)]="blockReason" placeholder="Ex: spam, insultes..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closeBlockAuthorModal()" [disabled]="isBlockingAuthor">
+        Annuler
+      </button>
+      <button type="button" class="modal-btn modal-btn--danger" (click)="confirmBlockAuthorFromReport()" [disabled]="isBlockingAuthor">
+        <i class="fa-solid fa-ban"></i>
+        {{ isBlockingAuthor ? 'Blocage...' : 'Bloquer' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showDeletePublicationModal && selectedPublicationToDelete" (click)="closeDeletePublicationModal()">
+  <div class="modal-card modal-card--delete" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Confirmation de suppression</h4>
+      <button type="button" class="modal-close" (click)="closeDeletePublicationModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p class="delete-message">Voulez-vous vraiment supprimer cette publication ?</p>
+      <p class="delete-title"><strong>{{ selectedPublicationToDelete.title || 'Sans titre' }}</strong></p>
+      <p class="delete-warning">Cette action est irreversible.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closeDeletePublicationModal()">Annuler</button>
+      <button type="button" class="modal-btn modal-btn--danger" [disabled]="isDeletingPublication" (click)="confirmDeletePublication()">
+        <i class="fa-solid fa-trash"></i>
+        {{ isDeletingPublication ? 'Suppression...' : 'Supprimer' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showEditPublicationModal && selectedPublicationForEdit" (click)="closeEditPublicationModal()">
+  <div class="modal-card modal-card--edit" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Modifier la publication</h4>
+      <button type="button" class="modal-close" (click)="closeEditPublicationModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="edit-grid">
+        <div class="edit-main">
+          <div class="form-group">
+            <label for="edit-title">Titre</label>
+            <input id="edit-title" class="modal-input" type="text" [(ngModel)]="editTitle" placeholder="Titre de la publication" />
+          </div>
+
+          <div class="form-group">
+            <label for="edit-content">Contenu</label>
+            <textarea
+              id="edit-content"
+              class="modal-textarea"
+              rows="8"
+              [(ngModel)]="editContent"
+              placeholder="Contenu de la publication"></textarea>
+          </div>
+        </div>
+
+        <div class="edit-side">
+          <label>Image</label>
+          <div class="edit-image-preview">
+            <img *ngIf="editImagePreview; else noEditImage" [src]="editImagePreview" alt="Aperçu image" (error)="onImageError($event)" />
+            <ng-template #noEditImage>
+              <div class="no-image">Aucune image</div>
+            </ng-template>
+          </div>
+
+          <label class="upload-btn" for="edit-image-file">
+            <i class="fa-solid fa-upload"></i>
+            Choisir une image
+          </label>
+          <input id="edit-image-file" type="file" accept="image/*" (change)="onEditImageSelected($event)" hidden />
+
+          <button type="button" class="upload-btn upload-btn--danger" (click)="removeEditImage()">
+            <i class="fa-solid fa-trash"></i>
+            Retirer l'image
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closeEditPublicationModal()">Annuler</button>
+      <button type="button" class="modal-btn modal-btn--primary" [disabled]="isSavingEdit" (click)="saveEditedPublication()">
+        <i class="fa-solid fa-save"></i>
+        {{ isSavingEdit ? 'Enregistrement...' : 'Enregistrer' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -29,6 +29,26 @@ export class DetailActualiteComponent implements OnInit {
   errorMessage = '';
   userReaction: 'like' | 'dislike' | null = null;
   isSubmittingReaction = false;
+  isSubmittingReport = false;
+  showReportModal = false;
+  reportCause = '';
+  reportReason = '';
+  reportError = '';
+  reportNotice = '';
+  showCommentReportModal = false;
+  commentToReport: any | null = null;
+  commentReportCause = '';
+  commentReportReason = '';
+  commentReportError = '';
+  isSubmittingCommentReport = false;
+  readonly reportCauseOptions = [
+    'Contenu inapproprié',
+    'Fausse information',
+    'Spam ou publicité abusive',
+    'Discours haineux',
+    'Violence',
+    'Autre'
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -435,6 +455,140 @@ export class DetailActualiteComponent implements OnInit {
       return;
     }
     this.submitReaction('dislike');
+  }
+
+  onReportPublication(): void {
+    const publicationId = Number(this.publication?.id);
+    if (!publicationId || this.isSubmittingReport) {
+      return;
+    }
+    this.reportCause = 'Contenu inapproprié';
+    this.reportReason = 'Contenu inapproprié';
+    this.reportError = '';
+    this.reportNotice = '';
+    this.showReportModal = true;
+  }
+
+  closeReportModal(): void {
+    if (this.isSubmittingReport) {
+      return;
+    }
+    this.showReportModal = false;
+    this.reportError = '';
+  }
+
+  onReportCauseChange(): void {
+    if (this.reportCause === 'Autre') {
+      this.reportReason = '';
+      return;
+    }
+    this.reportReason = this.reportCause;
+    this.reportError = '';
+  }
+
+  submitReportPublication(): void {
+    const publicationId = Number(this.publication?.id);
+    if (!publicationId || this.isSubmittingReport) {
+      return;
+    }
+
+    if (!this.reportCause) {
+      this.reportError = 'Veuillez sélectionner une cause.';
+      return;
+    }
+
+    const cleanReason = (this.reportReason || '').trim();
+    if (this.reportCause === 'Autre' && !cleanReason) {
+      this.reportError = 'Veuillez décrire votre problème.';
+      return;
+    }
+    if (!cleanReason) {
+      this.reportError = 'Le motif du signalement est obligatoire.';
+      return;
+    }
+
+    this.reportError = '';
+    this.isSubmittingReport = true;
+    this.publicationService.reportPublication(publicationId, cleanReason).subscribe({
+      next: () => {
+        this.reportNotice = 'Merci. Votre signalement a été envoyé.';
+        this.isSubmittingReport = false;
+        this.showReportModal = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors du signalement:', error);
+        this.reportError = "Impossible d'envoyer le signalement pour le moment.";
+        this.isSubmittingReport = false;
+      }
+    });
+  }
+
+  askReportComment(comment: any): void {
+    if (!this.isUserLoggedIn || this.isSubmittingCommentReport || !comment?.id) {
+      return;
+    }
+    this.commentToReport = comment;
+    this.commentReportCause = 'Contenu inapproprié';
+    this.commentReportReason = 'Contenu inapproprié';
+    this.commentReportError = '';
+    this.showCommentReportModal = true;
+  }
+
+  closeCommentReportModal(): void {
+    if (this.isSubmittingCommentReport) {
+      return;
+    }
+    this.showCommentReportModal = false;
+    this.commentToReport = null;
+    this.commentReportError = '';
+  }
+
+  onCommentReportCauseChange(): void {
+    if (this.commentReportCause === 'Autre') {
+      this.commentReportReason = '';
+      return;
+    }
+    this.commentReportReason = this.commentReportCause;
+    this.commentReportError = '';
+  }
+
+  submitCommentReport(): void {
+    const publicationId = Number(this.publication?.id);
+    const commentId = Number(this.commentToReport?.id);
+    if (!publicationId || !commentId || this.isSubmittingCommentReport) {
+      return;
+    }
+
+    if (!this.commentReportCause) {
+      this.commentReportError = 'Veuillez sélectionner une cause.';
+      return;
+    }
+
+    const cleanReason = (this.commentReportReason || '').trim();
+    if (this.commentReportCause === 'Autre' && !cleanReason) {
+      this.commentReportError = 'Veuillez décrire votre problème.';
+      return;
+    }
+    if (!cleanReason) {
+      this.commentReportError = 'Le motif du signalement est obligatoire.';
+      return;
+    }
+
+    this.commentReportError = '';
+    this.isSubmittingCommentReport = true;
+    this.publicationService.reportPublicationComment(publicationId, commentId, cleanReason).subscribe({
+      next: () => {
+        this.showCommentNotice('Merci. Votre signalement du commentaire a été envoyé.', 'success');
+        this.isSubmittingCommentReport = false;
+        this.showCommentReportModal = false;
+        this.commentToReport = null;
+      },
+      error: (error) => {
+        console.error('Erreur lors du signalement du commentaire:', error);
+        this.commentReportError = "Impossible d'envoyer le signalement du commentaire.";
+        this.isSubmittingCommentReport = false;
+      }
+    });
   }
 
   private submitReaction(type: 'like' | 'dislike'): void {

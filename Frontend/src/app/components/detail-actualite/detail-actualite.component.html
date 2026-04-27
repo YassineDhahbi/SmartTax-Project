@@ -14,6 +14,9 @@
         <div class="container py-4" *ngIf="!loading && errorMessage">
             <p>{{ errorMessage }}</p>
         </div>
+        <div class="container py-2" *ngIf="!loading && reportNotice">
+            <p class="report-notice">{{ reportNotice }}</p>
+        </div>
 
 
         <!-- blog single -->
@@ -37,7 +40,16 @@
                                             </ul>
                                         </div>
                                         <div class="blog-meta-right">
-                                             <a href="#" class="share-link"><i class="far fa-share-alt"></i>Share</a>
+                                             <div class="publication-meta-actions">
+                                                <a href="#" class="share-link"><i class="far fa-share-alt"></i>Share</a>
+                                                <button
+                                                  type="button"
+                                                  class="report-link"
+                                                  [disabled]="isSubmittingReport"
+                                                  (click)="onReportPublication()">
+                                                  <i class="far fa-flag"></i>{{ isSubmittingReport ? 'Signalement...' : 'Signaler' }}
+                                                </button>
+                                             </div>
                                         </div>
                                     </div>
                                     <div class="blog-details">
@@ -138,6 +150,16 @@
                                                         <i class="far fa-trash-alt"></i>
                                                     </button>
                                                 </div>
+                                                <div class="comment-actions-row"
+                                                     *ngIf="isUserLoggedIn && editingCommentId !== comment.id">
+                                                    <button type="button"
+                                                            class="comment-action-icon comment-action-icon--report"
+                                                            title="Signaler"
+                                                            aria-label="Signaler le commentaire"
+                                                            (click)="askReportComment(comment)">
+                                                        <i class="far fa-flag"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                         <p class="comment-empty-state" *ngIf="comments.length === 0">
@@ -204,6 +226,78 @@
                                                     (click)="confirmDeleteComment()"
                                                     [disabled]="isSubmittingComment">
                                                 {{ isSubmittingComment ? 'Suppression...' : 'Supprimer' }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="comment-delete-modal-backdrop" *ngIf="showReportModal">
+                                    <div class="comment-delete-modal report-modal" (click)="$event.stopPropagation()">
+                                        <h4>Signaler la publication</h4>
+                                        <p>Veuillez indiquer le motif du signalement.</p>
+                                        <select
+                                          class="form-control report-select"
+                                          [(ngModel)]="reportCause"
+                                          (change)="onReportCauseChange()"
+                                          [disabled]="isSubmittingReport">
+                                          <option value="" disabled>Choisir une cause</option>
+                                          <option *ngFor="let cause of reportCauseOptions" [value]="cause">{{ cause }}</option>
+                                        </select>
+                                        <textarea
+                                          *ngIf="reportCause === 'Autre'"
+                                          class="form-control report-textarea"
+                                          rows="4"
+                                          placeholder="Décrivez votre problème..."
+                                          [(ngModel)]="reportReason"
+                                          [disabled]="isSubmittingReport"></textarea>
+                                        <p class="comment-error" *ngIf="reportError">{{ reportError }}</p>
+                                        <div class="comment-actions-row">
+                                            <button type="button"
+                                                    class="theme-btn theme-btn-sm theme-btn-outline"
+                                                    (click)="closeReportModal()"
+                                                    [disabled]="isSubmittingReport">
+                                                Annuler
+                                            </button>
+                                            <button type="button"
+                                                    class="theme-btn theme-btn-sm report-confirm-btn"
+                                                    (click)="submitReportPublication()"
+                                                    [disabled]="isSubmittingReport">
+                                                {{ isSubmittingReport ? 'Envoi...' : 'Envoyer le signalement' }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="comment-delete-modal-backdrop" *ngIf="showCommentReportModal">
+                                    <div class="comment-delete-modal report-modal" (click)="$event.stopPropagation()">
+                                        <h4>Signaler le commentaire</h4>
+                                        <p>Veuillez indiquer le motif du signalement.</p>
+                                        <select
+                                          class="form-control report-select"
+                                          [(ngModel)]="commentReportCause"
+                                          (change)="onCommentReportCauseChange()"
+                                          [disabled]="isSubmittingCommentReport">
+                                          <option value="" disabled>Choisir une cause</option>
+                                          <option *ngFor="let cause of reportCauseOptions" [value]="cause">{{ cause }}</option>
+                                        </select>
+                                        <textarea
+                                          *ngIf="commentReportCause === 'Autre'"
+                                          class="form-control report-textarea"
+                                          rows="4"
+                                          placeholder="Décrivez votre problème..."
+                                          [(ngModel)]="commentReportReason"
+                                          [disabled]="isSubmittingCommentReport"></textarea>
+                                        <p class="comment-error" *ngIf="commentReportError">{{ commentReportError }}</p>
+                                        <div class="comment-actions-row">
+                                            <button type="button"
+                                                    class="theme-btn theme-btn-sm theme-btn-outline"
+                                                    (click)="closeCommentReportModal()"
+                                                    [disabled]="isSubmittingCommentReport">
+                                                Annuler
+                                            </button>
+                                            <button type="button"
+                                                    class="theme-btn theme-btn-sm report-confirm-btn"
+                                                    (click)="submitCommentReport()"
+                                                    [disabled]="isSubmittingCommentReport">
+                                                {{ isSubmittingCommentReport ? 'Envoi...' : 'Envoyer le signalement' }}
                                             </button>
                                         </div>
                                     </div>

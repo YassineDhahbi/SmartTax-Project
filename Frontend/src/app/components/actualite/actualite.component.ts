@@ -38,7 +38,8 @@ export class ActualiteComponent implements OnInit {
       status: 'PUBLISHED'
     } as any).subscribe({
       next: (response: any) => {
-        this.publications = response?.data || [];
+        const rawPublications = response?.data || [];
+        this.publications = rawPublications.filter((publication: any) => this.isPublishedPublication(publication));
         this.applyFiltersAndSort();
         this.currentPage = 1;
         this.loading = false;
@@ -279,7 +280,7 @@ export class ActualiteComponent implements OnInit {
 
   private applyFiltersAndSort(): void {
     const term = this.searchTerm.trim().toLowerCase();
-    let publications = [...this.publications];
+    let publications = [...this.publications].filter((publication) => this.isPublishedPublication(publication));
 
     if (this.publicationFilter === 'favorites') {
       publications = publications.filter((publication) => this.isFavorite(publication));
@@ -295,6 +296,11 @@ export class ActualiteComponent implements OnInit {
     }
 
     this.filteredPublications = this.sortPublications(publications);
+  }
+
+  private isPublishedPublication(publication: any): boolean {
+    const status = `${publication?.status || ''}`.toUpperCase();
+    return status === 'PUBLISHED';
   }
 
 }

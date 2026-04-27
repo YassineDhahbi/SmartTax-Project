@@ -239,7 +239,15 @@ export class PublicationService {
    * Signaler une publication
    */
   reportPublication(id: number, reason: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${id}/report`, { reason });
+    return this.http.post<void>(`${this.apiUrl}/${id}/report`, { reason }, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  getPublicationReports(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}/reports`, {
+      headers: this.getAuthHeaders()
+    });
   }
 
   /**
@@ -269,6 +277,31 @@ export class PublicationService {
 
   deletePublicationComment(publicationId: number, commentId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${publicationId}/comments/${commentId}`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  reportPublicationComment(publicationId: number, commentId: number, reason: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${publicationId}/comments/${commentId}/report`, { reason }, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  blockPublicationCommentAuthor(
+    publicationId: number,
+    commentId: number,
+    durationHours: number,
+    reason: string
+  ): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiUrl}/${publicationId}/comments/${commentId}/block-author`,
+      { durationHours, reason },
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  unblockUserComments(userId: number): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/users/${userId}/unblock-comments`, {}, {
       headers: this.getAuthHeaders()
     });
   }

@@ -5035,6 +5035,26 @@
   padding: 10px 12px;
 }
 
+.da__formErrorSummary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+  font-size: 0.86rem;
+}
+
+.da__fieldError {
+  display: block;
+  margin-top: 2px;
+  color: #fca5a5;
+  font-size: 0.8rem;
+}
+
 .da__publicationFormRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -6709,6 +6729,39 @@
 
 .da__detailsContent {
   margin-bottom: 32px;
+}
+
+.da__detailsMetrics {
+  display: flex;
+  gap: 12px;
+  margin: 0 0 20px;
+  flex-wrap: wrap;
+}
+
+.da__detailsMetricCard {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 150px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.da__detailsMetricCard i {
+  color: #93c5fd;
+}
+
+.da__detailsMetricCard small {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.74rem;
+}
+
+.da__detailsMetricCard strong {
+  color: #e2e8f0;
+  font-size: 1rem;
 }
 
 .da__detailsContentText {

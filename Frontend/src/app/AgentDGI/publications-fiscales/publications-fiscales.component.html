@@ -309,6 +309,10 @@
             <div class="da__modalBody da__publicationComposer">
               <div class="da__publicationForm">
                 <p class="da__publicationLead">Créez une publication claire et structurée pour les contribuables.</p>
+                <div class="da__formErrorSummary" *ngIf="createPublicationErrors['title'] || createPublicationErrors['content'] || createPublicationErrors['scheduled_at'] || createPublicationErrors['image'] || createPublicationErrors['tags']">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  <span>Veuillez corriger les erreurs avant de continuer.</span>
+                </div>
 
                 <div class="da__publicationFormGroup">
                   <label class="da__publicationLabel" for="pub-title">Titre *</label>
@@ -320,6 +324,7 @@
                       (ngModelChange)="onTitleChange()">
                     </ckeditor>
                   </div>
+                  <small class="da__fieldError" *ngIf="createPublicationErrors['title']">{{ createPublicationErrors['title'] }}</small>
                 </div>
 
                
@@ -334,6 +339,7 @@
                       (ngModelChange)="onContentChange()">
                     </ckeditor>
                   </div>
+                  <small class="da__fieldError" *ngIf="createPublicationErrors['content']">{{ createPublicationErrors['content'] }}</small>
                 </div>
 
                 <!-- Boutons IA -->
@@ -384,6 +390,7 @@
                     </span>
                     <span class="da__tagHint" *ngIf="publicationTags.length === 0">Aucun tag ajouté</span>
                   </div>
+                  <small class="da__fieldError" *ngIf="createPublicationErrors['tags']">{{ createPublicationErrors['tags'] }}</small>
                   
                   <!-- Bouton pour afficher les tags existants -->
                   <div class="da__existingTagsSection">
@@ -434,6 +441,7 @@
                       type="datetime-local"
                       [(ngModel)]="newPublicationForm.scheduled_at" />
                   </div>
+                  <small class="da__fieldError" *ngIf="createPublicationErrors['scheduled_at']">{{ createPublicationErrors['scheduled_at'] }}</small>
                 </div>
 
                 
@@ -460,6 +468,7 @@
                       (change)="onImageUpload($event)" 
                       style="display: none;" />
                   </div>
+                  <small class="da__fieldError" *ngIf="createPublicationErrors['image']">{{ createPublicationErrors['image'] }}</small>
                 </div>
                 <h4>{{ newPublicationForm.title || 'Titre non défini' }}</h4>
                 <p>{{ newPublicationForm.content || 'Aucune contenu pour le moment' }}</p>
@@ -526,6 +535,23 @@
             <i class="fa-solid fa-user"></i>
             {{ getAuthorName(selectedPublicationForDetails) }}
           </span>
+        </div>
+      </div>
+
+      <div class="da__detailsMetrics">
+        <div class="da__detailsMetricCard">
+          <i class="fa-solid fa-thumbs-up"></i>
+          <div>
+            <small>Likes</small>
+            <strong>{{ getPublicationLikesCount(selectedPublicationForDetails) }}</strong>
+          </div>
+        </div>
+        <div class="da__detailsMetricCard">
+          <i class="fa-solid fa-thumbs-down"></i>
+          <div>
+            <small>Dislikes</small>
+            <strong>{{ getPublicationDislikesCount(selectedPublicationForDetails) }}</strong>
+          </div>
         </div>
       </div>
 

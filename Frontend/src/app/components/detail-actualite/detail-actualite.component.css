@@ -47,6 +47,33 @@
   .blog-single .blog-meta a:hover {
     color: var(--theme-color);
   }
+
+  .publication-meta-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .report-link {
+    border: none;
+    background: transparent;
+    color: var(--color-dark);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .report-link:hover:not(:disabled) {
+    color: #dc2626;
+  }
+
+  .report-link:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
   
   /* blog single details */
   .blog-single .blog-details-title {
@@ -378,6 +405,17 @@
     border: 1px solid #fca5a5;
   }
 
+  .report-notice {
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+    margin: 0;
+  }
+
   .comment-actions-row {
     display: flex;
     align-items: center;
@@ -432,6 +470,18 @@
     border-color: #dc2626;
   }
 
+  .comment-action-icon--report {
+    border-color: #fde68a;
+    background: #fffbeb;
+    color: #d97706;
+  }
+
+  .comment-action-icon--report:hover {
+    background: #d97706;
+    color: #ffffff;
+    border-color: #d97706;
+  }
+
   .comment-edit-box {
     margin-top: 8px;
   }
@@ -482,6 +532,27 @@
   .comment-delete-confirm-btn {
     background: #dc2626;
     border-color: #dc2626;
+  }
+
+  .report-modal {
+    width: min(500px, 100%);
+  }
+
+  .report-select {
+    margin-top: 12px;
+    margin-bottom: 8px;
+  }
+
+  .report-textarea {
+    margin-top: 6px;
+    margin-bottom: 4px;
+    resize: vertical;
+    min-height: 110px;
+  }
+
+  .report-confirm-btn {
+    background: #0284c7;
+    border-color: #0284c7;
   }
   
   /* blog single comment form */
