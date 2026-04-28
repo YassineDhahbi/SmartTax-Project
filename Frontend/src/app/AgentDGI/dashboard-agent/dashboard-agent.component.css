@@ -474,6 +474,114 @@
   color:white;
 }
 
+.da__notifWrap{
+  position: relative;
+}
+
+.da__notifPanel{
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 360px;
+  max-height: 420px;
+  overflow: auto;
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 16px 30px rgba(2, 6, 23, 0.45);
+  padding: 10px;
+  z-index: 30;
+}
+
+.da__notifState{
+  margin: 6px 4px;
+  color: #94a3b8;
+  font-size: 0.86rem;
+}
+
+.da__notifSection + .da__notifSection{
+  margin-top: 10px;
+}
+
+.da__notifSectionTitle{
+  margin: 2px 4px 8px;
+  color: #93c5fd;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.da__notifItem{
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.da__notifItem:hover{
+  border-color: rgba(56, 189, 248, 0.7);
+}
+
+.da__notifItem--unread{
+  border-left: 3px solid #38bdf8;
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.da__notifHead{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.da__notifHeadMain{
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.da__notifClickable{
+  cursor: pointer;
+}
+
+.da__notifHead small{
+  color: #94a3b8;
+}
+
+.da__notifItem p{
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
+.da__notifDeleteBtn{
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.85);
+  color: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.da__notifDeleteBtn:hover:not(:disabled){
+  border-color: rgba(248, 113, 113, 0.8);
+  color: #fca5a5;
+}
+
+.da__notifDeleteBtn:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .da__profile{
   height:44px;
   display:flex;

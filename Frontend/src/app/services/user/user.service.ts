@@ -172,6 +172,25 @@ export class UserService {
     );
   }
 
+  getUserById(id: number): Observable<Utilisateur> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return throwError(() => new Error('No token found'));
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<Utilisateur>(`${this.apiUrl}/${id}`, { headers }).pipe(
+      map(data => new Utilisateur(data)),
+      catchError(error => {
+        console.error('Error fetching user by id:', error);
+        return throwError(() => new Error('Failed to fetch user'));
+      })
+    );
+  }
+
   // Méthodes de pagination - Implémentation côté client
   getUsersPaginated(page: number, limit: number): Observable<{users: Utilisateur[], total: number}> {
     // Utiliser l'endpoint existant pour récupérer tous les utilisateurs

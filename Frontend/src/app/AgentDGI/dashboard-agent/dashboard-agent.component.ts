@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
@@ -6,6 +6,8 @@ import { EmailService } from '../../services/email/email.service';
 import { Immatriculation } from '../../models/immatriculation.model';
 import jsPDF from 'jspdf';
 import * as QRCode from 'qrcode';
+import { Subscription, interval } from 'rxjs';
+import { AdminNotificationItem, AdminNotificationService } from '../../services/admin-notification.service';
 
 type Tone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger';
 
@@ -68,7 +70,7 @@ interface AlertItem {
   templateUrl: './dashboard-agent.component.html',
   styleUrls: ['./dashboard-agent.component.css']
 })
-export class DashboardAgentComponent implements OnInit {
+export class DashboardAgentComponent implements OnInit, OnDestroy {
   userName = 'Agent';
 
   greeting = getGreeting();
@@ -83,7 +85,23 @@ export class DashboardAgentComponent implements OnInit {
 
   theme: 'dark' | 'light' = getInitialTheme();
 
-  constructor(private http: HttpClient, private immatriculationService: ImmatriculationService, private trashService: TrashService, private emailService: EmailService, private cdr: ChangeDetectorRef) {}
+  notifications: AdminNotificationItem[] = [];
+  unreadCount = 0;
+  showNotificationsPanel = false;
+  isLoadingNotifications = false;
+  deletingNotificationId: number | null = null;
+  pendingImmatriculationIdToOpen: number | null = null;
+  pendingPublicationIdToOpen: number | null = null;
+  private refreshNotificationsSub?: Subscription;
+
+  constructor(
+    private http: HttpClient,
+    private immatriculationService: ImmatriculationService,
+    private trashService: TrashService,
+    private emailService: EmailService,
+    private cdr: ChangeDetectorRef,
+    private notificationService: AdminNotificationService
+  ) {}
 
   // Méthode pour formater l'adresse avec gouvernorat et ville
   formatAdresse(immatriculation: any): string {
@@ -183,6 +201,12 @@ export class DashboardAgentComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserName();
+    this.refreshNotifications();
+    this.refreshNotificationsSub = interval(15000).subscribe(() => this.refreshNotifications());
+  }
+
+  ngOnDestroy(): void {
+    this.refreshNotificationsSub?.unsubscribe();
   }
 
   private loadUserName(): void {
@@ -505,6 +529,177 @@ export class DashboardAgentComponent implements OnInit {
     }
   }
 
+  toggleNotificationsPanel(): void {
+    this.showNotificationsPanel = !this.showNotificationsPanel;
+    if (this.showNotificationsPanel) {
+      this.refreshNotifications();
+    }
+  }
+
+  openNotification(item: AdminNotificationItem): void {
+    if (!item) {
+      return;
+    }
+
+    const goToTarget = () => {
+      const eventType = `${item.eventType || ''}`.toUpperCase();
+      this.showNotificationsPanel = false;
+      if (eventType.includes('IMMATRICULATION')) {
+        this.pendingImmatriculationIdToOpen = item.publicationId ? Number(item.publicationId) : null;
+        this.setActiveNav('work');
+        return;
+      }
+      if (eventType.includes('PUBLICATION') || eventType.includes('COMMENT')) {
+        const publicationId = item.publicationId ? Number(item.publicationId) : null;
+        this.pendingPublicationIdToOpen = null;
+        this.setActiveNav('publications');
+        if (publicationId) {
+          setTimeout(() => {
+            this.pendingPublicationIdToOpen = publicationId;
+          }, 0);
+        }
+      }
+    };
+
+    if (item.isRead) {
+      goToTarget();
+      return;
+    }
+
+    this.notificationService.markAsRead(item.id).subscribe({
+      next: () => {
+        item.isRead = true;
+        this.unreadCount = Math.max(0, this.unreadCount - 1);
+        goToTarget();
+      },
+      error: () => {
+        goToTarget();
+      }
+    });
+  }
+
+  deleteNotification(item: AdminNotificationItem, event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const nativeEvent = event as any;
+    if (typeof nativeEvent.stopImmediatePropagation === 'function') {
+      nativeEvent.stopImmediatePropagation();
+    }
+    if (!item?.id || this.deletingNotificationId) {
+      return;
+    }
+    this.deletingNotificationId = item.id;
+    this.notificationService.deleteNotification(item.id).subscribe({
+      next: () => {
+        const wasUnread = !item.isRead;
+        this.notifications = this.notifications.filter((notif) => notif.id !== item.id);
+        if (wasUnread) {
+          this.unreadCount = Math.max(0, this.unreadCount - 1);
+        }
+        this.deletingNotificationId = null;
+        this.refreshNotifications();
+      },
+      error: () => {
+        this.deletingNotificationId = null;
+        this.showNotification('Impossible de supprimer cette notification.', 'error');
+      }
+    });
+  }
+
+  get dashboardNotifications(): AdminNotificationItem[] {
+    const filtered = this.notifications.filter((item) => {
+      const eventType = `${item?.eventType || ''}`.toUpperCase();
+      return eventType.includes('IMMATRICULATION') || eventType.includes('PUBLICATION') || eventType.includes('COMMENT');
+    });
+    return filtered.length > 0 ? filtered : this.notifications;
+  }
+
+  get publicationNotifications(): AdminNotificationItem[] {
+    return this.dashboardNotifications.filter((item) => {
+      const eventType = `${item?.eventType || ''}`.toUpperCase();
+      return eventType.includes('PUBLICATION') && !eventType.includes('COMMENT');
+    });
+  }
+
+  get commentNotifications(): AdminNotificationItem[] {
+    return this.dashboardNotifications.filter((item) => {
+      const eventType = `${item?.eventType || ''}`.toUpperCase();
+      return eventType.includes('COMMENT');
+    });
+  }
+
+  get immatriculationNotifications(): AdminNotificationItem[] {
+    return this.dashboardNotifications.filter((item) => {
+      const eventType = `${item?.eventType || ''}`.toUpperCase();
+      return eventType.includes('IMMATRICULATION');
+    });
+  }
+
+  get hasGroupedNotifications(): boolean {
+    return (
+      this.publicationNotifications.length > 0 ||
+      this.commentNotifications.length > 0 ||
+      this.immatriculationNotifications.length > 0
+    );
+  }
+
+  trackByNotificationId(_index: number, item: AdminNotificationItem): number {
+    return item.id;
+  }
+
+  isDeletingNotification(item: AdminNotificationItem): boolean {
+    return this.deletingNotificationId === item.id;
+  }
+
+  private isNotificationVisibleInDashboard(item: AdminNotificationItem): boolean {
+    const eventType = `${item?.eventType || ''}`.toUpperCase();
+    return eventType.includes('IMMATRICULATION') || eventType.includes('PUBLICATION') || eventType.includes('COMMENT');
+  }
+
+  get fallbackNotifications(): AdminNotificationItem[] {
+    return this.notifications.filter((item) => !this.isNotificationVisibleInDashboard(item));
+  }
+
+  formatNotificationDate(createdAt?: string): string {
+    if (!createdAt) {
+      return '';
+    }
+    const date = new Date(createdAt);
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+    return date.toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  private refreshNotifications(): void {
+    this.isLoadingNotifications = true;
+    this.notificationService.getMyNotifications().subscribe({
+      next: (items) => {
+        const safeItems = Array.isArray(items) ? items : [];
+        this.notifications = safeItems;
+        this.isLoadingNotifications = false;
+      },
+      error: () => {
+        this.notifications = [];
+        this.isLoadingNotifications = false;
+      }
+    });
+
+    this.notificationService.getMyUnreadCount().subscribe({
+      next: (res) => {
+        this.unreadCount = Number(res?.count ?? 0);
+      },
+      error: () => {
+        this.unreadCount = 0;
+      }
+    });
+  }
+
   logout(): void {
     // Supprimer les informations de session du localStorage
     localStorage.removeItem('token');
@@ -533,6 +728,7 @@ export class DashboardAgentComponent implements OnInit {
         })));
         this.immatriculations = data;
         this.applyFilter();
+        this.tryOpenImmatriculationFromNotification();
         this.cdr.detectChanges(); // Forcer la mise à jour des KPI
         this.isLoadingImmatriculations = false;
       },
@@ -541,6 +737,30 @@ export class DashboardAgentComponent implements OnInit {
         this.isLoadingImmatriculations = false;
         this.immatriculations = [];
         this.filteredImmatriculations = [];
+      }
+    });
+  }
+
+  private tryOpenImmatriculationFromNotification(): void {
+    if (!this.pendingImmatriculationIdToOpen) {
+      return;
+    }
+    const targetId = this.pendingImmatriculationIdToOpen;
+    const found = this.immatriculations.find((item) => Number(item?.id) === targetId);
+    if (found) {
+      this.viewImmatriculationDetails(found);
+      this.pendingImmatriculationIdToOpen = null;
+      return;
+    }
+    this.immatriculationService.getImmatriculation(targetId).subscribe({
+      next: (immatriculation: any) => {
+        if (immatriculation) {
+          this.viewImmatriculationDetails(immatriculation);
+        }
+        this.pendingImmatriculationIdToOpen = null;
+      },
+      error: () => {
+        this.pendingImmatriculationIdToOpen = null;
       }
     });
   }

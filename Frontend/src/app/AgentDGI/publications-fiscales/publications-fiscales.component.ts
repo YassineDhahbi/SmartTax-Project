@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectorRef, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, forkJoin, of } from 'rxjs';
 import { ImmatriculationService } from '../../services/immatriculation.service';
@@ -72,7 +72,8 @@ interface AlertItem {
   templateUrl: './publications-fiscales.component.html',
   styleUrls: ['./publications-fiscales.component.css']
 })
-export class PublicationsFiscalesComponent implements OnInit {
+export class PublicationsFiscalesComponent implements OnInit, OnChanges {
+    @Input() openPublicationIdFromNotification: number | null = null;
     readonly fallbackCommentAvatar = '/assets/img/team/icondefaut.webp';
     publicationCommentImageTimestamp = Date.now();
 
@@ -477,6 +478,18 @@ export class PublicationsFiscalesComponent implements OnInit {
       this.loadPublications();
       this.loadCalendarNotes();
       this.generateCalendarDays();
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+      const change = changes['openPublicationIdFromNotification'];
+      if (!change) {
+        return;
+      }
+      const publicationId = Number(change.currentValue);
+      if (!publicationId) {
+        return;
+      }
+      this.openPublicationDetailsFromNotification(publicationId);
     }
   
     private loadPublications(): void {
@@ -2572,6 +2585,37 @@ export class PublicationsFiscalesComponent implements OnInit {
     this.showPublicationDetailsModal = true;
     this.loadPublicationDetailsComments(Number(publication?.id));
     console.log('ð Affichage des détails pour la publication:', publication.title);
+  }
+
+  private openPublicationDetailsFromNotification(publicationId: number): void {
+    const foundPublication =
+      this.publications.find((item: any) => Number(item?.id) === publicationId) ||
+      this.filteredPublications.find((item: any) => Number(item?.id) === publicationId);
+
+    if (foundPublication) {
+      this.viewPublicationDetails(foundPublication);
+      return;
+    }
+
+    this.publicationService.getPublicationById(publicationId).subscribe({
+      next: (publication: any) => {
+        if (!publication) {
+          return;
+        }
+        const existingIndex = this.publications.findIndex((item: any) => Number(item?.id) === publicationId);
+        if (existingIndex === -1) {
+          this.publications = [publication, ...this.publications];
+        } else {
+          this.publications[existingIndex] = publication;
+        }
+        this.applyFilter();
+        this.viewPublicationDetails(publication);
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors de l’ouverture de la publication depuis notification:', error);
+        this.showErrorMessage('Impossible d’ouvrir la publication associee a cette notification.');
+      }
+    });
   }
 
   closePublicationDetailsModal(): void {

@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
@@ -51,6 +51,8 @@ export class ImmatriculationAdminComponent implements OnInit {
   showRejectModal = false;
   immatriculationToReject: any = null;
   rejectionReason = '';
+  pendingImmatriculationIdToOpen: number | null = null;
+  pendingOpenLatestImmatriculation = false;
   
   // View rejection reason properties
   showRejectionReasonModal = false;
@@ -67,12 +69,20 @@ export class ImmatriculationAdminComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private immatriculationService: ImmatriculationService,
     private trashService: TrashService,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const rawId = params.get('openImmatriculationId');
+      const parsedId = rawId ? Number(rawId) : NaN;
+      this.pendingImmatriculationIdToOpen = !Number.isNaN(parsedId) && parsedId > 0 ? parsedId : null;
+      this.pendingOpenLatestImmatriculation = params.get('openLatestImmatriculation') === 'true';
+      this.tryOpenImmatriculationFromNotification();
+    });
     this.loadImmatriculations();
   }
 
@@ -87,6 +97,7 @@ export class ImmatriculationAdminComponent implements OnInit {
         this.generateStats();
         this.isLoadingImmatriculations = false;
         this.loading = false;
+        this.tryOpenImmatriculationFromNotification();
         this.cdr.detectChanges();
       },
       (error: any) => {
@@ -223,6 +234,70 @@ export class ImmatriculationAdminComponent implements OnInit {
   openImmatriculationDetails(immatriculation: any): void {
     this.selectedImmatriculation = immatriculation;
     this.showDetailsModal = true;
+  }
+
+  private tryOpenImmatriculationFromNotification(): void {
+    if (!this.pendingImmatriculationIdToOpen && !this.pendingOpenLatestImmatriculation) {
+      return;
+    }
+    if (this.immatriculations.length === 0) {
+      return;
+    }
+
+    if (this.pendingOpenLatestImmatriculation && !this.pendingImmatriculationIdToOpen) {
+      const latest = [...this.immatriculations].sort((a: any, b: any) => {
+        const timeA = new Date(a?.dateCreation || a?.createdAt || 0).getTime();
+        const timeB = new Date(b?.dateCreation || b?.createdAt || 0).getTime();
+        return timeB - timeA;
+      })[0];
+      if (latest) {
+        this.openImmatriculationDetails(latest);
+      }
+      this.pendingOpenLatestImmatriculation = false;
+      this.clearOpenImmatriculationQueryParam();
+      return;
+    }
+
+    const targetId = this.pendingImmatriculationIdToOpen;
+    if (!targetId) {
+      return;
+    }
+    const targetImmatriculation = this.immatriculations.find((item) =>
+      Number(item?.id ?? item?.idImmatriculation ?? item?.id_immatriculation) === targetId
+    );
+
+    if (targetImmatriculation) {
+      this.openImmatriculationDetails(targetImmatriculation);
+      this.pendingImmatriculationIdToOpen = null;
+      this.pendingOpenLatestImmatriculation = false;
+      this.clearOpenImmatriculationQueryParam();
+      return;
+    }
+
+    this.immatriculationService.getImmatriculation(targetId).subscribe({
+      next: (immatriculation: any) => {
+        if (immatriculation) {
+          this.openImmatriculationDetails(immatriculation);
+        }
+        this.pendingImmatriculationIdToOpen = null;
+        this.pendingOpenLatestImmatriculation = false;
+        this.clearOpenImmatriculationQueryParam();
+      },
+      error: () => {
+        this.pendingImmatriculationIdToOpen = null;
+        this.pendingOpenLatestImmatriculation = false;
+        this.clearOpenImmatriculationQueryParam();
+      }
+    });
+  }
+
+  private clearOpenImmatriculationQueryParam(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { openImmatriculationId: null, openLatestImmatriculation: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   closeImmatriculationDetails(): void {

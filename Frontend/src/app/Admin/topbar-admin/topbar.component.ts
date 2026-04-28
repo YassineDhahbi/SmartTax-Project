@@ -13,6 +13,7 @@ export class TopbarComponent implements OnInit, OnDestroy {
   unreadCount = 0;
   showNotificationsPanel = false;
   isLoadingNotifications = false;
+  deletingNotificationId: number | null = null;
   private refreshSub?: Subscription;
 
   constructor(
@@ -40,15 +41,10 @@ export class TopbarComponent implements OnInit, OnDestroy {
     if (!item) {
       return;
     }
-    const goToPublication = () => {
-      if (item.publicationId) {
-        this.showNotificationsPanel = false;
-        this.router.navigate(['/admin/publications'], { queryParams: { openPublicationId: item.publicationId } });
-      }
-    };
+    const goToTarget = () => this.navigateFromNotification(item);
 
     if (item.isRead) {
-      goToPublication();
+      goToTarget();
       return;
     }
 
@@ -56,10 +52,32 @@ export class TopbarComponent implements OnInit, OnDestroy {
       next: () => {
         item.isRead = true;
         this.unreadCount = Math.max(0, this.unreadCount - 1);
-        goToPublication();
+        goToTarget();
       },
       error: () => {
-        goToPublication();
+        goToTarget();
+      }
+    });
+  }
+
+  deleteNotification(item: AdminNotificationItem, event: Event): void {
+    event.stopPropagation();
+    if (!item?.id || this.deletingNotificationId) {
+      return;
+    }
+
+    this.deletingNotificationId = item.id;
+    this.adminNotificationService.deleteNotification(item.id).subscribe({
+      next: () => {
+        const wasUnread = !item.isRead;
+        this.notifications = this.notifications.filter((notif) => notif.id !== item.id);
+        if (wasUnread) {
+          this.unreadCount = Math.max(0, this.unreadCount - 1);
+        }
+        this.deletingNotificationId = null;
+      },
+      error: () => {
+        this.deletingNotificationId = null;
       }
     });
   }
@@ -78,6 +96,55 @@ export class TopbarComponent implements OnInit, OnDestroy {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  get publicationNotifications(): AdminNotificationItem[] {
+    return this.notifications.filter(
+      (item) => !this.isImmatriculationNotification(item) && !this.isUserNotification(item)
+    );
+  }
+
+  get immatriculationNotifications(): AdminNotificationItem[] {
+    return this.notifications.filter((item) => this.isImmatriculationNotification(item));
+  }
+
+  get userNotifications(): AdminNotificationItem[] {
+    return this.notifications.filter((item) => this.isUserNotification(item));
+  }
+
+  private navigateFromNotification(item: AdminNotificationItem): void {
+    const eventType = `${item?.eventType || ''}`.toUpperCase();
+    this.showNotificationsPanel = false;
+
+    if (eventType.includes('IMMATRICULATION')) {
+      this.router.navigate(['/admin/immatriculations'], {
+        queryParams: item.publicationId
+          ? { openImmatriculationId: item.publicationId }
+          : { openLatestImmatriculation: 'true' }
+      });
+      return;
+    }
+
+    if (eventType.includes('USER')) {
+      this.router.navigate(['/admin/utilisateurs'], {
+        queryParams: item.publicationId ? { openUserId: item.publicationId } : {}
+      });
+      return;
+    }
+
+    if (item.publicationId) {
+      this.router.navigate(['/admin/publications'], { queryParams: { openPublicationId: item.publicationId } });
+    }
+  }
+
+  private isImmatriculationNotification(item: AdminNotificationItem): boolean {
+    const eventType = `${item?.eventType || ''}`.toUpperCase();
+    return eventType.includes('IMMATRICULATION');
+  }
+
+  private isUserNotification(item: AdminNotificationItem): boolean {
+    const eventType = `${item?.eventType || ''}`.toUpperCase();
+    return eventType.includes('USER');
   }
 
   private refreshNotifications(): void {

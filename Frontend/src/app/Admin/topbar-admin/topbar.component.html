@@ -23,16 +23,80 @@
         <p class="notif-state" *ngIf="!isLoadingNotifications && notifications.length === 0">
           Aucune notification.
         </p>
-        <div
-          class="notif-item"
-          *ngFor="let item of notifications"
-          [class.notif-item--unread]="!item.isRead"
-          (click)="openNotification(item)">
-          <div class="notif-head">
-            <strong>{{ item.title }}</strong>
-            <small>{{ formatNotificationDate(item.createdAt) }}</small>
+
+        <div class="notif-section" *ngIf="!isLoadingNotifications && publicationNotifications.length > 0">
+          <h5 class="notif-section-title">Publications</h5>
+          <div
+            class="notif-item"
+            *ngFor="let item of publicationNotifications"
+            [class.notif-item--unread]="!item.isRead"
+            (click)="openNotification(item)">
+            <div class="notif-head">
+              <div class="notif-head-main">
+                <strong>{{ item.title }}</strong>
+                <small>{{ formatNotificationDate(item.createdAt) }}</small>
+              </div>
+              <button
+                type="button"
+                class="notif-delete-btn"
+                title="Supprimer la notification"
+                [disabled]="deletingNotificationId === item.id"
+                (click)="deleteNotification(item, $event)">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <p>{{ item.message }}</p>
           </div>
-          <p>{{ item.message }}</p>
+        </div>
+
+        <div class="notif-section" *ngIf="!isLoadingNotifications && immatriculationNotifications.length > 0">
+          <h5 class="notif-section-title">Immatriculations</h5>
+          <div
+            class="notif-item"
+            *ngFor="let item of immatriculationNotifications"
+            [class.notif-item--unread]="!item.isRead"
+            (click)="openNotification(item)">
+            <div class="notif-head">
+              <div class="notif-head-main">
+                <strong>{{ item.title }}</strong>
+                <small>{{ formatNotificationDate(item.createdAt) }}</small>
+              </div>
+              <button
+                type="button"
+                class="notif-delete-btn"
+                title="Supprimer la notification"
+                [disabled]="deletingNotificationId === item.id"
+                (click)="deleteNotification(item, $event)">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <p>{{ item.message }}</p>
+          </div>
+        </div>
+
+        <div class="notif-section" *ngIf="!isLoadingNotifications && userNotifications.length > 0">
+          <h5 class="notif-section-title">Utilisateurs</h5>
+          <div
+            class="notif-item"
+            *ngFor="let item of userNotifications"
+            [class.notif-item--unread]="!item.isRead"
+            (click)="openNotification(item)">
+            <div class="notif-head">
+              <div class="notif-head-main">
+                <strong>{{ item.title }}</strong>
+                <small>{{ formatNotificationDate(item.createdAt) }}</small>
+              </div>
+              <button
+                type="button"
+                class="notif-delete-btn"
+                title="Supprimer la notification"
+                [disabled]="deletingNotificationId === item.id"
+                (click)="deleteNotification(item, $event)">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <p>{{ item.message }}</p>
+          </div>
         </div>
       </div>
     </div>

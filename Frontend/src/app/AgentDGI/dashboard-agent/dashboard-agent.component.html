@@ -89,10 +89,82 @@
           <i class="fa-solid" [class.fa-sun]="theme === 'dark'" [class.fa-moon]="theme === 'light'"></i>
         </button>
 
-        <button class="da__iconBtn" type="button" aria-label="Notifications">
-          <i class="fa-regular fa-bell"></i>
-          <span class="da__badge" aria-label="3 notifications">3</span>
-        </button>
+        <div class="da__notifWrap">
+          <button class="da__iconBtn" type="button" aria-label="Notifications" (click)="toggleNotificationsPanel()">
+            <i class="fa-regular fa-bell"></i>
+            <span class="da__badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+          </button>
+          <div class="da__notifPanel" *ngIf="showNotificationsPanel">
+            <p class="da__notifState" *ngIf="isLoadingNotifications">Chargement...</p>
+            <p class="da__notifState" *ngIf="!isLoadingNotifications && dashboardNotifications.length === 0">
+              Aucune notification.
+            </p>
+
+            <div class="da__notifSection" *ngIf="!isLoadingNotifications && publicationNotifications.length > 0">
+              <div class="da__notifSectionTitle">Publications</div>
+              <div class="da__notifItem" *ngFor="let item of publicationNotifications; trackBy: trackByNotificationId" [class.da__notifItem--unread]="!item.isRead">
+                <div class="da__notifHead">
+                  <div class="da__notifHeadMain da__notifClickable" (click)="openNotification(item)">
+                    <strong>{{ item.title }}</strong>
+                    <small>{{ formatNotificationDate(item.createdAt) }}</small>
+                  </div>
+                  <button type="button" class="da__notifDeleteBtn" title="Supprimer la notification" [disabled]="isDeletingNotification(item)" (mousedown)="$event.stopPropagation()" (click)="deleteNotification(item, $event)">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <p class="da__notifClickable" (click)="openNotification(item)">{{ item.message }}</p>
+              </div>
+            </div>
+
+            <div class="da__notifSection" *ngIf="!isLoadingNotifications && commentNotifications.length > 0">
+              <div class="da__notifSectionTitle">Commentaires</div>
+              <div class="da__notifItem" *ngFor="let item of commentNotifications; trackBy: trackByNotificationId" [class.da__notifItem--unread]="!item.isRead">
+                <div class="da__notifHead">
+                  <div class="da__notifHeadMain da__notifClickable" (click)="openNotification(item)">
+                    <strong>{{ item.title }}</strong>
+                    <small>{{ formatNotificationDate(item.createdAt) }}</small>
+                  </div>
+                  <button type="button" class="da__notifDeleteBtn" title="Supprimer la notification" [disabled]="isDeletingNotification(item)" (mousedown)="$event.stopPropagation()" (click)="deleteNotification(item, $event)">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <p class="da__notifClickable" (click)="openNotification(item)">{{ item.message }}</p>
+              </div>
+            </div>
+
+            <div class="da__notifSection" *ngIf="!isLoadingNotifications && immatriculationNotifications.length > 0">
+              <div class="da__notifSectionTitle">Immatriculations</div>
+              <div class="da__notifItem" *ngFor="let item of immatriculationNotifications; trackBy: trackByNotificationId" [class.da__notifItem--unread]="!item.isRead">
+                <div class="da__notifHead">
+                  <div class="da__notifHeadMain da__notifClickable" (click)="openNotification(item)">
+                    <strong>{{ item.title }}</strong>
+                    <small>{{ formatNotificationDate(item.createdAt) }}</small>
+                  </div>
+                  <button type="button" class="da__notifDeleteBtn" title="Supprimer la notification" [disabled]="isDeletingNotification(item)" (mousedown)="$event.stopPropagation()" (click)="deleteNotification(item, $event)">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <p class="da__notifClickable" (click)="openNotification(item)">{{ item.message }}</p>
+              </div>
+            </div>
+
+            <div class="da__notifSection" *ngIf="!isLoadingNotifications && !hasGroupedNotifications && fallbackNotifications.length > 0">
+              <div class="da__notifSectionTitle">Autres</div>
+              <div class="da__notifItem" *ngFor="let item of fallbackNotifications; trackBy: trackByNotificationId" [class.da__notifItem--unread]="!item.isRead">
+                <div class="da__notifHead">
+                  <div class="da__notifHeadMain da__notifClickable" (click)="openNotification(item)">
+                    <strong>{{ item.title }}</strong>
+                    <small>{{ formatNotificationDate(item.createdAt) }}</small>
+                  </div>
+                  <button type="button" class="da__notifDeleteBtn" title="Supprimer la notification" [disabled]="isDeletingNotification(item)" (mousedown)="$event.stopPropagation()" (click)="deleteNotification(item, $event)">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <p class="da__notifClickable" (click)="openNotification(item)">{{ item.message }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <button class="da__profile" type="button" aria-label="Profil">
           <span class="da__profileDot" aria-hidden="true"></span>
@@ -485,7 +557,7 @@
 
     <!-- Vue Publications -->
     <section class="da__grid" *ngIf="currentView === 'publications'">
-      <app-publications-fiscales></app-publications-fiscales>
+      <app-publications-fiscales [openPublicationIdFromNotification]="pendingPublicationIdToOpen"></app-publications-fiscales>
     </section>
   </main>
 

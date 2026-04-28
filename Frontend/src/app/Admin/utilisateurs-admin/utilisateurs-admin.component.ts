@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Utilisateur } from 'src/app/models/utilisateur';
 import { UserService } from 'src/app/services/user/user.service';
 import { ChartOptions, ChartType, ChartData } from 'chart.js';
@@ -147,8 +147,14 @@ export class UtilisateursAdminComponent implements OnInit {
   userToDelete: Utilisateur | null = null;
   editForm: FormGroup;
   addUserForm: FormGroup;
+  pendingUserIdToOpen: number | null = null;
 
-  constructor(private userService: UserService, private fb: FormBuilder, private router: Router) {
+  constructor(
+    private userService: UserService,
+    private fb: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
     this.editForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
@@ -168,6 +174,12 @@ export class UtilisateursAdminComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const rawId = params.get('openUserId');
+      const parsedId = rawId ? Number(rawId) : NaN;
+      this.pendingUserIdToOpen = !Number.isNaN(parsedId) && parsedId > 0 ? parsedId : null;
+      this.tryOpenUserFromNotification();
+    });
     this.loadUsers();
     this.loadAllUsersForStats();
   }
@@ -183,6 +195,7 @@ export class UtilisateursAdminComponent implements OnInit {
         this.calculateTotalPages();
         this.updateStats();
         this.applyFilter();
+        this.tryOpenUserFromNotification();
         this.loading = false;
       },
       error: (error) => {
@@ -410,6 +423,43 @@ export class UtilisateursAdminComponent implements OnInit {
     this.selectedUser = user;
     this.showDetailsModal = true;
     this.showEditModal = false;
+  }
+
+  private tryOpenUserFromNotification(): void {
+    if (!this.pendingUserIdToOpen) {
+      return;
+    }
+    const targetId = this.pendingUserIdToOpen;
+    const foundUser = this.users.find((item) => Number(item?.idUtilisateur) === targetId);
+    if (foundUser) {
+      this.openUserDetails(foundUser);
+      this.pendingUserIdToOpen = null;
+      this.clearOpenUserQueryParam();
+      return;
+    }
+
+    this.userService.getUserById(targetId).subscribe({
+      next: (user) => {
+        if (user) {
+          this.openUserDetails(user);
+        }
+        this.pendingUserIdToOpen = null;
+        this.clearOpenUserQueryParam();
+      },
+      error: () => {
+        this.pendingUserIdToOpen = null;
+        this.clearOpenUserQueryParam();
+      }
+    });
+  }
+
+  private clearOpenUserQueryParam(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { openUserId: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   closeUserDetails(): void {
