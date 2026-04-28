@@ -324,6 +324,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
   ocrData: any = null;
   ocrExtracted: Partial<CINData> = {};
   ocrProcessing: boolean = false;
+  analysisStage: 'idle' | 'swin' | 'ocr' = 'idle';
 
   constructor(
     private fb: FormBuilder,
@@ -390,33 +391,26 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
   // Gestion des fichiers de nationalité
   onNationalityDocumentChange(event: any): void {
     const file = event.target.files[0];
-    if (file) {
+    if (!file) {
+      return;
+    }
+
+    if (this.isForeigner) {
       this.nationalityDocument = file;
       this.previewNationalityDocument(file);
-      
-      // Redirection automatique vers les informations personnelles après le téléchargement
-      setTimeout(() => {
-        if (this.isForeigner || (!this.isForeigner && file)) {
-          // Si l'utilisateur est étranger OU si c'est un tunisien avec un document
-          if (!this.isForeigner) {
-            // Pour les Tunisiens, transférer le CIN vers les fichiers principaux
-            this.files.identite = file;
-          }
-          
-          // Fermer le modal et rediriger vers l'étape 2 (Informations Personnelles)
-          this.closeNationalityModal();
-          this.currentStep = 2;
-          this.updateProgress();
-          
-          // Message de confirmation
-          const documentType = this.isForeigner ? 'passeport' : 'CIN';
-          this.notificationService.showSuccess(
-            `Votre ${documentType} a été téléchargé avec succès. Vous pouvez maintenant remplir vos informations personnelles.`,
-            'Document téléchargé'
-          );
-        }
-      }, 1000); // Délai pour permettre à l'aperçu de s'afficher
+      this.files.identite = file;
+      this.closeNationalityModal();
+      this.currentStep = 2;
+      this.updateProgress();
+      this.notificationService.showSuccess(
+        'Votre passeport a été téléchargé avec succès. Vous pouvez maintenant remplir vos informations personnelles.',
+        'Document téléchargé'
+      );
+      return;
     }
+
+    // Cas tunisien: vérifier que le document est bien une CIN via SWIN, puis lancer OCR.
+    this.validateCinAndProcessOcr(file);
   }
 
   previewNationalityDocument(file: File): void {
@@ -2068,10 +2062,81 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    if (!this.isForeigner) {
+      this.validateCinAndProcessOcr(file);
+      return;
+    }
+
     // Sauvegarder le fichier CIN pour les pièces jointes
     this.saveCINFileForAttachments(file);
     
     this.extractCINData(file);
+  }
+
+  /**
+   * Vérifie via SWIN que le document est une CIN, puis lance OCR.
+   * Si le document n'est pas une CIN, il est refusé.
+   */
+  private validateCinAndProcessOcr(file: File): void {
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      this.notificationService.showError(
+        'Pour un contribuable tunisien, veuillez télécharger une image CIN (JPG ou PNG).',
+        'Format invalide'
+      );
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.notificationService.showError('La taille du fichier CIN ne doit pas dépasser 5MB.', 'Fichier trop volumineux');
+      return;
+    }
+
+    this.identityValidationInProgress = true;
+    this.identityValidationError = '';
+    this.analysisStage = 'swin';
+
+    this.cinValidator.validateCin(file).subscribe({
+      next: (response) => {
+        this.identityValidation = {
+          status: response.status,
+          confidence: response.confidence,
+          valid: response.valid,
+          adjusted: response.adjusted
+        };
+        this.identityValidationScore = response.confidence || 0;
+        this.identityValidationInProgress = false;
+        this.updateDocumentScore();
+
+        if (!response.valid) {
+          this.identityValidationError = 'Document invalide: ce fichier n\'est pas reconnu comme une CIN.';
+          this.nationalityDocument = null;
+          this.nationalityDocumentPreview = '';
+          this.notificationService.showError(
+            'Document refusé: ce fichier n\'est pas une CIN valide. Veuillez télécharger uniquement votre CIN.',
+            'Vérification SWIN échouée'
+          );
+          this.analysisStage = 'idle';
+          return;
+        }
+
+        this.nationalityDocument = file;
+        this.previewNationalityDocument(file);
+        this.saveCINFileForAttachments(file);
+        this.extractCINData(file);
+      },
+      error: (err) => {
+        this.identityValidationInProgress = false;
+        this.analysisStage = 'idle';
+        this.identityValidation = null;
+        this.identityValidationScore = 0;
+        this.identityValidationError = 'Erreur lors de la validation SWIN: ' + (err?.error?.message || err?.message || 'Erreur inconnue');
+        this.notificationService.showError(
+          'Impossible de vérifier le document CIN. Veuillez réessayer.',
+          'Erreur validation SWIN'
+        );
+      }
+    });
   }
 
   /**
@@ -2092,10 +2157,12 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
    */
   private extractCINData(file: File): void {
     this.ocrProcessing = true;
+    this.analysisStage = 'ocr';
     
     this.ocrService.extractCINInformation(file).subscribe({
       next: (response) => {
         this.ocrProcessing = false;
+        this.analysisStage = 'idle';
         this.ocrData = response;
         
         if (response.success && response.data) {
@@ -2128,6 +2195,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.ocrProcessing = false;
+        this.analysisStage = 'idle';
         console.error('❌ Erreur OCR:', error);
         this.notificationService.showError(
           'Erreur de communication avec le service OCR',
@@ -2135,6 +2203,23 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
         );
       }
     });
+  }
+
+  isDocumentAnalysisInProgress(): boolean {
+    return this.identityValidationInProgress || this.ocrProcessing;
+  }
+
+  getDocumentAnalysisMessage(): string {
+    if (this.analysisStage === 'swin') {
+      return 'Vérification SWIN en cours...';
+    }
+    if (this.analysisStage === 'ocr') {
+      return 'Analyse OCR en cours...';
+    }
+    if (this.isDocumentAnalysisInProgress()) {
+      return 'Analyse du document en cours...';
+    }
+    return '';
   }
 
   /**

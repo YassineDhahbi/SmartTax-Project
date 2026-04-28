@@ -1018,6 +1018,13 @@
             </button>
         </div>
         <div class="nationality-modal-body">
+            <div class="nationality-analysis-overlay" *ngIf="isDocumentAnalysisInProgress()">
+                <div class="nationality-analysis-card">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <h6>Traitement en cours</h6>
+                    <p>{{ getDocumentAnalysisMessage() }}</p>
+                </div>
+            </div>
             <div class="nationality-question">
                 <h4>Êtes-vous de nationalité étrangère ?</h4>
                 <p>Cette information nous permettra de déterminer les documents requis pour votre immatriculation.</p>
@@ -1071,15 +1078,10 @@
                             Vous pouvez scanner votre CIN pour remplir automatiquement vos informations personnelles
                         </p>
                         <div class="ocr-buttons">
-                            <button type="button" class="btn-ocr-scan-modal" (click)="triggerOcrFileInput()">
+                            <button type="button" class="btn-ocr-scan-modal" (click)="triggerOcrFileInput()" [disabled]="isDocumentAnalysisInProgress()">
                                 <i class="fas fa-camera"></i>
                                 Télécharger Votre CIN 
                             </button>
-                            <span class="or-separator">ou</span>
-                            <label [for]="'cin-upload'" class="btn-manual-upload">
-                                <i class="fas fa-file-upload"></i>
-                                Télécharger manuellement
-                            </label>
                         </div>
                     </div>
                     
@@ -1091,9 +1093,9 @@
                            style="display: none;">
                     
                     <!-- Messages OCR -->
-                    <div class="ocr-status-modal" *ngIf="ocrProcessing">
+                    <div class="ocr-status-modal" *ngIf="isDocumentAnalysisInProgress()">
                         <i class="fas fa-spinner fa-spin"></i>
-                        Extraction OCR en cours...
+                        {{ getDocumentAnalysisMessage() }}
                     </div>
                     <div class="ocr-success-modal" *ngIf="ocrData && ocrData.success">
                         <i class="fas fa-check-circle"></i>
@@ -1109,15 +1111,10 @@
                             Vous pouvez scanner votre Passeport pour remplir automatiquement vos informations personnelles
                         </p>
                         <div class="ocr-buttons">
-                            <button type="button" class="btn-ocr-scan-modal" (click)="triggerOcrFileInput()">
+                            <button type="button" class="btn-ocr-scan-modal" (click)="triggerOcrFileInput()" [disabled]="isDocumentAnalysisInProgress()">
                                 <i class="fas fa-camera"></i>
                                 Télécharger mon Passeport 
                             </button>
-                            <span class="or-separator">ou</span>
-                            <label [for]="'passport-upload'" class="btn-manual-upload">
-                                <i class="fas fa-file-upload"></i>
-                                Télécharger manuellement
-                            </label>
                         </div>
                     </div>
                     
@@ -1129,34 +1126,14 @@
                            style="display: none;">
                     
                     <!-- Messages OCR -->
-                    <div class="ocr-status-modal" *ngIf="ocrProcessing">
+                    <div class="ocr-status-modal" *ngIf="isDocumentAnalysisInProgress()">
                         <i class="fas fa-spinner fa-spin"></i>
-                        Extraction OCR en cours...
+                        {{ getDocumentAnalysisMessage() }}
                     </div>
                     <div class="ocr-success-modal" *ngIf="ocrData && ocrData.success">
                         <i class="fas fa-check-circle"></i>
                         Informations extraites avec succès ! Elles apparaîtront dans la section "Informations Personnelles" ({{(ocrData.confidence * 100).toFixed(1)}}% de confiance)
                     </div>
-                </div>
-                
-                <div class="upload-area">
-                    <input type="file" 
-                           [id]="isForeigner ? 'passport-upload' : 'cin-upload'" 
-                           accept="image/*,.pdf" 
-                           (change)="onNationalityDocumentChange($event)"
-                           style="display: none;">
-                    <label [for]="isForeigner ? 'passport-upload' : 'cin-upload'" class="upload-label">
-                        <div class="upload-icon">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </div>
-                        <div class="upload-text">
-                            <p>Cliquez pour télécharger ou glissez-déposez ici</p>
-                            <span>Formats acceptés: JPG, PNG, PDF (Max 5MB)</span>
-                            <div class="auto-redirect-info">
-                                <i class="fas fa-info-circle"></i>
-                            </div>
-                        </div>
-                    </label>
                 </div>
                 
                 <!-- Aperçu du document -->

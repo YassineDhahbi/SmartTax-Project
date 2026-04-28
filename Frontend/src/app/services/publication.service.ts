@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { 
   Publication, 
   PublicationFilters, 
@@ -345,7 +346,18 @@ export class PublicationService {
    * Récupérer les publications créées par un agent
    */
   getPublicationsByAgent(agentId: number): Observable<Publication[]> {
-    return this.http.get<Publication[]>(`${this.apiUrl}/agent/${agentId}`);
+    const params = new HttpParams()
+      .set('page', '0')
+      .set('size', '1000');
+
+    return this.http
+      .get<{ data: Publication[] }>(`${this.apiUrl}/creator/${agentId}`, {
+        params,
+        headers: this.getAuthHeaders()
+      })
+      .pipe(
+        map((response: { data: Publication[] }) => (Array.isArray(response?.data) ? response.data : []))
+      );
   }
 
   /**

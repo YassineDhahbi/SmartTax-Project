@@ -5,6 +5,10 @@ import { Utilisateur } from '../../models/utilisateur';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import * as bootstrap from 'bootstrap';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { PublicationService } from '../../services/publication.service';
+import { ImmatriculationService } from '../../services/immatriculation.service';
 
 @Component({
   selector: 'app-agent-profile',
@@ -27,6 +31,8 @@ export class AgentProfileComponent implements OnInit {
   toasts: { title: string; message: string; type: string; action?: { label: string; callback: () => void } }[] = [];
   private passwordModal: bootstrap.Modal | undefined;
   showPasswordModal = false;
+  dossiersTraitesCount = 0;
+  publicationsCount = 0;
 
   agentAdditionalInfo = {
    
@@ -74,7 +80,9 @@ export class AgentProfileComponent implements OnInit {
     @Inject(DOCUMENT) private document: Document,
     private userService: UserService,
     private fb: FormBuilder,
-    private http: HttpClient
+    private http: HttpClient,
+    private publicationService: PublicationService,
+    private immatriculationService: ImmatriculationService
   ) {
     this.editForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -104,6 +112,7 @@ export class AgentProfileComponent implements OnInit {
         // Vérifier si l'utilisateur est un agent
         if (user.role === 'AGENT_DGI' || user.role === 'AGENT') {
           this.agentInfo = user;
+          this.loadAgentStats();
         } else {
           this.error = 'Cet utilisateur n\'est pas un agent DGI';
         }
@@ -113,6 +122,36 @@ export class AgentProfileComponent implements OnInit {
         console.error('Erreur lors du chargement des informations de l\'agent:', err);
         this.error = 'Impossible de charger les informations de l\'agent';
         this.isLoading = false;
+      }
+    });
+  }
+
+  private loadAgentStats(): void {
+    const agentId = Number(this.agentInfo?.idUtilisateur);
+    if (!agentId) {
+      this.dossiersTraitesCount = 0;
+      this.publicationsCount = 0;
+      return;
+    }
+
+    forkJoin({
+      immatriculations: this.immatriculationService.getAllImmatriculations().pipe(catchError(() => of([]))),
+      publications: this.publicationService.getPublicationsByAgent(agentId).pipe(catchError(() => of([])))
+    }).subscribe({
+      next: ({ immatriculations, publications }: { immatriculations: any[]; publications: any[] }) => {
+        const safeImmatriculations = Array.isArray(immatriculations) ? immatriculations : [];
+        const safePublications = Array.isArray(publications) ? publications : [];
+
+        this.dossiersTraitesCount = safeImmatriculations.filter((dossier: any) => {
+          const status = `${dossier?.status || ''}`.toUpperCase();
+          return status === 'VALIDE' || status === 'REJETE';
+        }).length;
+
+        this.publicationsCount = safePublications.length;
+      },
+      error: () => {
+        this.dossiersTraitesCount = 0;
+        this.publicationsCount = 0;
       }
     });
   }
