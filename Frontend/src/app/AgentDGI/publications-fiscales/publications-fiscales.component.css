@@ -6964,6 +6964,12 @@
   color: #fecaca;
 }
 
+.da__detailsCommentActionBtn--report:hover {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #fcd34d;
+}
+
 .da__detailsCommentEditBox {
   margin-top: 8px;
 }
@@ -7042,6 +7048,33 @@
 .da__detailsCommentTextarea:focus {
   border-color: rgba(99, 102, 241, 0.6);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.da__detailsCommentTextarea--report {
+  margin-top: 10px;
+}
+
+.da__detailsCommentSelect {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  outline: none;
+}
+
+.da__detailsCommentSelect:focus {
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.da__detailsCommentSelect option {
+  color: #000000;
+}
+
+.da__modal--commentReport {
+  max-width: 560px;
 }
 
 .da__detailsCommentFormActions {

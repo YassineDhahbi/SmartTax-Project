@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Publication, PublicationResponse } from '../../models/publication.model';
 import { PublicationService } from '../../services/publication.service';
 
@@ -54,6 +55,8 @@ export class PublicationAdminComponent implements OnInit {
   blockReason = '';
   isBlockingAuthor = false;
   unblockingUserId: number | null = null;
+  pendingPublicationIdToOpen: number | null = null;
+  reportTotalsByPublicationId: Record<number, number> = {};
 
   stats = [
     { title: 'Total publications', value: '0', subtitle: 'Toutes les publications', delta: '--', trend: 'neutral' },
@@ -62,9 +65,21 @@ export class PublicationAdminComponent implements OnInit {
     { title: 'Brouillon', value: '0', subtitle: 'Statut DRAFT', delta: '--', trend: 'down' }
   ];
 
-  constructor(private publicationService: PublicationService) {}
+  constructor(
+    private publicationService: PublicationService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const rawId = params.get('openPublicationId');
+      const parsed = rawId ? Number(rawId) : NaN;
+      this.pendingPublicationIdToOpen = !Number.isNaN(parsed) && parsed > 0 ? parsed : null;
+      if (this.pendingPublicationIdToOpen) {
+        this.tryOpenPublicationFromNotification();
+      }
+    });
     this.loadPublicationStats();
     this.loadPublications();
   }
@@ -119,6 +134,8 @@ export class PublicationAdminComponent implements OnInit {
               : (apiTotal || this.publications.length);
           this.updateStats();
           this.applySearch();
+          this.refreshVisiblePublicationReportCounts();
+          this.tryOpenPublicationFromNotification();
           this.loading = false;
         },
         error: () => {
@@ -343,6 +360,42 @@ export class PublicationAdminComponent implements OnInit {
     });
   }
 
+  private tryOpenPublicationFromNotification(): void {
+    if (!this.pendingPublicationIdToOpen) {
+      return;
+    }
+
+    const publicationId = this.pendingPublicationIdToOpen;
+    const foundPublication = this.publications.find((item) => item.id === publicationId);
+    if (foundPublication) {
+      this.pendingPublicationIdToOpen = null;
+      this.viewPublication(foundPublication);
+      this.clearOpenPublicationQueryParam();
+      return;
+    }
+
+    this.pendingPublicationIdToOpen = null;
+    this.publicationService.getPublicationById(publicationId).subscribe({
+      next: (publication: any) => {
+        this.viewPublication(publication as Publication);
+        this.clearOpenPublicationQueryParam();
+      },
+      error: () => {
+        this.errorMessage = 'Publication introuvable pour la notification.';
+        this.clearOpenPublicationQueryParam();
+      }
+    });
+  }
+
+  private clearOpenPublicationQueryParam(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { openPublicationId: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
   updatePublicationStatusFromList(publication: Publication, nextStatus: 'DRAFT' | 'PUBLISHED'): void {
     if (!publication?.id || publication.status === nextStatus) {
       return;
@@ -444,6 +497,10 @@ export class PublicationAdminComponent implements OnInit {
   }
 
   getReportsCount(publication: Publication): number {
+    const publicationId = Number(publication?.id);
+    if (publicationId && Object.prototype.hasOwnProperty.call(this.reportTotalsByPublicationId, publicationId)) {
+      return Number(this.reportTotalsByPublicationId[publicationId] || 0);
+    }
     const extended = publication as Publication & { reportsCount?: number; reports_count?: number };
     return Number(extended.reportsCount ?? extended.reports_count ?? 0);
   }
@@ -725,12 +782,38 @@ export class PublicationAdminComponent implements OnInit {
           const timeB = new Date(b?.createdAt || b?.created_at || 0).getTime();
           return timeB - timeA;
         });
+        const totalReports = Number(
+          response?.totalReports ??
+          this.publicationReports.length
+        );
+        this.reportTotalsByPublicationId[publicationId] = Number.isNaN(totalReports) ? this.publicationReports.length : totalReports;
         this.isLoadingPublicationReports = false;
       },
       error: () => {
         this.publicationReportsError = 'Impossible de charger les signalements.';
         this.isLoadingPublicationReports = false;
       }
+    });
+  }
+
+  private refreshVisiblePublicationReportCounts(): void {
+    this.publications.forEach((publication) => {
+      const publicationId = Number(publication?.id);
+      if (!publicationId) {
+        return;
+      }
+      this.publicationService.getPublicationReports(publicationId).subscribe({
+        next: (response: any) => {
+          const publicationReports = Array.isArray(response?.publicationReports) ? response.publicationReports : [];
+          const commentReports = Array.isArray(response?.commentReports) ? response.commentReports : [];
+          const fallbackTotal = publicationReports.length + commentReports.length;
+          const totalReports = Number(response?.totalReports ?? fallbackTotal);
+          this.reportTotalsByPublicationId[publicationId] = Number.isNaN(totalReports) ? fallbackTotal : totalReports;
+        },
+        error: () => {
+          // Ne pas bloquer l'UI si un compteur individuel echoue.
+        }
+      });
     });
   }
 

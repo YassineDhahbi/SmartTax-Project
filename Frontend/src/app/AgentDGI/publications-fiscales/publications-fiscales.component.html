@@ -649,6 +649,16 @@
                 <i class="fa-regular fa-trash-can"></i>
               </button>
             </div>
+            <div class="da__detailsCommentActions"
+                 *ngIf="canAddCommentInDetails && editingPublicationCommentId !== comment.id">
+              <button type="button"
+                      class="da__detailsCommentActionBtn da__detailsCommentActionBtn--report"
+                      title="Signaler"
+                      aria-label="Signaler commentaire"
+                      (click)="askReportPublicationDetailComment(comment)">
+                <i class="fa-regular fa-flag"></i>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -712,6 +722,54 @@
       <button class="da__btn da__btn--secondary" (click)="closePublicationDetailsModal()">
         <i class="fa-solid fa-times"></i>
         Fermer
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showCommentReportModal" class="da__modalOverlay" (click)="closeCommentReportModal()">
+  <div class="da__modal da__modal--commentReport" (click)="$event.stopPropagation()">
+    <div class="da__modalHeader">
+      <div class="da__modalTitle">
+        <i class="fa-regular fa-flag"></i>
+        <span>Signaler le commentaire</span>
+      </div>
+      <button class="da__modalClose" (click)="closeCommentReportModal()" type="button" aria-label="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="da__modalBody">
+      <p class="da__publicationLead">Veuillez indiquer le motif du signalement.</p>
+      <select
+        class="da__detailsCommentSelect"
+        [(ngModel)]="commentReportCause"
+        (change)="onCommentReportCauseChange()"
+        [disabled]="isSubmittingCommentReport">
+        <option value="" disabled>Choisir une cause</option>
+        <option *ngFor="let cause of reportCauseOptions" [value]="cause">{{ cause }}</option>
+      </select>
+
+      <textarea
+        *ngIf="commentReportCause === 'Autre'"
+        class="da__detailsCommentTextarea da__detailsCommentTextarea--report"
+        rows="4"
+        placeholder="Décrivez votre problème..."
+        [(ngModel)]="commentReportReason"
+        [disabled]="isSubmittingCommentReport"></textarea>
+
+      <div class="da__detailsCommentsState da__detailsCommentsState--error" *ngIf="commentReportError">
+        {{ commentReportError }}
+      </div>
+    </div>
+
+    <div class="da__modalFooter">
+      <button class="da__btn da__btn--secondary" type="button" (click)="closeCommentReportModal()" [disabled]="isSubmittingCommentReport">
+        Annuler
+      </button>
+      <button class="da__btn da__btn--warning" type="button" (click)="submitCommentReport()" [disabled]="isSubmittingCommentReport">
+        <i class="fa-regular fa-flag"></i>
+        {{ isSubmittingCommentReport ? 'Envoi...' : 'Envoyer le signalement' }}
       </button>
     </div>
   </div>

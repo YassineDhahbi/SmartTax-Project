@@ -146,6 +146,20 @@ export class PublicationsFiscalesComponent implements OnInit {
     publicationCommentNoticeType: 'success' | 'error' = 'success';
     editingPublicationCommentId: number | null = null;
     editingPublicationCommentContent = '';
+    showCommentReportModal = false;
+    commentToReport: any | null = null;
+    commentReportCause = '';
+    commentReportReason = '';
+    commentReportError = '';
+    isSubmittingCommentReport = false;
+    readonly reportCauseOptions = [
+      'Contenu inapproprié',
+      'Fausse information',
+      'Spam ou publicité abusive',
+      'Discours haineux',
+      'Violence',
+      'Autre'
+    ];
     
     // Modal de modification de publication
     showEditPublicationModal = false;
@@ -2571,6 +2585,12 @@ export class PublicationsFiscalesComponent implements OnInit {
     this.publicationCommentNotice = '';
     this.editingPublicationCommentId = null;
     this.editingPublicationCommentContent = '';
+    this.showCommentReportModal = false;
+    this.commentToReport = null;
+    this.commentReportCause = '';
+    this.commentReportReason = '';
+    this.commentReportError = '';
+    this.isSubmittingCommentReport = false;
   }
 
   private loadPublicationDetailsComments(publicationId: number): void {
@@ -2802,6 +2822,77 @@ export class PublicationsFiscalesComponent implements OnInit {
         const message = rawMessage || "Impossible de supprimer ce commentaire.";
         this.showPublicationCommentNotice(message, 'error');
         this.isSubmittingPublicationComment = false;
+      }
+    });
+  }
+
+  askReportPublicationDetailComment(comment: any): void {
+    if (!this.canAddCommentInDetails || this.isSubmittingCommentReport || !comment?.id) {
+      return;
+    }
+    this.commentToReport = comment;
+    this.commentReportCause = 'Contenu inapproprié';
+    this.commentReportReason = 'Contenu inapproprié';
+    this.commentReportError = '';
+    this.showCommentReportModal = true;
+  }
+
+  closeCommentReportModal(): void {
+    if (this.isSubmittingCommentReport) {
+      return;
+    }
+    this.showCommentReportModal = false;
+    this.commentToReport = null;
+    this.commentReportError = '';
+  }
+
+  onCommentReportCauseChange(): void {
+    if (this.commentReportCause === 'Autre') {
+      this.commentReportReason = '';
+      return;
+    }
+    this.commentReportReason = this.commentReportCause;
+    this.commentReportError = '';
+  }
+
+  submitCommentReport(): void {
+    const publicationId = Number(this.selectedPublicationForDetails?.id);
+    const commentId = Number(this.commentToReport?.id);
+    if (!publicationId || !commentId || this.isSubmittingCommentReport) {
+      return;
+    }
+    if (!this.canAddCommentInDetails) {
+      this.commentReportError = 'Connectez-vous pour signaler un commentaire.';
+      return;
+    }
+    if (!this.commentReportCause) {
+      this.commentReportError = 'Veuillez sélectionner une cause.';
+      return;
+    }
+
+    const cleanReason = (this.commentReportReason || '').trim();
+    if (this.commentReportCause === 'Autre' && !cleanReason) {
+      this.commentReportError = 'Veuillez décrire votre problème.';
+      return;
+    }
+    if (!cleanReason) {
+      this.commentReportError = 'Le motif du signalement est obligatoire.';
+      return;
+    }
+
+    this.commentReportError = '';
+    this.isSubmittingCommentReport = true;
+    this.publicationService.reportPublicationComment(publicationId, commentId, cleanReason).subscribe({
+      next: () => {
+        this.showPublicationCommentNotice('Merci. Votre signalement du commentaire a été envoyé.', 'success');
+        this.isSubmittingCommentReport = false;
+        this.showCommentReportModal = false;
+        this.commentToReport = null;
+      },
+      error: (error) => {
+        console.error('Erreur lors du signalement du commentaire:', error);
+        this.commentReportError = "Impossible d'envoyer le signalement du commentaire.";
+        this.isSubmittingCommentReport = false;
       }
     });
   }

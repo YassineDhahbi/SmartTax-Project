@@ -13,7 +13,29 @@
     <div class="search-box">
       <input type="text" placeholder="Rechercher un dossier, agent, contribuable..." />
     </div>
-    <button class="btn ghost">Notifications</button>
+    <div class="notifications-wrap">
+      <button class="btn ghost notifications-btn" (click)="toggleNotificationsPanel()">
+        Notifications
+        <span class="notifications-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </button>
+      <div class="notifications-panel" *ngIf="showNotificationsPanel">
+        <p class="notif-state" *ngIf="isLoadingNotifications">Chargement...</p>
+        <p class="notif-state" *ngIf="!isLoadingNotifications && notifications.length === 0">
+          Aucune notification.
+        </p>
+        <div
+          class="notif-item"
+          *ngFor="let item of notifications"
+          [class.notif-item--unread]="!item.isRead"
+          (click)="openNotification(item)">
+          <div class="notif-head">
+            <strong>{{ item.title }}</strong>
+            <small>{{ formatNotificationDate(item.createdAt) }}</small>
+          </div>
+          <p>{{ item.message }}</p>
+        </div>
+      </div>
+    </div>
     <button class="btn primary">Nouveau rapport</button>
     <button class="btn logout-btn" (click)="logout()" title="Déconnexion">
       <i class="fa-solid fa-sign-out-alt"></i>
