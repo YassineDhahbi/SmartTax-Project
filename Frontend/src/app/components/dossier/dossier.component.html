@@ -316,21 +316,17 @@
             </div>
             <div class="card-body">
               <div class="actions-grid">
-                <button class="action-btn primary">
+                <button class="action-btn primary" (click)="downloadDossierPdf()">
                   <i class="fas fa-file-alt"></i>
-                  <span>Déclarer Impôts</span>
+                  <span>Télécharger PDF</span>
                 </button>
-                <button class="action-btn success">
-                  <i class="fas fa-receipt"></i>
-                  <span>Consulter Relevés</span>
-                </button>
-                <button class="action-btn info">
+                <button class="action-btn success" (click)="downloadAllDocuments()">
                   <i class="fas fa-download"></i>
-                  <span>Télécharger Documents</span>
+                  <span>Télécharger document</span>
                 </button>
-                <button class="action-btn warning">
+                <button class="action-btn warning" (click)="goToReclamation()">
                   <i class="fas fa-exclamation-triangle"></i>
-                  <span>Déposer Réclamation</span>
+                  <span>Déposer réclamation</span>
                 </button>
               </div>
             </div>

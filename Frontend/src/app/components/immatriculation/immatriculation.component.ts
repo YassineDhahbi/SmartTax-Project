@@ -1840,7 +1840,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
 
   // Navigation
   goToDashboard(): void {
-    this.router.navigate(['/dossier']);
+    this.router.navigate(['/home']);
   }
 
   closeSuccessModal(): void {

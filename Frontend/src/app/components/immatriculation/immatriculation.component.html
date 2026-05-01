@@ -954,13 +954,7 @@
 
                             <!-- Options de soumission -->
                             <div class="submission-options">
-                                <div class="option-card" [class.selected]="submissionMode === 'draft'" (click)="submissionMode = 'draft'">
-                                    <div class="option-icon">
-                                        <i class="fas fa-save"></i>
-                                    </div>
-                                    <h5>Enregistrer comme Brouillon</h5>
-                                    <p>Sauvegardez votre dossier pour le compléter plus tard</p>
-                                </div>
+                                
                                 <div class="option-card" [class.selected]="submissionMode === 'submit'" (click)="submissionMode = 'submit'">
                                     <div class="option-icon">
                                         <i class="fas fa-paper-plane"></i>
@@ -1214,21 +1208,16 @@
             <div class="success-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <h3>{{ submissionMode === 'draft' ? 'Brouillon Enregistré' : 'Dossier Soumis avec Succès' }}</h3>
-            <p *ngIf="submissionMode === 'draft'">
-                Votre brouillon a été enregistré. Vous pouvez le compléter à tout moment depuis votre tableau de bord.
-            </p>
+          
             <p *ngIf="submissionMode === 'submit'">
                 Votre dossier a été soumis pour validation. Vous recevrez un email dès que le traitement commencera.
                 <br>
                 <strong>TIN (Numéro d'Immatriculation Fiscale):</strong> {{ dossierNumber }}
             </p>
             <div class="modal-actions">
-                <button type="button" class="btn-secondary" (click)="closeSuccessModal()">
-                    Fermer
-                </button>
+             
                 <button type="button" class="btn-primary" (click)="goToDashboard()">
-                    Accéder au Tableau de Bord
+                    Retour vers la page d'accueil
                 </button>
             </div>
         </div>
