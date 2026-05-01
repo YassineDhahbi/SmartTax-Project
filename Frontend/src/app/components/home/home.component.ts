@@ -1067,29 +1067,61 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   // Handle form submission
-  private onReclamationSubmit(event: Event): void {
+  private async onReclamationSubmit(event: Event): Promise<void> {
     event.preventDefault();
     
     const form = event.target as HTMLFormElement;
     const submitBtn = form.querySelector('.reclamation-btn') as HTMLButtonElement;
     const formData = new FormData(form);
+    const payload = {
+      nomComplet: String(formData.get('nomComplet') || '').trim(),
+      email: String(formData.get('email') || '').trim(),
+      telephone: String(formData.get('telephone') || '').trim(),
+      sujet: String(formData.get('sujet') || '').trim(),
+      message: String(formData.get('message') || '').trim(),
+      urgent: formData.get('urgent') === 'on'
+    };
+
+    if (!payload.nomComplet || !payload.email || !payload.sujet || !payload.message) {
+      this.createReclamationErrorAnimation('Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
     
     // Add loading state
     if (submitBtn) {
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
       submitBtn.disabled = true;
     }
-    
-    // Simulate API call
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('http://localhost:8080/api/demande-information/public', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
       this.showReclamationSuccess(form, submitBtn);
-    }, 2000);
+    } catch (error) {
+      console.error("Erreur lors de l'envoi de la demande d'information:", error);
+      if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Demande D\'information';
+        submitBtn.style.background = '';
+        submitBtn.disabled = false;
+      }
+      this.createReclamationErrorAnimation("Impossible d'envoyer la demande pour le moment.");
+    }
   }
 
   // Show success message
   private showReclamationSuccess(form: HTMLFormElement, submitBtn: HTMLButtonElement): void {
     // Reset button
-    submitBtn.innerHTML = '<i class="fas fa-check"></i> Réclamation envoyée!';
+    submitBtn.innerHTML = '<i class="fas fa-check"></i> Demande envoyee!';
     submitBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
     
     // Create success animation
@@ -1098,7 +1130,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     // Reset form after delay
     setTimeout(() => {
       form.reset();
-      submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la réclamation';
+      submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Demande D\'information';
       submitBtn.style.background = '';
       submitBtn.disabled = false;
       
@@ -1110,6 +1142,39 @@ export class HomeComponent implements OnInit, AfterViewInit {
         htmlInput.style.boxShadow = '';
       });
     }, 3000);
+  }
+
+  private createReclamationErrorAnimation(message: string): void {
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'reclamation-error';
+    errorMessage.innerHTML = `
+      <div class="error-icon">!</div>
+      <div class="error-text">${message}</div>
+    `;
+    errorMessage.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 10000;
+      animation: reclamationSuccessSlide 0.5s ease-out;
+    `;
+
+    document.body.appendChild(errorMessage);
+
+    setTimeout(() => {
+      errorMessage.style.animation = 'reclamationSuccessSlideOut 0.5s ease-out forwards';
+      setTimeout(() => {
+        errorMessage.remove();
+      }, 500);
+    }, 2500);
   }
 
   // Create particle effects for reclamation button
@@ -1158,7 +1223,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     successMessage.className = 'reclamation-success';
     successMessage.innerHTML = `
       <div class="success-icon">✓</div>
-      <div class="success-text">Votre réclamation a été envoyée avec succès!</div>
+      <div class="success-text">Votre demande d'information a ete envoyee avec succes!</div>
     `;
     successMessage.style.cssText = `
       position: fixed;

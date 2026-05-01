@@ -3,7 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
 import { EmailService } from '../../services/email/email.service';
+import { PublicationService } from '../../services/publication.service';
 import { Immatriculation } from '../../models/immatriculation.model';
+import { PublicationStats } from '../../models/publication.model';
 import jsPDF from 'jspdf';
 import * as QRCode from 'qrcode';
 import { Subscription, interval } from 'rxjs';
@@ -65,6 +67,20 @@ interface AlertItem {
   icon: string;
 }
 
+interface DemandeInformationItem {
+  id: number;
+  nomComplet: string;
+  email: string;
+  telephone?: string;
+  sujet: string;
+  message: string;
+  urgent: boolean;
+  dateCreation: string;
+  traitementStatus?: 'TRAITE' | 'NON_TRAITE';
+  assignedAgentId?: number | null;
+  assignedAgentName?: string | null;
+}
+
 @Component({
   selector: 'app-dashboard-agent',
   templateUrl: './dashboard-agent.component.html',
@@ -79,7 +95,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
 
   activeNavKey: string = 'overview';
 
-  currentView: string = 'overview'; // 'overview', 'dossiers', or 'profile'
+  currentView: string = 'overview'; // 'overview', 'dossiers', 'demande-information', 'publications', or 'profile'
 
   activityRange: '7d' | '30d' = '7d';
 
@@ -92,6 +108,8 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   deletingNotificationId: number | null = null;
   pendingImmatriculationIdToOpen: number | null = null;
   pendingPublicationIdToOpen: number | null = null;
+  pendingDemandeInformationIdToOpen: number | null = null;
+  currentAgentId: number | null = null;
   private refreshNotificationsSub?: Subscription;
 
   constructor(
@@ -99,6 +117,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     private immatriculationService: ImmatriculationService,
     private trashService: TrashService,
     private emailService: EmailService,
+    private publicationService: PublicationService,
     private cdr: ChangeDetectorRef,
     private notificationService: AdminNotificationService
   ) {}
@@ -137,6 +156,31 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   immatriculations: any[] = [];
   filteredImmatriculations: any[] = [];
   isLoadingImmatriculations = false;
+
+  demandesInformation: DemandeInformationItem[] = [];
+  isLoadingDemandesInformation = false;
+  selectedDemandeInformation: DemandeInformationItem | null = null;
+  showDemandeInformationModal = false;
+  demandeInformationSearchTerm = '';
+  demandeInformationTraitementFilter: 'all' | 'TRAITE' | 'NON_TRAITE' = 'all';
+  demandeInformationUrgenceFilter: 'all' | 'urgent' | 'normal' = 'all';
+  showReplyEmailModal = false;
+  replyEmailSubject = '';
+  replyEmailContent = '';
+  isSendingReplyEmail = false;
+  publicationStats: PublicationStats = {
+    total: 0,
+    published: 0,
+    draft: 0,
+    pending: 0,
+    rejected: 0,
+    archived: 0,
+    total_views: 0,
+    total_likes: 0,
+    total_dislikes: 0,
+    total_favorites: 0,
+    total_reports: 0
+  };
   
   // Filtre par nationalité
   nationaliteFilter: string = 'tous'; // 'tous', 'tunisien', 'etranger'
@@ -200,6 +244,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.currentAgentId = this.resolveCurrentAgentId();
     this.loadUserName();
     this.refreshNotifications();
     this.refreshNotificationsSub = interval(15000).subscribe(() => this.refreshNotifications());
@@ -339,7 +384,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     {
       title: 'Communication',
       items: [
-        { key: 'notifications', label: 'Notifications', icon: 'fa-solid fa-bell', badge: 3 },
+        { key: 'demande-information', label: 'Demande Information', icon: 'fa-solid fa-circle-info' },
         { key: 'support', label: 'Centre d\'aide', icon: 'fa-solid fa-circle-question' },
       ],
     },
@@ -353,6 +398,88 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   ];
 
   get kpis(): KpiCard[] {
+    if (this.currentView === 'publications') {
+      return [
+        {
+          label: 'Total publications',
+          value: `${this.publicationStats.total || 0}`,
+          sub: 'Toutes les publications',
+          icon: 'fa-solid fa-newspaper',
+          delta: '+0%',
+          deltaUp: true,
+          tone: 'neutral',
+        },
+        {
+          label: 'Publiées',
+          value: `${this.publicationStats.published || 0}`,
+          sub: 'Contenu publié',
+          icon: 'fa-solid fa-bullhorn',
+          delta: '+0%',
+          deltaUp: true,
+          tone: 'success',
+        },
+        {
+          label: 'Brouillons',
+          value: `${this.publicationStats.draft || 0}`,
+          sub: 'En préparation',
+          icon: 'fa-solid fa-pen-to-square',
+          delta: '+0%',
+          deltaUp: false,
+          tone: 'warning',
+        },
+        {
+          label: 'Archivées',
+          value: `${this.publicationStats.archived || 0}`,
+          sub: 'Historique',
+          icon: 'fa-solid fa-box-archive',
+          delta: '+0%',
+          deltaUp: false,
+          tone: 'brand',
+        },
+      ];
+    }
+
+    if (this.currentView === 'demande-information') {
+      return [
+        {
+          label: 'Total demandes',
+          value: this.getTotalDemandesInformationCount().toString(),
+          sub: 'Toutes les demandes',
+          icon: 'fa-solid fa-inbox',
+          delta: '+0%',
+          deltaUp: true,
+          tone: 'neutral',
+        },
+        {
+          label: 'Traitées',
+          value: this.getDemandesTraiteesCount().toString(),
+          sub: 'Statut traité',
+          icon: 'fa-solid fa-circle-check',
+          delta: '+0%',
+          deltaUp: true,
+          tone: 'success',
+        },
+        {
+          label: 'Non traitées',
+          value: this.getDemandesNonTraiteesCount().toString(),
+          sub: 'À suivre',
+          icon: 'fa-solid fa-hourglass-half',
+          delta: '+0%',
+          deltaUp: false,
+          tone: 'warning',
+        },
+        {
+          label: 'Urgentes',
+          value: this.getDemandesUrgentesCount().toString(),
+          sub: 'Priorité élevée',
+          icon: 'fa-solid fa-triangle-exclamation',
+          delta: '+0%',
+          deltaUp: false,
+          tone: 'danger',
+        },
+      ];
+    }
+
     return [
       {
         label: 'Total',
@@ -423,6 +550,22 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     );
     
     return bloqués.length;
+  }
+
+  getTotalDemandesInformationCount(): number {
+    return this.demandesInformation.length;
+  }
+
+  getDemandesTraiteesCount(): number {
+    return this.demandesInformation.filter((demande) => demande.traitementStatus === 'TRAITE').length;
+  }
+
+  getDemandesNonTraiteesCount(): number {
+    return this.demandesInformation.filter((demande) => demande.traitementStatus !== 'TRAITE').length;
+  }
+
+  getDemandesUrgentesCount(): number {
+    return this.demandesInformation.filter((demande) => demande.urgent === true).length;
   }
 
   quickActions: QuickAction[] = [
@@ -518,8 +661,12 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     if (key === 'work') {
       this.currentView = 'dossiers';
       this.loadImmatriculations();
+    } else if (key === 'demande-information') {
+      this.currentView = 'demande-information';
+      this.loadDemandesInformation();
     } else if (key === 'publications') {
       this.currentView = 'publications';
+      this.loadPublicationStats();
     } else if (key === 'settings') {
       this.currentView = 'profile';
     } else if (key === 'logout') {
@@ -527,6 +674,49 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     } else {
       this.currentView = 'overview';
     }
+  }
+
+  private loadPublicationStats(): void {
+    this.publicationService.getPublications({ page: 0, limit: 200 }).subscribe({
+      next: (response) => {
+        const publications = Array.isArray(response?.data) ? response.data : [];
+        const statsFromApi = response?.stats;
+
+        if (statsFromApi) {
+          this.publicationStats = {
+            total: statsFromApi.total || response?.pagination?.total_items || publications.length || 0,
+            published: statsFromApi.published || 0,
+            draft: statsFromApi.draft || 0,
+            pending: statsFromApi.pending || 0,
+            rejected: statsFromApi.rejected || 0,
+            archived: statsFromApi.archived || 0,
+            total_views: statsFromApi.total_views || 0,
+            total_likes: statsFromApi.total_likes || 0,
+            total_dislikes: statsFromApi.total_dislikes || 0,
+            total_favorites: statsFromApi.total_favorites || 0,
+            total_reports: statsFromApi.total_reports || 0
+          };
+          return;
+        }
+
+        this.publicationStats = {
+          total: response?.pagination?.total_items || publications.length || 0,
+          published: publications.filter((p: any) => `${p?.status || ''}`.toUpperCase() === 'PUBLISHED').length,
+          draft: publications.filter((p: any) => `${p?.status || ''}`.toUpperCase() === 'DRAFT').length,
+          pending: publications.filter((p: any) => `${p?.status || ''}`.toUpperCase() === 'PENDING').length,
+          rejected: publications.filter((p: any) => `${p?.status || ''}`.toUpperCase() === 'REJECTED').length,
+          archived: publications.filter((p: any) => `${p?.status || ''}`.toUpperCase() === 'ARCHIVED').length,
+          total_views: publications.reduce((sum: number, p: any) => sum + (Number(p?.views_count) || 0), 0),
+          total_likes: publications.reduce((sum: number, p: any) => sum + (Number(p?.likes_count) || 0), 0),
+          total_dislikes: publications.reduce((sum: number, p: any) => sum + (Number(p?.dislikes_count) || 0), 0),
+          total_favorites: publications.reduce((sum: number, p: any) => sum + (Number(p?.favorites_count) || 0), 0),
+          total_reports: publications.reduce((sum: number, p: any) => sum + (Number(p?.reports_count) || 0), 0)
+        };
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des statistiques des publications:', error);
+      }
+    });
   }
 
   toggleNotificationsPanel(): void {
@@ -547,6 +737,11 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
       if (eventType.includes('IMMATRICULATION')) {
         this.pendingImmatriculationIdToOpen = item.publicationId ? Number(item.publicationId) : null;
         this.setActiveNav('work');
+        return;
+      }
+      if (eventType.includes('DEMANDE_INFORMATION')) {
+        this.pendingDemandeInformationIdToOpen = item.publicationId ? Number(item.publicationId) : null;
+        this.setActiveNav('demande-information');
         return;
       }
       if (eventType.includes('PUBLICATION') || eventType.includes('COMMENT')) {
@@ -609,7 +804,10 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   get dashboardNotifications(): AdminNotificationItem[] {
     const filtered = this.notifications.filter((item) => {
       const eventType = `${item?.eventType || ''}`.toUpperCase();
-      return eventType.includes('IMMATRICULATION') || eventType.includes('PUBLICATION') || eventType.includes('COMMENT');
+      return eventType.includes('IMMATRICULATION')
+        || eventType.includes('PUBLICATION')
+        || eventType.includes('COMMENT')
+        || eventType.includes('DEMANDE_INFORMATION');
     });
     return filtered.length > 0 ? filtered : this.notifications;
   }
@@ -635,11 +833,19 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     });
   }
 
+  get demandeInformationNotifications(): AdminNotificationItem[] {
+    return this.dashboardNotifications.filter((item) => {
+      const eventType = `${item?.eventType || ''}`.toUpperCase();
+      return eventType.includes('DEMANDE_INFORMATION');
+    });
+  }
+
   get hasGroupedNotifications(): boolean {
     return (
       this.publicationNotifications.length > 0 ||
       this.commentNotifications.length > 0 ||
-      this.immatriculationNotifications.length > 0
+      this.immatriculationNotifications.length > 0 ||
+      this.demandeInformationNotifications.length > 0
     );
   }
 
@@ -653,7 +859,10 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
 
   private isNotificationVisibleInDashboard(item: AdminNotificationItem): boolean {
     const eventType = `${item?.eventType || ''}`.toUpperCase();
-    return eventType.includes('IMMATRICULATION') || eventType.includes('PUBLICATION') || eventType.includes('COMMENT');
+    return eventType.includes('IMMATRICULATION')
+      || eventType.includes('PUBLICATION')
+      || eventType.includes('COMMENT')
+      || eventType.includes('DEMANDE_INFORMATION');
   }
 
   get fallbackNotifications(): AdminNotificationItem[] {
@@ -741,6 +950,184 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadDemandesInformation(): void {
+    this.isLoadingDemandesInformation = true;
+    this.http.get<any>('http://localhost:8080/api/demande-information/all').subscribe({
+      next: (response) => {
+        const items = Array.isArray(response?.items) ? response.items : [];
+        this.demandesInformation = items.map((item: DemandeInformationItem) => ({
+          ...item,
+          traitementStatus: item.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE'
+        }));
+        this.tryOpenDemandeInformationFromNotification();
+        this.isLoadingDemandesInformation = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des demandes d\'information:', error);
+        this.demandesInformation = [];
+        this.pendingDemandeInformationIdToOpen = null;
+        this.isLoadingDemandesInformation = false;
+      }
+    });
+  }
+
+  updateDemandeTraitementStatus(demande: DemandeInformationItem, status: 'TRAITE' | 'NON_TRAITE'): void {
+    if (!demande?.id) {
+      this.showNotification('Demande invalide.', 'error');
+      return;
+    }
+
+    const previousStatus = demande.traitementStatus || 'NON_TRAITE';
+    demande.traitementStatus = status;
+
+    this.http.put<any>(`http://localhost:8080/api/demande-information/${demande.id}/traitement-status`, {
+      traitementStatus: status
+    }).subscribe({
+      next: (response) => {
+        const savedStatus = response?.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE';
+        demande.traitementStatus = savedStatus;
+        this.showNotification(`Statut mis à jour: ${savedStatus === 'TRAITE' ? 'Traité' : 'Non traité'}.`, 'success');
+      },
+      error: (error) => {
+        console.error('Erreur lors de la mise à jour du statut de traitement:', error);
+        demande.traitementStatus = previousStatus;
+        this.showNotification('Impossible de mettre à jour le statut de traitement.', 'error');
+      }
+    });
+  }
+
+  get filteredDemandesInformation(): DemandeInformationItem[] {
+    const search = this.demandeInformationSearchTerm.trim().toLowerCase();
+    return this.demandesInformation.filter((demande) => {
+      const matchesSearch = !search || [
+        demande.nomComplet || '',
+        demande.email || '',
+        demande.sujet || '',
+        demande.message || '',
+        demande.assignedAgentName || ''
+      ].some((value) => value.toLowerCase().includes(search));
+
+      const status = demande.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE';
+      const matchesTraitement =
+        this.demandeInformationTraitementFilter === 'all' ||
+        status === this.demandeInformationTraitementFilter;
+
+      const matchesUrgence =
+        this.demandeInformationUrgenceFilter === 'all' ||
+        (this.demandeInformationUrgenceFilter === 'urgent' && demande.urgent === true) ||
+        (this.demandeInformationUrgenceFilter === 'normal' && !demande.urgent);
+
+      return matchesSearch && matchesTraitement && matchesUrgence;
+    });
+  }
+
+  get assignedDemandesInformation(): DemandeInformationItem[] {
+    if (!this.currentAgentId) {
+      return [];
+    }
+    return this.filteredDemandesInformation.filter((demande) =>
+      Number(demande.assignedAgentId) === this.currentAgentId &&
+      (demande.traitementStatus || 'NON_TRAITE') !== 'TRAITE'
+    );
+  }
+
+  get mainDemandesInformation(): DemandeInformationItem[] {
+    if (!this.currentAgentId) {
+      return this.filteredDemandesInformation;
+    }
+    return this.filteredDemandesInformation.filter((demande) =>
+      !(Number(demande.assignedAgentId) === this.currentAgentId &&
+        (demande.traitementStatus || 'NON_TRAITE') !== 'TRAITE')
+    );
+  }
+
+  viewDemandeInformationDetails(demande: DemandeInformationItem): void {
+    this.selectedDemandeInformation = demande;
+    this.showDemandeInformationModal = true;
+  }
+
+  closeDemandeInformationModal(): void {
+    this.showDemandeInformationModal = false;
+    this.selectedDemandeInformation = null;
+    this.closeReplyEmailModal();
+  }
+
+  replyToDemandeInformationByEmail(): void {
+    if (!this.selectedDemandeInformation?.email) {
+      this.showNotification('Adresse email introuvable pour cette demande.', 'error');
+      return;
+    }
+
+    const demande = this.selectedDemandeInformation;
+    this.replyEmailSubject = `Reponse a votre demande d'information - SmartTax`;
+    this.replyEmailContent = '';
+    this.showReplyEmailModal = true;
+  }
+
+  closeReplyEmailModal(): void {
+    this.showReplyEmailModal = false;
+    this.replyEmailSubject = '';
+    this.replyEmailContent = '';
+    this.isSendingReplyEmail = false;
+  }
+
+  sendReplyEmail(): void {
+    if (!this.selectedDemandeInformation?.email) {
+      this.showNotification('Adresse email introuvable pour cette demande.', 'error');
+      return;
+    }
+
+    const subject = this.replyEmailSubject.trim();
+    const body = this.replyEmailContent.trim();
+    if (!subject || !body) {
+      this.showNotification('Veuillez saisir le sujet et le contenu de l\'email.', 'warning');
+      return;
+    }
+
+    const demande = this.selectedDemandeInformation;
+    this.isSendingReplyEmail = true;
+    this.emailService.sendSimpleEmail(demande.email, subject, body).subscribe({
+      next: (response) => {
+        this.isSendingReplyEmail = false;
+        if (response?.success || response?.emailSent) {
+          this.showNotification('Email de réponse envoyé avec succès.', 'success');
+          this.closeReplyEmailModal();
+        } else {
+          this.showNotification('Échec de l\'envoi de l\'email.', 'error');
+        }
+      },
+      error: (error) => {
+        this.isSendingReplyEmail = false;
+        console.error('Erreur lors de l\'envoi de la réponse email:', error);
+        this.showNotification('Erreur lors de l\'envoi de l\'email.', 'error');
+      }
+    });
+  }
+
+  deleteDemandeInformation(demande: DemandeInformationItem): void {
+    if (!demande?.id) {
+      this.showNotification('Demande invalide.', 'error');
+      return;
+    }
+
+    const message = `Voulez-vous vraiment supprimer la demande de "${demande.nomComplet}" ?`;
+    this.showConfirmation('Confirmation de suppression', message, () => {
+      this.http.delete(`http://localhost:8080/api/demande-information/${demande.id}`).subscribe({
+        next: () => {
+          this.demandesInformation = this.demandesInformation.filter(item => item.id !== demande.id);
+          if (this.selectedDemandeInformation?.id === demande.id) {
+            this.closeDemandeInformationModal();
+          }
+          this.showNotification('Demande d\'information supprimée avec succès.', 'success');
+        },
+        error: (error) => {
+          console.error('Erreur lors de la suppression de la demande d\'information:', error);
+          this.showNotification('Impossible de supprimer la demande d\'information.', 'error');
+        }
+      });
+    });
+  }
+
   private tryOpenImmatriculationFromNotification(): void {
     if (!this.pendingImmatriculationIdToOpen) {
       return;
@@ -763,6 +1150,52 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
         this.pendingImmatriculationIdToOpen = null;
       }
     });
+  }
+
+  private tryOpenDemandeInformationFromNotification(): void {
+    if (!this.pendingDemandeInformationIdToOpen) {
+      return;
+    }
+    const targetId = this.pendingDemandeInformationIdToOpen;
+    const found = this.demandesInformation.find((item) => Number(item?.id) === targetId);
+    if (found) {
+      this.viewDemandeInformationDetails(found);
+    }
+    this.pendingDemandeInformationIdToOpen = null;
+  }
+
+  private resolveCurrentAgentId(): number | null {
+    const localUserId = localStorage.getItem('userId');
+    if (localUserId && !Number.isNaN(Number(localUserId))) {
+      return Number(localUserId);
+    }
+
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const parsed = JSON.parse(userInfo);
+        const idCandidate = parsed?.idUtilisateur ?? parsed?.id ?? parsed?.userId;
+        if (idCandidate != null && !Number.isNaN(Number(idCandidate))) {
+          return Number(idCandidate);
+        }
+      } catch {
+        // ignore invalid JSON
+      }
+    }
+
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const idCandidate = payload?.idUtilisateur ?? payload?.id ?? payload?.userId;
+        if (idCandidate != null && !Number.isNaN(Number(idCandidate))) {
+          return Number(idCandidate);
+        }
+      } catch {
+        // ignore invalid token payload
+      }
+    }
+    return null;
   }
 
   setFilter(filter: 'all' | 'PHYSIQUE' | 'MORALE'): void {

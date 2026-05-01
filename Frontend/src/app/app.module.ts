@@ -45,6 +45,8 @@ import { PublicationsFiscalesComponent } from './AgentDGI/publications-fiscales/
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { DetailActualiteComponent } from './components/detail-actualite/detail-actualite.component';
 import { PublicationAdminComponent } from './Admin/publication-admin/publication-admin.component';
+import { DemandeInformationComponent } from './AgentDGI/demande-information/demande-information.component';
+import { DemandeInformationAdminComponent } from './Admin/demande-information-admin/demande-information-admin.component';
 
 
 @NgModule({
@@ -82,7 +84,9 @@ import { PublicationAdminComponent } from './Admin/publication-admin/publication
     SideAdminComponent,
     PublicationsFiscalesComponent,
     DetailActualiteComponent,
-    PublicationAdminComponent
+    PublicationAdminComponent,
+    DemandeInformationComponent,
+    DemandeInformationAdminComponent
     
 
 

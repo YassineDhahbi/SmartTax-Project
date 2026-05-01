@@ -159,6 +159,23 @@ export class EmailService {
   }
 
   /**
+   * Envoyer un email simple personnalisé
+   */
+  sendSimpleEmail(to: string, subject: string, body: string): Observable<EmailResponse> {
+    const emailRequest: EmailRequest = {
+      to,
+      subject,
+      body
+    };
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.post<EmailResponse>(`${this.apiUrl}/send-simple`, emailRequest, { headers });
+  }
+
+  /**
    * Générer le corps de l'email de rejet
    */
   private generateRejectionEmailBody(motifRejet: string, dossierNumber: string): string {

@@ -148,6 +148,22 @@
               </div>
             </div>
 
+            <div class="da__notifSection" *ngIf="!isLoadingNotifications && demandeInformationNotifications.length > 0">
+              <div class="da__notifSectionTitle">Demandes d'information</div>
+              <div class="da__notifItem" *ngFor="let item of demandeInformationNotifications; trackBy: trackByNotificationId" [class.da__notifItem--unread]="!item.isRead">
+                <div class="da__notifHead">
+                  <div class="da__notifHeadMain da__notifClickable" (click)="openNotification(item)">
+                    <strong>{{ item.title }}</strong>
+                    <small>{{ formatNotificationDate(item.createdAt) }}</small>
+                  </div>
+                  <button type="button" class="da__notifDeleteBtn" title="Supprimer la notification" [disabled]="isDeletingNotification(item)" (mousedown)="$event.stopPropagation()" (click)="deleteNotification(item, $event)">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <p class="da__notifClickable" (click)="openNotification(item)">{{ item.message }}</p>
+              </div>
+            </div>
+
             <div class="da__notifSection" *ngIf="!isLoadingNotifications && !hasGroupedNotifications && fallbackNotifications.length > 0">
               <div class="da__notifSectionTitle">Autres</div>
               <div class="da__notifItem" *ngFor="let item of fallbackNotifications; trackBy: trackByNotificationId" [class.da__notifItem--unread]="!item.isRead">
@@ -550,6 +566,196 @@
       </div>
     </section>
 
+    <!-- Vue Demandes Information -->
+    <section class="da__grid" *ngIf="currentView === 'demande-information'">
+      <div class="da__panel da__panel--wide">
+        <div class="da__panelHead">
+          <div class="da__panelTitle">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            Demandes d'information
+          </div>
+          <div class="da__searchContainer da__searchContainer--demandeInfo">
+            <i class="fa-solid fa-search da__searchIcon"></i>
+            <input
+              type="search"
+              class="da__searchInput"
+              [(ngModel)]="demandeInformationSearchTerm"
+              placeholder="Rechercher par nom, email, sujet..."
+              aria-label="Rechercher une demande d'information" />
+            <button
+              class="da__searchClear"
+              type="button"
+              *ngIf="demandeInformationSearchTerm"
+              (click)="demandeInformationSearchTerm = ''"
+              title="Effacer la recherche">
+              <i class="fa-solid fa-times"></i>
+            </button>
+          </div>
+          <div class="da__demandeFilters">
+            <select class="da__statusFilter da__statusFilter--demandeInfo" [(ngModel)]="demandeInformationTraitementFilter">
+              <option value="all">Tous les traitements</option>
+              <option value="TRAITE">Traité</option>
+              <option value="NON_TRAITE">Non traité</option>
+            </select>
+            <select class="da__statusFilter da__statusFilter--demandeInfo" [(ngModel)]="demandeInformationUrgenceFilter">
+              <option value="all">Tous les niveaux</option>
+              <option value="urgent">Urgent</option>
+              <option value="normal">Normal</option>
+            </select>
+          </div>
+          <div class="da__panelHint">
+            <span *ngIf="isLoadingDemandesInformation">Chargement...</span>
+            <span *ngIf="!isLoadingDemandesInformation">
+              {{ assignedDemandesInformation.length }} affectée(s) | {{ mainDemandesInformation.length }} dans le tableau principal
+            </span>
+          </div>
+        </div>
+
+        <div class="da__panelBody">
+          <div *ngIf="isLoadingDemandesInformation" class="da__loading">
+            <div class="da__spinner"></div>
+            <p>Chargement des demandes d'information...</p>
+          </div>
+
+          <div class="da__tableWrap" *ngIf="!isLoadingDemandesInformation">
+            <h4 class="da__subTableTitle" *ngIf="assignedDemandesInformation.length > 0">
+              Mes demandes affectées (à traiter)
+            </h4>
+            <table class="da__table" aria-label="Mes demandes d'information affectées" *ngIf="assignedDemandesInformation.length > 0">
+              <thead>
+                <tr>
+                  <th>Nom complet</th>
+                  <th>Email</th>
+                  <th>Agent affecté</th>
+                  <th>Traitement</th>
+                  <th>Sujet</th>
+                  <th>Urgence</th>
+                  <th>Date</th>
+                  <th class="da__center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let demande of assignedDemandesInformation">
+                  <td>{{ demande.nomComplet || 'N/A' }}</td>
+                  <td>{{ demande.email || 'N/A' }}</td>
+                  <td>{{ demande.assignedAgentName || 'Non affectée' }}</td>
+                  <td>
+                    <select
+                      class="da__statusSelect"
+                      [ngClass]="(demande.traitementStatus || 'NON_TRAITE') === 'TRAITE' ? 'da__statusSelect--traite' : 'da__statusSelect--non-traite'"
+                      [ngModel]="demande.traitementStatus || 'NON_TRAITE'"
+                      (ngModelChange)="updateDemandeTraitementStatus(demande, $event)"
+                      aria-label="Statut de traitement de la demande d'information">
+                      <option value="NON_TRAITE">Non traité</option>
+                      <option value="TRAITE">Traité</option>
+                    </select>
+                  </td>
+                  <td>{{ demande.sujet || 'N/A' }}</td>
+                  <td>
+                    <span class="da__status" [attr.data-status]="demande.urgent ? 'blocked' : 'open'">
+                      <span class="da__statusDot" aria-hidden="true"></span>
+                      {{ demande.urgent ? 'Urgent' : 'Normal' }}
+                    </span>
+                  </td>
+                  <td>{{ formatDate(demande.dateCreation) }}</td>
+                  <td class="da__center">
+                    <div class="da__actionsCell">
+                      <button class="da__rowBtn da__rowBtn--primary" type="button"
+                              (click)="viewDemandeInformationDetails(demande)"
+                              title="Voir les détails"
+                              aria-label="Voir les détails de la demande d'information">
+                        <i class="fa-regular fa-eye"></i>
+                      </button>
+                      <button class="da__rowBtn da__rowBtn--danger" type="button"
+                              (click)="deleteDemandeInformation(demande)"
+                              title="Supprimer"
+                              aria-label="Supprimer la demande d'information">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4 class="da__subTableTitle">Tableau principal</h4>
+            <table class="da__table" aria-label="Liste des demandes d'information">
+              <thead>
+                <tr>
+                  <th>Nom complet</th>
+                  <th>Email</th>
+                  <th>Agent affecté</th>
+                  <th>Traitement</th>
+                  <th>Sujet</th>
+                  <th>Urgence</th>
+                  <th>Date</th>
+                  <th class="da__center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let demande of mainDemandesInformation">
+                  <td>{{ demande.nomComplet || 'N/A' }}</td>
+                  <td>{{ demande.email || 'N/A' }}</td>
+                  <td>{{ demande.assignedAgentName || 'Non affectée' }}</td>
+                  <td>
+                    <select
+                      class="da__statusSelect"
+                      [ngClass]="(demande.traitementStatus || 'NON_TRAITE') === 'TRAITE' ? 'da__statusSelect--traite' : 'da__statusSelect--non-traite'"
+                      [ngModel]="demande.traitementStatus || 'NON_TRAITE'"
+                      (ngModelChange)="updateDemandeTraitementStatus(demande, $event)"
+                      aria-label="Statut de traitement de la demande d'information">
+                      <option value="NON_TRAITE">Non traité</option>
+                      <option value="TRAITE">Traité</option>
+                    </select>
+                  </td>
+                  <td>{{ demande.sujet || 'N/A' }}</td>
+                  <td>
+                    <span class="da__status" [attr.data-status]="demande.urgent ? 'blocked' : 'open'">
+                      <span class="da__statusDot" aria-hidden="true"></span>
+                      {{ demande.urgent ? 'Urgent' : 'Normal' }}
+                    </span>
+                  </td>
+                  <td>{{ formatDate(demande.dateCreation) }}</td>
+                  <td class="da__center">
+                    <div class="da__actionsCell">
+                      <button class="da__rowBtn da__rowBtn--primary" type="button"
+                              (click)="viewDemandeInformationDetails(demande)"
+                              title="Voir les détails"
+                              aria-label="Voir les détails de la demande d'information">
+                        <i class="fa-regular fa-eye"></i>
+                      </button>
+                      <button class="da__rowBtn da__rowBtn--danger" type="button"
+                              (click)="deleteDemandeInformation(demande)"
+                              title="Supprimer"
+                              aria-label="Supprimer la demande d'information">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="mainDemandesInformation.length === 0">
+                  <td colspan="8" class="da__emptyState">
+                    <div class="da__emptyIcon">
+                      <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <div class="da__emptyText">
+                      <h4>Aucune demande d'information</h4>
+                      <p *ngIf="demandeInformationSearchTerm || demandeInformationTraitementFilter !== 'all' || demandeInformationUrgenceFilter !== 'all'">
+                        Aucun résultat avec les filtres actuels.
+                      </p>
+                      <p *ngIf="!demandeInformationSearchTerm && demandeInformationTraitementFilter === 'all' && demandeInformationUrgenceFilter === 'all'">
+                        Aucune demande n'a encore été enregistrée dans la base.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Vue Profil Agent -->
     <section *ngIf="currentView === 'profile'">
       <app-agent-profile></app-agent-profile>
@@ -881,6 +1087,127 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Détails Demande Information -->
+<div class="da__modalOverlay" *ngIf="showDemandeInformationModal" (click)="closeDemandeInformationModal()">
+  <div class="da__modal" (click)="$event.stopPropagation()">
+    <div class="da__modalHeader">
+      <div class="da__modalTitle">
+        <i class="fa-solid fa-circle-info"></i>
+        Détails de la demande d'information
+      </div>
+      <button class="da__modalClose" (click)="closeDemandeInformationModal()" aria-label="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="da__modalBody" *ngIf="selectedDemandeInformation">
+      <div class="da__section">
+        <h3 class="da__sectionTitle">Informations générales</h3>
+        <div class="da__infoGrid">
+          <div class="da__infoItem">
+            <label>Nom complet</label>
+            <span>{{ selectedDemandeInformation.nomComplet || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Email</label>
+            <span>{{ selectedDemandeInformation.email || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Téléphone</label>
+            <span>{{ selectedDemandeInformation.telephone || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Agent affecté</label>
+            <span>{{ selectedDemandeInformation.assignedAgentName || 'Non affectée' }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Date de création</label>
+            <span>{{ formatDate(selectedDemandeInformation.dateCreation) }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Niveau</label>
+            <span class="da__status" [attr.data-status]="selectedDemandeInformation.urgent ? 'blocked' : 'open'">
+              <span class="da__statusDot" aria-hidden="true"></span>
+              {{ selectedDemandeInformation.urgent ? 'Urgent' : 'Normal' }}
+            </span>
+          </div>
+          <div class="da__infoItem da__infoItem--full">
+            <label>Sujet</label>
+            <span>{{ selectedDemandeInformation.sujet || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem da__infoItem--full">
+            <label>Message</label>
+            <span>{{ selectedDemandeInformation.message || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="da__modalFooter">
+      <div class="da__modalFooterLeft">
+        <button class="da__btn da__btn--primary" (click)="replyToDemandeInformationByEmail()">
+          <i class="fa-solid fa-paper-plane"></i>
+          Répondre par email
+        </button>
+        <button class="da__btn da__btn--secondary" (click)="closeDemandeInformationModal()">
+          <i class="fa-solid fa-times"></i>
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de réponse email -->
+<div class="da__replyEmailOverlay" *ngIf="showReplyEmailModal" (click)="closeReplyEmailModal()">
+  <div class="da__replyEmailModal" (click)="$event.stopPropagation()">
+    <div class="da__replyEmailHeader">
+      <h3>Répondre par email</h3>
+      <button class="da__replyEmailClose" (click)="closeReplyEmailModal()" title="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="da__replyEmailBody">
+      <div class="da__replyEmailMeta" *ngIf="selectedDemandeInformation">
+        <span><strong>Destinataire:</strong> {{ selectedDemandeInformation.nomComplet || 'N/A' }}</span>
+        <span><strong>Email:</strong> {{ selectedDemandeInformation.email || 'N/A' }}</span>
+      </div>
+
+      <div class="da__replyEmailField">
+        <label for="replyEmailSubject">Sujet</label>
+        <input
+          id="replyEmailSubject"
+          type="text"
+          [(ngModel)]="replyEmailSubject"
+          placeholder="Saisir le sujet de l'email"
+        />
+      </div>
+
+      <div class="da__replyEmailField">
+        <label for="replyEmailContent">Contenu</label>
+        <textarea
+          id="replyEmailContent"
+          [(ngModel)]="replyEmailContent"
+          rows="10"
+          placeholder="Rédigez votre réponse ici..."
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="da__replyEmailFooter">
+      <button class="da__btn da__btn--secondary" (click)="closeReplyEmailModal()" [disabled]="isSendingReplyEmail">
+        <i class="fa-solid fa-times"></i>
+        Annuler
+      </button>
+      <button class="da__btn da__btn--primary" (click)="sendReplyEmail()" [disabled]="isSendingReplyEmail">
+        <i class="fa-solid fa-paper-plane"></i>
+        {{ isSendingReplyEmail ? 'Envoi en cours...' : 'Envoyez' }}
+      </button>
     </div>
   </div>
 </div>

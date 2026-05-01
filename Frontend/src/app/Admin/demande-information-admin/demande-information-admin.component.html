@@ -1,0 +1,185 @@
+<div class="admin-dashboard">
+  <app-topbar></app-topbar>
+
+  <div class="layout">
+    <aside>
+      <app-side-admin></app-side-admin>
+    </aside>
+
+    <main class="content">
+      <section class="stats-grid">
+        <article class="stat-card" *ngFor="let stat of stats">
+          <p class="label">{{ stat.title }}</p>
+          <h3>{{ stat.value }}</h3>
+          <small>{{ stat.subtitle }}</small>
+          <span class="trend" [ngClass]="stat.trend">{{ stat.delta }}</span>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>Demandes d'information</h3>
+          </div>
+          <div class="panel-actions">
+            <span class="count">{{ filteredDemandesInformation.length }} demande(s) trouvée(s)</span>
+          </div>
+        </div>
+
+        <div class="search-section">
+          <div class="search-bar-container">
+            <div class="search-bar">
+              <div class="search-input-wrapper">
+                <i class="fa-solid fa-search search-icon-main"></i>
+                <input
+                  type="text"
+                  class="search-input-main"
+                  [value]="searchTerm"
+                  (input)="onSearchChange($any($event.target).value)"
+                  placeholder="Rechercher par nom, email, sujet..."
+                />
+                <button class="search-clear-main" type="button" (click)="clearSearch()" *ngIf="searchTerm">
+                  <i class="fa-solid fa-times"></i>
+                </button>
+              </div>
+
+              <div class="search-actions">
+                <select class="filter-select" [value]="selectedTraitementFilter" (change)="onTraitementFilterChange($any($event.target).value)">
+                  <option value="ALL">Tous les traitements</option>
+                  <option value="TRAITE">Traité</option>
+                  <option value="NON_TRAITE">Non traité</option>
+                </select>
+
+                <select class="filter-select" [value]="selectedUrgenceFilter" (change)="onUrgenceFilterChange($any($event.target).value)">
+                  <option value="ALL">Tous les niveaux</option>
+                  <option value="URGENT">Urgent</option>
+                  <option value="NORMAL">Normal</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p *ngIf="loading" class="state">Chargement des demandes...</p>
+        <p *ngIf="!loading && errorMessage" class="state error">{{ errorMessage }}</p>
+        <p *ngIf="!loading && !errorMessage && filteredDemandesInformation.length === 0" class="state">
+          Aucune demande trouvée.
+        </p>
+
+        <div class="table-wrap" *ngIf="!loading && !errorMessage && filteredDemandesInformation.length > 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom complet</th>
+                <th>Email</th>
+                <th>Sujet</th>
+                <th>Urgence</th>
+                <th>Traitement</th>
+                <th>Agent affecté</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let demande of filteredDemandesInformation">
+                <td>{{ demande.nomComplet || '-' }}</td>
+                <td>{{ demande.email || '-' }}</td>
+                <td>{{ demande.sujet || '-' }}</td>
+                <td>
+                  <span class="badge" [ngClass]="demande.urgent ? 'status--urgent' : 'status--normal'">
+                    {{ demande.urgent ? 'Urgent' : 'Normal' }}
+                  </span>
+                </td>
+                <td>
+                  <select
+                    class="status-select"
+                    [ngClass]="(demande.traitementStatus || 'NON_TRAITE') === 'TRAITE' ? 'status-select--done' : 'status-select--pending'"
+                    [value]="demande.traitementStatus || 'NON_TRAITE'"
+                    (change)="updateTraitementStatus(demande, $any($event.target).value)">
+                    <option value="NON_TRAITE">Non traité</option>
+                    <option value="TRAITE">Traité</option>
+                  </select>
+                </td>
+                <td>{{ demande.assignedAgentName || 'Non affectée' }}</td>
+                <td>{{ formatDate(demande.dateCreation) }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="icon-btn icon-btn--view" type="button" title="Voir d�tails" (click)="openDetailsModal(demande)">
+                      <i class="fa-regular fa-eye"></i>
+                    </button>
+                    <button class="assign-btn" type="button" (click)="openAssignAgentModal(demande)">
+                      <i class="fa-solid fa-user-check"></i>
+                      Affecter à un agent
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showAssignModal" (click)="closeAssignAgentModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Affecter la demande à un agent</h4>
+      <button type="button" class="modal-close" (click)="closeAssignAgentModal()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-text">
+        Demande: <strong>{{ selectedDemandeToAssign?.nomComplet }}</strong>
+      </p>
+      <select class="filter-select modal-select" [(ngModel)]="selectedAgentIdForAssign">
+        <option [ngValue]="''">Aucun agent (désaffecter)</option>
+        <option *ngFor="let agent of agents" [ngValue]="agent.id">
+          {{ agent.fullName }} ({{ agent.email }})
+        </option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closeAssignAgentModal()" [disabled]="isAssigning">
+        Annuler
+      </button>
+      <button type="button" class="modal-btn modal-btn--primary" (click)="assignSelectedAgent()" [disabled]="isAssigning">
+        Confirmer l'affectation
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showDetailsModal && selectedDemandeForDetails" (click)="closeDetailsModal()">
+  <div class="modal-card details-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header details-modal__header">
+      <h4>Details de la demande d'information</h4>
+      <button type="button" class="modal-close" (click)="closeDetailsModal()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="details-grid">
+        <div><strong>Nom :</strong> {{ selectedDemandeForDetails.nomComplet || '-' }}</div>
+        <div><strong>Email :</strong> {{ selectedDemandeForDetails.email || '-' }}</div>
+        <div><strong>Telephone :</strong> {{ selectedDemandeForDetails.telephone || '-' }}</div>
+        <div><strong>Sujet :</strong> {{ selectedDemandeForDetails.sujet || '-' }}</div>
+        <div><strong>Urgence :</strong> {{ selectedDemandeForDetails.urgent ? 'Urgent' : 'Normal' }}</div>
+        <div><strong>Traitement :</strong> {{ selectedDemandeForDetails.traitementStatus === 'TRAITE' ? 'Traite' : 'Non traite' }}</div>
+        <div><strong>Agent affecte :</strong> {{ selectedDemandeForDetails.assignedAgentName || 'Non affectee' }}</div>
+        <div><strong>Date :</strong> {{ formatDate(selectedDemandeForDetails.dateCreation) }}</div>
+      </div>
+      <div class="message-block">
+        <strong>Message :</strong>
+        <p>{{ selectedDemandeForDetails.message || '-' }}</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closeDetailsModal()">
+        Fermer
+      </button>
+    </div>
+  </div>
+</div>
