@@ -22,7 +22,10 @@
             <h3>Demandes d'information</h3>
           </div>
           <div class="panel-actions">
-            <span class="count">{{ filteredDemandesInformation.length }} demande(s) trouvée(s)</span>
+            <span class="count" *ngIf="totalElements > 0">
+              {{ page * pageSize + 1 }}–{{ (page + 1) * pageSize > totalElements ? totalElements : (page + 1) * pageSize }} sur {{ totalElements }}
+            </span>
+            <span class="count" *ngIf="totalElements === 0 && !loading">0 résultat</span>
           </div>
         </div>
 
@@ -62,11 +65,11 @@
 
         <p *ngIf="loading" class="state">Chargement des demandes...</p>
         <p *ngIf="!loading && errorMessage" class="state error">{{ errorMessage }}</p>
-        <p *ngIf="!loading && !errorMessage && filteredDemandesInformation.length === 0" class="state">
+        <p *ngIf="!loading && !errorMessage && demandesInformation.length === 0" class="state">
           Aucune demande trouvée.
         </p>
 
-        <div class="table-wrap" *ngIf="!loading && !errorMessage && filteredDemandesInformation.length > 0">
+        <div class="table-wrap" *ngIf="!loading && !errorMessage && demandesInformation.length > 0">
           <table>
             <thead>
               <tr>
@@ -81,7 +84,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let demande of filteredDemandesInformation">
+              <tr *ngFor="let demande of demandesInformation">
                 <td>{{ demande.nomComplet || '-' }}</td>
                 <td>{{ demande.email || '-' }}</td>
                 <td>{{ demande.sujet || '-' }}</td>
@@ -116,6 +119,23 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="pagination-bar" *ngIf="!loading && !errorMessage && totalElements > 0">
+          <div class="pagination-size">
+            <label for="adminDemandePageSize">Lignes par page</label>
+            <select
+              id="adminDemandePageSize"
+              [ngModel]="pageSize"
+              (ngModelChange)="onPageSizeChange($event)">
+              <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
+            </select>
+          </div>
+          <div class="pagination-nav">
+            <button type="button" (click)="prevPage()" [disabled]="page <= 0">Précédent</button>
+            <span>Page {{ totalPages > 0 ? page + 1 : 0 }} / {{ totalPages }}</span>
+            <button type="button" (click)="nextPage()" [disabled]="totalPages === 0 || page >= totalPages - 1">Suivant</button>
+          </div>
         </div>
       </section>
     </main>

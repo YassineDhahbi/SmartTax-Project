@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { UserService } from '../../services/user/user.service';
 import { Utilisateur } from '../../models/utilisateur';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, forkJoin } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 interface DemandeInformationAdminItem {
   id: number;
@@ -29,14 +32,20 @@ interface AgentOption {
   templateUrl: './demande-information-admin.component.html',
   styleUrls: ['./demande-information-admin.component.css']
 })
-export class DemandeInformationAdminComponent implements OnInit {
+export class DemandeInformationAdminComponent implements OnInit, OnDestroy {
   demandesInformation: DemandeInformationAdminItem[] = [];
-  filteredDemandesInformation: DemandeInformationAdminItem[] = [];
   loading = false;
   errorMessage = '';
   searchTerm = '';
   selectedTraitementFilter: 'ALL' | 'TRAITE' | 'NON_TRAITE' = 'ALL';
   selectedUrgenceFilter: 'ALL' | 'URGENT' | 'NORMAL' = 'ALL';
+  page = 0;
+  pageSize = 10;
+  readonly pageSizeOptions = [10, 20, 50];
+  totalElements = 0;
+  totalPages = 0;
+  private readonly destroy$ = new Subject<void>();
+  private readonly searchDebounce$ = new Subject<string>();
   agents: AgentOption[] = [];
   showAssignModal = false;
   selectedDemandeToAssign: DemandeInformationAdminItem | null = null;
@@ -70,7 +79,18 @@ export class DemandeInformationAdminComponent implements OnInit {
       }
     });
     this.loadAgents();
+    this.searchDebounce$
+      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.page = 0;
+        this.loadDemandesInformation();
+      });
     this.loadDemandesInformation();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadAgents(): void {
@@ -90,46 +110,130 @@ export class DemandeInformationAdminComponent implements OnInit {
     });
   }
 
+  private buildListParams(): HttpParams {
+    let p = new HttpParams().set('page', String(this.page)).set('size', String(this.pageSize));
+    const q = this.searchTerm.trim();
+    if (q) {
+      p = p.set('search', q);
+    }
+    if (this.selectedTraitementFilter !== 'ALL') {
+      p = p.set('traitement', this.selectedTraitementFilter);
+    }
+    if (this.selectedUrgenceFilter !== 'ALL') {
+      p = p.set('urgence', this.selectedUrgenceFilter === 'URGENT' ? 'urgent' : 'normal');
+    }
+    return p;
+  }
+
   loadDemandesInformation(): void {
     this.loading = true;
     this.errorMessage = '';
-    this.http.get<any>('http://localhost:8080/api/demande-information/all').subscribe({
-      next: (response) => {
-        const items = Array.isArray(response?.items) ? response.items : [];
+    const base = `${environment.apiUrl}/demande-information`;
+    forkJoin({
+      stats: this.http.get<any>(`${base}/stats`),
+      list: this.http.get<any>(`${base}/all`, { params: this.buildListParams() }),
+    }).subscribe({
+      next: ({ stats, list }) => {
+        const items = Array.isArray(list?.items) ? list.items : [];
         this.demandesInformation = items.map((item: DemandeInformationAdminItem) => ({
           ...item,
-          traitementStatus: item.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE'
+          traitementStatus: item.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE',
         }));
-        this.applyFilters();
-        this.updateStats();
+        this.totalElements = Number(list?.total) || 0;
+        this.totalPages = Number(list?.totalPages) || 0;
+        const n = Number(list?.page);
+        if (!Number.isNaN(n)) {
+          this.page = n;
+        }
+        this.stats = [
+          {
+            title: 'Total demandes',
+            value: `${Number(stats?.total) || 0}`,
+            subtitle: 'Toutes les demandes',
+            delta: '--',
+            trend: 'neutral',
+          },
+          {
+            title: 'Traitées',
+            value: `${Number(stats?.traitees) || 0}`,
+            subtitle: 'Statut traité',
+            delta: '--',
+            trend: 'up',
+          },
+          {
+            title: 'Non traitées',
+            value: `${Number(stats?.nonTraitees) || 0}`,
+            subtitle: 'à suivre',
+            delta: '--',
+            trend: 'down',
+          },
+          {
+            title: 'Urgentes',
+            value: `${Number(stats?.urgentes) || 0}`,
+            subtitle: 'Priorité élevée',
+            delta: '--',
+            trend: 'neutral',
+          },
+        ];
         this.tryOpenDemandeFromNotification();
         this.loading = false;
       },
       error: () => {
         this.loading = false;
-        this.errorMessage = 'Impossible de charger les demandes d�information.';
-      }
+        this.errorMessage = 'Impossible de charger les demandes d\'information.';
+      },
     });
   }
 
   onSearchChange(value: string): void {
     this.searchTerm = value;
-    this.applyFilters();
+    this.searchDebounce$.next(value);
   }
 
   clearSearch(): void {
     this.searchTerm = '';
-    this.applyFilters();
+    this.page = 0;
+    this.searchDebounce$.next('');
   }
 
   onTraitementFilterChange(value: string): void {
     this.selectedTraitementFilter = value as 'ALL' | 'TRAITE' | 'NON_TRAITE';
-    this.applyFilters();
+    this.page = 0;
+    this.loadDemandesInformation();
   }
 
   onUrgenceFilterChange(value: string): void {
     this.selectedUrgenceFilter = value as 'ALL' | 'URGENT' | 'NORMAL';
-    this.applyFilters();
+    this.page = 0;
+    this.loadDemandesInformation();
+  }
+
+  goToPage(p: number): void {
+    const last = Math.max(0, this.totalPages - 1);
+    const next = Math.max(0, Math.min(p, last));
+    if (next === this.page) {
+      return;
+    }
+    this.page = next;
+    this.loadDemandesInformation();
+  }
+
+  prevPage(): void {
+    this.goToPage(this.page - 1);
+  }
+
+  nextPage(): void {
+    this.goToPage(this.page + 1);
+  }
+
+  onPageSizeChange(size: number | string): void {
+    const n = typeof size === 'string' ? parseInt(size, 10) : Number(size);
+    if (!Number.isFinite(n) || !this.pageSizeOptions.includes(n)) {
+      return;
+    }
+    this.pageSize = n;
+    this.page = 0;
+    this.loadDemandesInformation();
   }
 
   updateTraitementStatus(demande: DemandeInformationAdminItem, status: 'TRAITE' | 'NON_TRAITE'): void {
@@ -139,18 +243,19 @@ export class DemandeInformationAdminComponent implements OnInit {
 
     const previous = demande.traitementStatus || 'NON_TRAITE';
     demande.traitementStatus = status;
-    this.http.put<any>(`http://localhost:8080/api/demande-information/${demande.id}/traitement-status`, {
-      traitementStatus: status
-    }).subscribe({
-      next: (res) => {
-        demande.traitementStatus = res?.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE';
-        this.updateStats();
-      },
-      error: () => {
-        demande.traitementStatus = previous;
-        this.updateStats();
-      }
-    });
+    this.http
+      .put<any>(`${environment.apiUrl}/demande-information/${demande.id}/traitement-status`, {
+        traitementStatus: status,
+      })
+      .subscribe({
+        next: (res) => {
+          demande.traitementStatus = res?.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE';
+          this.loadDemandesInformation();
+        },
+        error: () => {
+          demande.traitementStatus = previous;
+        },
+      });
   }
 
   openAssignAgentModal(demande: DemandeInformationAdminItem): void {
@@ -175,18 +280,21 @@ export class DemandeInformationAdminComponent implements OnInit {
     const selectedAgentId =
       this.selectedAgentIdForAssign === '' ? null : Number(this.selectedAgentIdForAssign);
 
-    this.http.put<any>(
-      `http://localhost:8080/api/demande-information/${this.selectedDemandeToAssign.id}/assign-agent`,
-      { agentId: selectedAgentId }
-    ).subscribe({
-      next: (response) => {
-        const updatedAgentId = response?.assignedAgentId ?? null;
-        const updatedAgentName = response?.assignedAgentName ?? null;
-        this.selectedDemandeToAssign!.assignedAgentId = updatedAgentId;
-        this.selectedDemandeToAssign!.assignedAgentName = updatedAgentName;
-        this.isAssigning = false;
-        this.closeAssignAgentModal();
-      },
+    this.http
+      .put<any>(
+        `${environment.apiUrl}/demande-information/${this.selectedDemandeToAssign.id}/assign-agent`,
+        { agentId: selectedAgentId }
+      )
+      .subscribe({
+        next: (response) => {
+          const updatedAgentId = response?.assignedAgentId ?? null;
+          const updatedAgentName = response?.assignedAgentName ?? null;
+          this.selectedDemandeToAssign!.assignedAgentId = updatedAgentId;
+          this.selectedDemandeToAssign!.assignedAgentName = updatedAgentName;
+          this.isAssigning = false;
+          this.closeAssignAgentModal();
+          this.loadDemandesInformation();
+        },
       error: () => {
         this.isAssigning = false;
       }
@@ -204,10 +312,11 @@ export class DemandeInformationAdminComponent implements OnInit {
   }
 
   private tryOpenDemandeFromNotification(): void {
-    if (!this.pendingDemandeIdToOpen || !this.demandesInformation.length) {
+    if (!this.pendingDemandeIdToOpen) {
       return;
     }
-    const found = this.demandesInformation.find((d) => Number(d.id) === this.pendingDemandeIdToOpen);
+    const targetId = this.pendingDemandeIdToOpen;
+    const found = this.demandesInformation.find((d) => Number(d.id) === targetId);
     if (found) {
       this.openDetailsModal(found);
       this.pendingDemandeIdToOpen = null;
@@ -215,46 +324,31 @@ export class DemandeInformationAdminComponent implements OnInit {
         relativeTo: this.route,
         queryParams: { openDemandeId: null },
         queryParamsHandling: 'merge',
-        replaceUrl: true
+        replaceUrl: true,
       });
+      return;
     }
-  }
-
-  private applyFilters(): void {
-    const search = this.searchTerm.trim().toLowerCase();
-    this.filteredDemandesInformation = this.demandesInformation.filter((demande) => {
-      const matchesSearch = !search || [
-        demande.nomComplet || '',
-        demande.email || '',
-        demande.sujet || '',
-        demande.message || ''
-      ].some((v) => v.toLowerCase().includes(search));
-
-      const status = demande.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE';
-      const matchesTraitement =
-        this.selectedTraitementFilter === 'ALL' || status === this.selectedTraitementFilter;
-
-      const matchesUrgence =
-        this.selectedUrgenceFilter === 'ALL' ||
-        (this.selectedUrgenceFilter === 'URGENT' && demande.urgent) ||
-        (this.selectedUrgenceFilter === 'NORMAL' && !demande.urgent);
-
-      return matchesSearch && matchesTraitement && matchesUrgence;
+    this.http.get<DemandeInformationAdminItem>(`${environment.apiUrl}/demande-information/${targetId}`).subscribe({
+      next: (raw) => {
+        if (raw?.id != null) {
+          const item: DemandeInformationAdminItem = {
+            ...raw,
+            traitementStatus: raw.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE',
+          };
+          this.openDetailsModal(item);
+        }
+        this.pendingDemandeIdToOpen = null;
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { openDemandeId: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      },
+      error: () => {
+        this.pendingDemandeIdToOpen = null;
+      },
     });
-  }
-
-  private updateStats(): void {
-    const total = this.demandesInformation.length;
-    const traitees = this.demandesInformation.filter((d) => d.traitementStatus === 'TRAITE').length;
-    const nonTraitees = total - traitees;
-    const urgentes = this.demandesInformation.filter((d) => d.urgent).length;
-
-    this.stats = [
-      { title: 'Total demandes', value: `${total}`, subtitle: 'Toutes les demandes', delta: '--', trend: 'neutral' },
-      { title: 'Traitées', value: `${traitees}`, subtitle: 'Statut traité', delta: '--', trend: 'up' },
-      { title: 'Non traitées', value: `${nonTraitees}`, subtitle: 'à suivre', delta: '--', trend: 'down' },
-      { title: 'Urgentes', value: `${urgentes}`, subtitle: 'Priorité élevée', delta: '--', trend: 'neutral' }
-    ];
   }
 
   formatDate(date?: string): string {

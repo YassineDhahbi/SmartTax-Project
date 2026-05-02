@@ -271,6 +271,27 @@
   color: white;
 }
 
+.header-section .btn {
+  border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.25);
+}
+
+.header-section .btn-outline-primary,
+.header-section .btn-outline-secondary {
+  border-width: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.header-section .btn-outline-primary:hover,
+.header-section .btn-outline-secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
 .page-title {
   font-size: 2.5rem;
   font-weight: 700;
@@ -693,6 +714,12 @@ textarea.form-control {
   animation: fadeInUp 0.5s ease;
 }
 
+.historique-section .card {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+}
+
 .reclamation-card {
   border: 2px solid #e9ecef;
   border-radius: 12px;
@@ -705,7 +732,7 @@ textarea.form-control {
 
 .reclamation-card:hover {
   border-color: #3498db;
-  transform: translateY(-3px);
+  transform: translateY(-4px) scale(1.01);
   box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
 }
 
@@ -724,6 +751,25 @@ textarea.form-control {
 
 .card-body-custom {
   padding: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.reclamation-unread-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0c4a6e;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  border: 1px solid #7dd3fc;
+}
+
+.reclamation-unread-notice i {
+  color: #0284c7;
 }
 
 .reclamation-sujet {
@@ -744,10 +790,61 @@ textarea.form-control {
   flex-wrap: wrap;
 }
 
+.draft-action-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.draft-action-btn.edit {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+.draft-action-btn.edit:hover {
+  background: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.draft-action-btn.delete {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+.draft-action-btn.delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+}
+
 /* Messagerie Section */
 .messaging-section {
   margin-bottom: 30px;
   animation: slideInLeft 0.5s ease;
+}
+
+.selected-reclamation-detail {
+  background: #f8fbff;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.selected-reclamation-detail p {
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.messagerie-waiting-hint {
+  border-radius: 10px;
+  border: none;
+  font-size: 0.9rem;
 }
 
 .messages-container {
@@ -803,6 +900,20 @@ textarea.form-control {
   line-height: 1.4;
 }
 
+.message-attachment-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 0.84rem;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.message-attachment-link:hover {
+  text-decoration: underline;
+}
+
 .message-form {
   padding: 20px;
   background: white;
@@ -819,6 +930,10 @@ textarea.form-control {
   border: none;
   border-radius: 15px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+
+.delete-confirm-modal {
+  border-top: 4px solid #dc3545;
 }
 
 .modal-header {

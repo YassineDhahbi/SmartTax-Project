@@ -162,6 +162,19 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
             localStorage.setItem('token', response.token);
             localStorage.setItem('userId', response.idUtilisateur);
             localStorage.setItem('role', response.role);
+            if (response.email) {
+              localStorage.setItem('email', response.email);
+              localStorage.setItem('userEmail', response.email);
+            }
+            if (response.firstName != null) {
+              localStorage.setItem('firstName', String(response.firstName));
+            }
+            if (response.lastName != null) {
+              localStorage.setItem('lastName', String(response.lastName));
+            }
+            if (response.telephone) {
+              localStorage.setItem('telephone', String(response.telephone));
+            }
             this.addToast('Succès', 'Connexion réussie ! Redirection...', 'toast-success');
             // Redirection basée sur le rôle
             if (response.role === 'ADMIN') {

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
 import { EmailService } from '../../services/email/email.service';
@@ -8,8 +8,12 @@ import { Immatriculation } from '../../models/immatriculation.model';
 import { PublicationStats } from '../../models/publication.model';
 import jsPDF from 'jspdf';
 import * as QRCode from 'qrcode';
-import { Subscription, interval } from 'rxjs';
+import { Subscription, Subject, interval } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { AdminNotificationItem, AdminNotificationService } from '../../services/admin-notification.service';
+import { environment } from '../../../environments/environment';
+import { ReclamationService, Message as ReclamationChatMessage } from '../../services/reclamation.service';
+import { ReclamationChatStompService } from '../../services/reclamation-chat-stomp.service';
 
 type Tone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger';
 
@@ -67,6 +71,13 @@ interface AlertItem {
   icon: string;
 }
 
+interface DemandeInformationStats {
+  total: number;
+  traitees: number;
+  nonTraitees: number;
+  urgentes: number;
+}
+
 interface DemandeInformationItem {
   id: number;
   nomComplet: string;
@@ -79,6 +90,39 @@ interface DemandeInformationItem {
   traitementStatus?: 'TRAITE' | 'NON_TRAITE';
   assignedAgentId?: number | null;
   assignedAgentName?: string | null;
+}
+
+interface AgentReclamationStats {
+  totalSoumises: number;
+  etatEnCours: number;
+  etatTraite: number;
+  prioriteHaute: number;
+}
+
+interface AgentReclamationPiece {
+  nom?: string;
+  taille?: number;
+  type?: string;
+  url?: string;
+}
+
+interface AgentReclamationRow {
+  id: number;
+  reference?: string;
+  sujet: string;
+  description?: string;
+  categorie?: string;
+  typeDisplay: string;
+  urgenceDisplay: string;
+  urgenceCode: string;
+  statut: string;
+  etatReclamation?: string | null;
+  emailUser?: string;
+  nomUser?: string;
+  telephoneUser?: string;
+  dateCreation?: string;
+  dateSoumission?: string;
+  piecesJointes?: AgentReclamationPiece[];
 }
 
 @Component({
@@ -95,7 +139,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
 
   activeNavKey: string = 'overview';
 
-  currentView: string = 'overview'; // 'overview', 'dossiers', 'demande-information', 'publications', or 'profile'
+  currentView: string = 'overview'; // 'overview', 'dossiers', 'demande-information', 'reclamation', 'publications', or 'profile'
 
   activityRange: '7d' | '30d' = '7d';
 
@@ -109,6 +153,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   pendingImmatriculationIdToOpen: number | null = null;
   pendingPublicationIdToOpen: number | null = null;
   pendingDemandeInformationIdToOpen: number | null = null;
+  pendingReclamationIdToOpen: number | null = null;
   currentAgentId: number | null = null;
   private refreshNotificationsSub?: Subscription;
 
@@ -118,6 +163,8 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     private trashService: TrashService,
     private emailService: EmailService,
     private publicationService: PublicationService,
+    private reclamationService: ReclamationService,
+    private reclamationChatStomp: ReclamationChatStompService,
     private cdr: ChangeDetectorRef,
     private notificationService: AdminNotificationService
   ) {}
@@ -157,14 +204,63 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   filteredImmatriculations: any[] = [];
   isLoadingImmatriculations = false;
 
-  demandesInformation: DemandeInformationItem[] = [];
+  demandesInformationMain: DemandeInformationItem[] = [];
   isLoadingDemandesInformation = false;
   selectedDemandeInformation: DemandeInformationItem | null = null;
   showDemandeInformationModal = false;
   demandeInformationSearchTerm = '';
   demandeInformationTraitementFilter: 'all' | 'TRAITE' | 'NON_TRAITE' = 'all';
   demandeInformationUrgenceFilter: 'all' | 'urgent' | 'normal' = 'all';
+  demandeInfoMainPage = 0;
+  demandeInfoPageSize = 10;
+  readonly demandeInfoPageSizeOptions = [10, 20, 50];
+  demandeInfoMainTotalElements = 0;
+  demandeInfoMainTotalPages = 0;
+  demandeInformationStats: DemandeInformationStats = {
+    total: 0,
+    traitees: 0,
+    nonTraitees: 0,
+    urgentes: 0,
+  };
+
+  agentReclamations: AgentReclamationRow[] = [];
+  isLoadingAgentReclamations = false;
+  agentReclamationSearchTerm = '';
+  agentReclamationPage = 0;
+  agentReclamationPageSize = 10;
+  agentReclamationTotalElements = 0;
+  agentReclamationTotalPages = 0;
+  /** Noms d'attributs alignés sur l'API /reclamation/all (tri serveur). */
+  agentReclamationSortField = 'dateCreation';
+  agentReclamationSortDir: 'ASC' | 'DESC' = 'DESC';
+  /** Valeurs API : EN_COURS, TRAITE ; 'all' = pas de filtre. */
+  agentReclamationEtatFilter: 'all' | 'EN_COURS' | 'TRAITE' = 'all';
+  /** Valeurs API : BASSE, MOYENNE, HAUTE, URGENTE ; 'all' = pas de filtre. */
+  agentReclamationUrgenceFilter: 'all' | 'BASSE' | 'MOYENNE' | 'HAUTE' | 'URGENTE' = 'all';
+  readonly agentReclamationPageSizeOptions = [10, 20, 50];
+  agentReclamationEtatUpdatingId: number | null = null;
+  agentReclamationStats: AgentReclamationStats = {
+    totalSoumises: 0,
+    etatEnCours: 0,
+    etatTraite: 0,
+    prioriteHaute: 0,
+  };
+  private readonly destroy$ = new Subject<void>();
+  private readonly agentReclamationSearchDebounce$ = new Subject<string>();
+  private readonly demandeInformationSearchDebounce$ = new Subject<string>();
+  showAgentReclamationModal = false;
+  selectedAgentReclamation: AgentReclamationRow | null = null;
+  showReclamationChatModal = false;
+  reclamationChatRow: AgentReclamationRow | null = null;
+  reclamationChatMessages: ReclamationChatMessage[] = [];
+  reclamationChatInput = '';
+  reclamationChatFile: File | null = null;
+  isLoadingReclamationChat = false;
+  isSendingReclamationChat = false;
+  private reclamationChatStompSub?: Subscription;
   showReplyEmailModal = false;
+  /** Contexte du modal « Répondre par email » (demande d’info ou réclamation). */
+  replyEmailFor: 'demande-information' | 'reclamation' | null = null;
   replyEmailSubject = '';
   replyEmailContent = '';
   isSendingReplyEmail = false;
@@ -248,10 +344,26 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     this.loadUserName();
     this.refreshNotifications();
     this.refreshNotificationsSub = interval(15000).subscribe(() => this.refreshNotifications());
+    this.agentReclamationSearchDebounce$
+      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.agentReclamationPage = 0;
+        this.loadAgentReclamations();
+      });
+    this.demandeInformationSearchDebounce$
+      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.demandeInfoMainPage = 0;
+        this.loadDemandesInformation();
+      });
   }
 
   ngOnDestroy(): void {
+    this.reclamationChatStompSub?.unsubscribe();
+    this.reclamationChatStomp.stop();
     this.refreshNotificationsSub?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadUserName(): void {
@@ -384,8 +496,9 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     {
       title: 'Communication',
       items: [
+        { key: 'reclamation', label: 'Réclamations', icon: 'fa-solid fa-file-circle-exclamation' },
         { key: 'demande-information', label: 'Demande Information', icon: 'fa-solid fa-circle-info' },
-        { key: 'support', label: 'Centre d\'aide', icon: 'fa-solid fa-circle-question' },
+        
       ],
     },
     {
@@ -480,6 +593,47 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
       ];
     }
 
+    if (this.currentView === 'reclamation') {
+      return [
+        {
+          label: 'Soumises',
+          value: this.getAgentReclamationsTotalCount().toString(),
+          sub: 'Réclamations déposées',
+          icon: 'fa-solid fa-paper-plane',
+          delta: '+0%',
+          deltaUp: true,
+          tone: 'brand',
+        },
+        {
+          label: 'État en cours',
+          value: this.countAgentReclamationsByEtat('EN_COURS').toString(),
+          sub: 'Traitement non clos',
+          icon: 'fa-solid fa-spinner',
+          delta: '+0%',
+          deltaUp: false,
+          tone: 'warning',
+        },
+        {
+          label: 'État traité',
+          value: this.countAgentReclamationsByEtat('TRAITE').toString(),
+          sub: 'Dossiers marqués traités',
+          icon: 'fa-solid fa-circle-check',
+          delta: '+0%',
+          deltaUp: true,
+          tone: 'success',
+        },
+        {
+          label: 'Priorité haute',
+          value: this.countAgentReclamationsUrgenceElevee().toString(),
+          sub: 'Haute ou urgente',
+          icon: 'fa-solid fa-triangle-exclamation',
+          delta: '+0%',
+          deltaUp: false,
+          tone: 'danger',
+        },
+      ];
+    }
+
     return [
       {
         label: 'Total',
@@ -553,19 +707,346 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   }
 
   getTotalDemandesInformationCount(): number {
-    return this.demandesInformation.length;
+    return this.demandeInformationStats.total;
   }
 
   getDemandesTraiteesCount(): number {
-    return this.demandesInformation.filter((demande) => demande.traitementStatus === 'TRAITE').length;
+    return this.demandeInformationStats.traitees;
   }
 
   getDemandesNonTraiteesCount(): number {
-    return this.demandesInformation.filter((demande) => demande.traitementStatus !== 'TRAITE').length;
+    return this.demandeInformationStats.nonTraitees;
   }
 
   getDemandesUrgentesCount(): number {
-    return this.demandesInformation.filter((demande) => demande.urgent === true).length;
+    return this.demandeInformationStats.urgentes;
+  }
+
+  getAgentReclamationsTotalCount(): number {
+    return this.agentReclamationStats.totalSoumises;
+  }
+
+  countAgentReclamationsByEtat(etat: string): number {
+    if (etat === 'EN_COURS') return this.agentReclamationStats.etatEnCours;
+    if (etat === 'TRAITE') return this.agentReclamationStats.etatTraite;
+    return 0;
+  }
+
+  countAgentReclamationsUrgenceElevee(): number {
+    return this.agentReclamationStats.prioriteHaute;
+  }
+
+  onAgentReclamationSearchInput(): void {
+    this.agentReclamationSearchDebounce$.next(this.agentReclamationSearchTerm);
+  }
+
+  clearAgentReclamationSearch(): void {
+    this.agentReclamationSearchTerm = '';
+    this.agentReclamationPage = 0;
+    this.agentReclamationSearchDebounce$.next('');
+  }
+
+  onAgentReclamationFilterChange(): void {
+    this.agentReclamationPage = 0;
+    this.loadAgentReclamations();
+  }
+
+  goToAgentReclamationPage(page: number): void {
+    const last = Math.max(0, this.agentReclamationTotalPages - 1);
+    const p = Math.max(0, Math.min(page, last));
+    if (p === this.agentReclamationPage) {
+      return;
+    }
+    this.agentReclamationPage = p;
+    this.loadAgentReclamations();
+  }
+
+  agentReclamationPrevPage(): void {
+    this.goToAgentReclamationPage(this.agentReclamationPage - 1);
+  }
+
+  agentReclamationNextPage(): void {
+    this.goToAgentReclamationPage(this.agentReclamationPage + 1);
+  }
+
+  setAgentReclamationSort(field: string): void {
+    if (this.agentReclamationSortField === field) {
+      this.agentReclamationSortDir = this.agentReclamationSortDir === 'ASC' ? 'DESC' : 'ASC';
+    } else {
+      this.agentReclamationSortField = field;
+      this.agentReclamationSortDir =
+        field === 'dateCreation' || field === 'dateSoumission' ? 'DESC' : 'ASC';
+    }
+    this.agentReclamationPage = 0;
+    this.loadAgentReclamations();
+  }
+
+  agentReclamationSortIcon(field: string): string {
+    if (this.agentReclamationSortField !== field) {
+      return 'fa-sort';
+    }
+    return this.agentReclamationSortDir === 'ASC' ? 'fa-sort-up' : 'fa-sort-down';
+  }
+
+  onAgentReclamationPageSizeChange(size: number | string): void {
+    const n = typeof size === 'string' ? parseInt(size, 10) : Number(size);
+    if (!Number.isFinite(n) || !this.agentReclamationPageSizeOptions.includes(n)) return;
+    this.agentReclamationPageSize = n;
+    this.agentReclamationPage = 0;
+    this.loadAgentReclamations();
+  }
+
+  get agentReclamationPageDisplayFrom(): number {
+    if (this.agentReclamationTotalElements === 0) return 0;
+    return this.agentReclamationPage * this.agentReclamationPageSize + 1;
+  }
+
+  get agentReclamationPageDisplayTo(): number {
+    return Math.min(
+      (this.agentReclamationPage + 1) * this.agentReclamationPageSize,
+      this.agentReclamationTotalElements
+    );
+  }
+
+  formatAgentReclamationStatut(statut: string): string {
+    const labels: Record<string, string> = {
+      BROUILLON: 'Brouillon',
+      SOUMIS: 'Soumis',
+      EN_COURS: 'En cours',
+      RESOLU: 'Résolu',
+      REJETE: 'Rejeté',
+    };
+    return labels[statut] || statut;
+  }
+
+  formatAgentReclamationEtat(etat: string | null | undefined): string {
+    if (!etat) return '—';
+    const labels: Record<string, string> = {
+      EN_COURS: 'En cours',
+      TRAITE: 'Traité',
+    };
+    return labels[etat] || etat;
+  }
+
+  normalizeEtatForSelect(etat: string | null | undefined): 'EN_COURS' | 'TRAITE' {
+    return etat === 'TRAITE' ? 'TRAITE' : 'EN_COURS';
+  }
+
+  updateAgentReclamationEtat(row: AgentReclamationRow, etat: string): void {
+    if (!row?.id) {
+      return;
+    }
+    const target: 'EN_COURS' | 'TRAITE' = etat === 'TRAITE' ? 'TRAITE' : 'EN_COURS';
+    const prevNorm = this.normalizeEtatForSelect(row.etatReclamation);
+    if (prevNorm === target) {
+      return;
+    }
+
+    const previous = row.etatReclamation;
+    this.agentReclamationEtatUpdatingId = row.id;
+    row.etatReclamation = target;
+
+    const params = new HttpParams().set('etat', target);
+    this.http.put<any>(`${environment.apiUrl}/reclamation/${row.id}/etat-traitement`, null, { params }).subscribe({
+      next: (dto) => {
+        const rawEtat = dto?.etatReclamation != null ? this.pickReclamationDtoValue(dto.etatReclamation) : target;
+        row.etatReclamation = rawEtat === 'TRAITE' ? 'TRAITE' : 'EN_COURS';
+        this.agentReclamationEtatUpdatingId = null;
+        this.loadAgentReclamationStats();
+        this.showNotification('État de traitement mis à jour.', 'success');
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Erreur mise à jour état réclamation:', err);
+        row.etatReclamation = previous;
+        this.agentReclamationEtatUpdatingId = null;
+        this.showNotification("Impossible de mettre à jour l'état.", 'error');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  viewAgentReclamationDetails(row: AgentReclamationRow): void {
+    this.selectedAgentReclamation = row;
+    this.showAgentReclamationModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeAgentReclamationModal(): void {
+    this.showAgentReclamationModal = false;
+    this.selectedAgentReclamation = null;
+    this.closeReplyEmailModal();
+  }
+
+  openReclamationChat(row: AgentReclamationRow | null): void {
+    if (!row?.id) {
+      this.showNotification('Réclamation invalide.', 'error');
+      return;
+    }
+    this.reclamationChatRow = row;
+    this.reclamationChatInput = '';
+    this.reclamationChatFile = null;
+    this.showReclamationChatModal = true;
+    this.reclamationChatStompSub?.unsubscribe();
+    this.reclamationChatStompSub = undefined;
+    this.reclamationChatStomp.stopChat();
+
+    const reclamationId = row.id;
+    this.loadReclamationChatMessages(() => {
+      this.reclamationChatStompSub = this.reclamationChatStomp.watch(reclamationId).subscribe((msg) => {
+        this.mergeReclamationIncomingMessage(msg);
+        this.cdr.markForCheck();
+      });
+    });
+  }
+
+  closeReclamationChatModal(): void {
+    this.reclamationChatStompSub?.unsubscribe();
+    this.reclamationChatStompSub = undefined;
+    this.reclamationChatStomp.stopChat();
+    this.showReclamationChatModal = false;
+    this.reclamationChatRow = null;
+    this.reclamationChatMessages = [];
+    this.reclamationChatInput = '';
+    this.reclamationChatFile = null;
+    this.isLoadingReclamationChat = false;
+    this.isSendingReclamationChat = false;
+  }
+
+  private mergeReclamationIncomingMessage(msg: ReclamationChatMessage): void {
+    if (msg.id != null && this.reclamationChatMessages.some((m) => m.id === msg.id)) {
+      return;
+    }
+    this.reclamationChatMessages = [...this.reclamationChatMessages, msg].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  }
+
+  private loadReclamationChatMessages(afterLoaded?: () => void): void {
+    const row = this.reclamationChatRow;
+    if (!row?.id) {
+      return;
+    }
+    this.isLoadingReclamationChat = true;
+    this.reclamationService.getMessages(row.id).subscribe({
+      next: (msgs: ReclamationChatMessage[]) => {
+        this.reclamationChatMessages = msgs;
+        this.isLoadingReclamationChat = false;
+        afterLoaded?.();
+        this.cdr.markForCheck();
+      },
+      error: (err: unknown) => {
+        console.error(err);
+        this.reclamationChatMessages = [];
+        this.isLoadingReclamationChat = false;
+        this.showNotification('Impossible de charger la messagerie.', 'error');
+        afterLoaded?.();
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  sendReclamationChatMessage(): void {
+    const row = this.reclamationChatRow;
+    const text = this.reclamationChatInput.trim();
+    if (!row?.id || (!text && !this.reclamationChatFile)) {
+      return;
+    }
+    this.isSendingReclamationChat = true;
+    this.reclamationService.sendAgentMessage(row.id, text, this.reclamationChatFile).subscribe({
+      next: (msg: ReclamationChatMessage) => {
+        this.mergeReclamationIncomingMessage(msg);
+        this.reclamationChatInput = '';
+        this.reclamationChatFile = null;
+        this.isSendingReclamationChat = false;
+        this.showNotification('Message envoyé.', 'success');
+        this.cdr.markForCheck();
+      },
+      error: (err: { error?: { message?: string } }) => {
+        console.error(err);
+        this.isSendingReclamationChat = false;
+        const apiMsg = err?.error?.message;
+        this.showNotification(
+          typeof apiMsg === 'string' ? apiMsg : "Impossible d'envoyer le message.",
+          'error'
+        );
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  onReclamationChatFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files && input.files.length > 0 ? input.files[0] : null;
+    if (!file) {
+      this.reclamationChatFile = null;
+      return;
+    }
+    const validation = this.reclamationService.validateFile(file);
+    if (!validation.isValid) {
+      this.reclamationChatFile = null;
+      input.value = '';
+      this.showNotification(validation.error || 'Fichier invalide.', 'error');
+      return;
+    }
+    this.reclamationChatFile = file;
+  }
+
+  clearReclamationChatFile(): void {
+    this.reclamationChatFile = null;
+  }
+
+  reclamationChatAttachmentHref(msg: ReclamationChatMessage): string {
+    const piece: any = (msg as any)?.pieceJointe;
+    const rawUrl = piece?.url;
+    if (!rawUrl || typeof rawUrl !== 'string') {
+      return '';
+    }
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      return rawUrl;
+    }
+    const origin = environment.apiUrl.replace(/\/?api\/?$/, '').replace(/\/$/, '');
+    return rawUrl.startsWith('/') ? `${origin}${rawUrl}` : `${origin}/${rawUrl}`;
+  }
+
+  reclamationChatAttachmentName(msg: ReclamationChatMessage): string {
+    const piece: any = (msg as any)?.pieceJointe;
+    const n = piece?.nom;
+    return typeof n === 'string' && n.trim() ? n : 'Pièce jointe';
+  }
+
+  reclamationChatAuthorLabel(auteur: string): string {
+    if (auteur === 'agent') {
+      return 'Vous (agent)';
+    }
+    const name = this.reclamationChatRow?.nomUser?.trim();
+    return name || 'Contribuable';
+  }
+
+  /** URL absolue pour téléchargement (le chemin API contient le nom réel du fichier sur disque). */
+  agentReclamationPieceHref(piece: AgentReclamationPiece): string {
+    const u = piece?.url?.trim();
+    if (!u) {
+      return '';
+    }
+    if (u.startsWith('http://') || u.startsWith('https://')) {
+      return u;
+    }
+    const origin = environment.apiUrl.replace(/\/?api\/?$/, '').replace(/\/$/, '');
+    return u.startsWith('/') ? `${origin}${u}` : `${origin}/${u}`;
+  }
+
+  formatAttachmentSize(bytes: number | undefined): string {
+    if (bytes == null || !Number.isFinite(bytes) || bytes < 0) {
+      return '';
+    }
+    if (bytes < 1024) {
+      return `${bytes} o`;
+    }
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} Ko`;
+    }
+    return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
   }
 
   quickActions: QuickAction[] = [
@@ -663,7 +1144,13 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
       this.loadImmatriculations();
     } else if (key === 'demande-information') {
       this.currentView = 'demande-information';
+      this.demandeInfoMainPage = 0;
       this.loadDemandesInformation();
+    } else if (key === 'reclamation') {
+      this.currentView = 'reclamation';
+      this.agentReclamationPage = 0;
+      this.loadAgentReclamationStats();
+      this.loadAgentReclamations();
     } else if (key === 'publications') {
       this.currentView = 'publications';
       this.loadPublicationStats();
@@ -744,6 +1231,14 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
         this.setActiveNav('demande-information');
         return;
       }
+      if (eventType.includes('RECLAMATION')) {
+        this.pendingReclamationIdToOpen = this.resolveReclamationIdFromNotification(item);
+        this.agentReclamationSearchTerm = '';
+        this.agentReclamationEtatFilter = 'all';
+        this.agentReclamationUrgenceFilter = 'all';
+        this.setActiveNav('reclamation');
+        return;
+      }
       if (eventType.includes('PUBLICATION') || eventType.includes('COMMENT')) {
         const publicationId = item.publicationId ? Number(item.publicationId) : null;
         this.pendingPublicationIdToOpen = null;
@@ -807,7 +1302,8 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
       return eventType.includes('IMMATRICULATION')
         || eventType.includes('PUBLICATION')
         || eventType.includes('COMMENT')
-        || eventType.includes('DEMANDE_INFORMATION');
+        || eventType.includes('DEMANDE_INFORMATION')
+        || eventType.includes('RECLAMATION');
     });
     return filtered.length > 0 ? filtered : this.notifications;
   }
@@ -840,12 +1336,20 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     });
   }
 
+  get reclamationNotifications(): AdminNotificationItem[] {
+    return this.dashboardNotifications.filter((item) => {
+      const eventType = `${item?.eventType || ''}`.toUpperCase();
+      return eventType.includes('RECLAMATION');
+    });
+  }
+
   get hasGroupedNotifications(): boolean {
     return (
       this.publicationNotifications.length > 0 ||
       this.commentNotifications.length > 0 ||
       this.immatriculationNotifications.length > 0 ||
-      this.demandeInformationNotifications.length > 0
+      this.demandeInformationNotifications.length > 0 ||
+      this.reclamationNotifications.length > 0
     );
   }
 
@@ -862,7 +1366,8 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     return eventType.includes('IMMATRICULATION')
       || eventType.includes('PUBLICATION')
       || eventType.includes('COMMENT')
-      || eventType.includes('DEMANDE_INFORMATION');
+      || eventType.includes('DEMANDE_INFORMATION')
+      || eventType.includes('RECLAMATION');
   }
 
   get fallbackNotifications(): AdminNotificationItem[] {
@@ -885,12 +1390,47 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Unifie les champs renvoyés par l'API (camelCase / snake_case, id numérique).
+   */
+  private normalizeAdminNotificationItem(raw: any): AdminNotificationItem {
+    const publicationId = raw?.publicationId ?? raw?.publication_id;
+    const reclamationId = raw?.reclamationId ?? raw?.reclamation_id;
+    const read =
+      raw?.isRead ??
+      raw?.is_read ??
+      raw?.read;
+    return {
+      id: Number(raw?.id),
+      eventType: String(raw?.eventType ?? raw?.event_type ?? ''),
+      title: String(raw?.title ?? ''),
+      message: String(raw?.message ?? ''),
+      publicationId: publicationId != null && publicationId !== '' ? Number(publicationId) : undefined,
+      reclamationId: reclamationId != null && reclamationId !== '' ? Number(reclamationId) : undefined,
+      isRead: read === true || read === 1 || read === 'true',
+      createdAt: String(raw?.createdAt ?? raw?.created_at ?? ''),
+    };
+  }
+
+  private resolveReclamationIdFromNotification(item: AdminNotificationItem): number | null {
+    const fromField = item.reclamationId != null ? Number(item.reclamationId) : NaN;
+    if (Number.isFinite(fromField)) {
+      return fromField;
+    }
+    const anyItem = item as any;
+    const snake = anyItem?.reclamation_id;
+    if (snake != null && Number.isFinite(Number(snake))) {
+      return Number(snake);
+    }
+    return null;
+  }
+
   private refreshNotifications(): void {
     this.isLoadingNotifications = true;
     this.notificationService.getMyNotifications().subscribe({
       next: (items) => {
         const safeItems = Array.isArray(items) ? items : [];
-        this.notifications = safeItems;
+        this.notifications = safeItems.map((raw) => this.normalizeAdminNotificationItem(raw));
         this.isLoadingNotifications = false;
       },
       error: () => {
@@ -950,25 +1490,276 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadDemandeInformationStats(): void {
+    this.http.get<DemandeInformationStats>(`${environment.apiUrl}/demande-information/stats`).subscribe({
+      next: (s) => {
+        this.demandeInformationStats = {
+          total: Number(s?.total) || 0,
+          traitees: Number(s?.traitees) || 0,
+          nonTraitees: Number(s?.nonTraitees) || 0,
+          urgentes: Number(s?.urgentes) || 0,
+        };
+        this.cdr.markForCheck();
+      },
+      error: (err) => console.error('Erreur stats demandes information:', err),
+    });
+  }
+
+  private mapDemandeInformationItems(raw: any[]): DemandeInformationItem[] {
+    return (Array.isArray(raw) ? raw : []).map((item: DemandeInformationItem) => ({
+      ...item,
+      traitementStatus: item.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE',
+    }));
+  }
+
+  private buildDemandeInfoParams(page: number): HttpParams {
+    let p = new HttpParams().set('page', String(page)).set('size', String(this.demandeInfoPageSize));
+    const q = this.demandeInformationSearchTerm.trim();
+    if (q) {
+      p = p.set('search', q);
+    }
+    if (this.demandeInformationTraitementFilter !== 'all') {
+      p = p.set('traitement', this.demandeInformationTraitementFilter);
+    }
+    if (this.demandeInformationUrgenceFilter !== 'all') {
+      p = p.set('urgence', this.demandeInformationUrgenceFilter);
+    }
+    return p;
+  }
+
+  private applyDemandeInfoListResponse(response: any): void {
+    const items = this.mapDemandeInformationItems(response?.items);
+    const total = Number(response?.total) || 0;
+    const totalPages = Number(response?.totalPages) || 0;
+    const num = Number(response?.page);
+    this.demandesInformationMain = items;
+    this.demandeInfoMainTotalElements = total;
+    this.demandeInfoMainTotalPages = totalPages;
+    if (!Number.isNaN(num)) {
+      this.demandeInfoMainPage = num;
+    }
+  }
+
   private loadDemandesInformation(): void {
     this.isLoadingDemandesInformation = true;
-    this.http.get<any>('http://localhost:8080/api/demande-information/all').subscribe({
+    this.loadDemandeInformationStats();
+    const base = `${environment.apiUrl}/demande-information/all`;
+    const resetOnError = () => {
+      this.demandesInformationMain = [];
+      this.demandeInfoMainTotalElements = 0;
+      this.demandeInfoMainTotalPages = 0;
+      this.isLoadingDemandesInformation = false;
+    };
+
+    this.http.get<any>(base, { params: this.buildDemandeInfoParams(this.demandeInfoMainPage) }).subscribe({
       next: (response) => {
-        const items = Array.isArray(response?.items) ? response.items : [];
-        this.demandesInformation = items.map((item: DemandeInformationItem) => ({
-          ...item,
-          traitementStatus: item.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE'
-        }));
-        this.tryOpenDemandeInformationFromNotification();
+        this.applyDemandeInfoListResponse(response);
         this.isLoadingDemandesInformation = false;
+        this.tryOpenDemandeInformationFromNotification();
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Erreur lors du chargement des demandes d\'information:', error);
-        this.demandesInformation = [];
+        resetOnError();
         this.pendingDemandeInformationIdToOpen = null;
-        this.isLoadingDemandesInformation = false;
-      }
+      },
     });
+  }
+
+  onDemandeInformationSearchInput(): void {
+    this.demandeInformationSearchDebounce$.next(this.demandeInformationSearchTerm);
+  }
+
+  clearDemandeInformationSearch(): void {
+    this.demandeInformationSearchTerm = '';
+    this.demandeInfoMainPage = 0;
+    this.demandeInformationSearchDebounce$.next('');
+  }
+
+  onDemandeInformationFilterChange(): void {
+    this.demandeInfoMainPage = 0;
+    this.loadDemandesInformation();
+  }
+
+  goToDemandeInfoMainPage(page: number): void {
+    const last = Math.max(0, this.demandeInfoMainTotalPages - 1);
+    const p = Math.max(0, Math.min(page, last));
+    if (p === this.demandeInfoMainPage) {
+      return;
+    }
+    this.demandeInfoMainPage = p;
+    this.loadDemandesInformation();
+  }
+
+  demandeInfoMainPrevPage(): void {
+    this.goToDemandeInfoMainPage(this.demandeInfoMainPage - 1);
+  }
+
+  demandeInfoMainNextPage(): void {
+    this.goToDemandeInfoMainPage(this.demandeInfoMainPage + 1);
+  }
+
+  onDemandeInfoPageSizeChange(size: number | string): void {
+    const n = typeof size === 'string' ? parseInt(size, 10) : Number(size);
+    if (!Number.isFinite(n) || !this.demandeInfoPageSizeOptions.includes(n)) {
+      return;
+    }
+    this.demandeInfoPageSize = n;
+    this.demandeInfoMainPage = 0;
+    this.loadDemandesInformation();
+  }
+
+  get demandeInfoMainPageDisplayFrom(): number {
+    if (this.demandeInfoMainTotalElements === 0) {
+      return 0;
+    }
+    return this.demandeInfoMainPage * this.demandeInfoPageSize + 1;
+  }
+
+  get demandeInfoMainPageDisplayTo(): number {
+    return Math.min(
+      (this.demandeInfoMainPage + 1) * this.demandeInfoPageSize,
+      this.demandeInfoMainTotalElements
+    );
+  }
+
+  private loadAgentReclamationStats(): void {
+    this.http
+      .get<AgentReclamationStats>(`${environment.apiUrl}/reclamation/agent-stats?statut=SOUMIS`)
+      .subscribe({
+        next: (s) => {
+          this.agentReclamationStats = {
+            totalSoumises: Number(s?.totalSoumises) || 0,
+            etatEnCours: Number(s?.etatEnCours) || 0,
+            etatTraite: Number(s?.etatTraite) || 0,
+            prioriteHaute: Number(s?.prioriteHaute) || 0,
+          };
+          this.cdr.markForCheck();
+        },
+        error: (err) => console.error('Erreur stats réclamations agent:', err),
+      });
+  }
+
+  private loadAgentReclamations(): void {
+    this.isLoadingAgentReclamations = true;
+    let params = new HttpParams()
+      .set('page', String(this.agentReclamationPage))
+      .set('size', String(this.agentReclamationPageSize))
+      .set('statut', 'SOUMIS')
+      .set('sort', this.agentReclamationSortField)
+      .set('direction', this.agentReclamationSortDir);
+    const q = this.agentReclamationSearchTerm.trim();
+    if (q) {
+      params = params.set('search', q);
+    }
+    if (this.agentReclamationEtatFilter !== 'all') {
+      params = params.set('etat', this.agentReclamationEtatFilter);
+    }
+    if (this.agentReclamationUrgenceFilter !== 'all') {
+      params = params.set('urgence', this.agentReclamationUrgenceFilter);
+    }
+    this.http.get<any>(`${environment.apiUrl}/reclamation/all`, { params }).subscribe({
+      next: (page) => {
+        const content = Array.isArray(page?.content) ? page.content : [];
+        this.agentReclamations = content.map((raw: any) => this.normalizeAgentReclamationRow(raw));
+        this.agentReclamationTotalElements = Number(page?.totalElements) || 0;
+        this.agentReclamationTotalPages = Number(page?.totalPages) || 0;
+        const apiPage = Number(page?.number);
+        if (!Number.isNaN(apiPage)) {
+          this.agentReclamationPage = apiPage;
+        }
+        this.isLoadingAgentReclamations = false;
+        this.cdr.detectChanges();
+        queueMicrotask(() => {
+          this.tryOpenReclamationFromNotification();
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        console.error('Erreur chargement réclamations agent:', err);
+        this.agentReclamations = [];
+        this.agentReclamationTotalElements = 0;
+        this.agentReclamationTotalPages = 0;
+        this.isLoadingAgentReclamations = false;
+        this.pendingReclamationIdToOpen = null;
+        this.showNotification('Impossible de charger les réclamations.', 'error');
+      },
+    });
+  }
+
+  private pickReclamationDtoValue(field: any): string {
+    if (field == null) {
+      return '';
+    }
+    if (typeof field === 'object' && field.value != null) {
+      return String(field.value);
+    }
+    return String(field);
+  }
+
+  private pickReclamationDtoLabel(field: any): string {
+    if (field == null) {
+      return '';
+    }
+    if (typeof field === 'object') {
+      if (field.label) {
+        return String(field.label);
+      }
+      if (field.value != null) {
+        return String(field.value);
+      }
+    }
+    return String(field);
+  }
+
+  private normalizeAgentReclamationRow(raw: any): AgentReclamationRow {
+    const statut = this.pickReclamationDtoValue(raw?.statut);
+    const etatRaw =
+      raw?.etatReclamation != null ? this.pickReclamationDtoValue(raw.etatReclamation) : null;
+    const piecesRaw = raw?.piecesJointes;
+    const piecesJointes: AgentReclamationPiece[] = Array.isArray(piecesRaw)
+      ? piecesRaw.map((p: any) => ({
+          nom: p?.nom != null ? String(p.nom) : undefined,
+          taille: p?.taille != null ? Number(p.taille) : undefined,
+          type: p?.type != null ? String(p.type) : undefined,
+          url: p?.url != null ? String(p.url) : undefined,
+        }))
+      : [];
+
+    return {
+      id: Number(raw.id),
+      reference: raw.reference,
+      sujet: raw.sujet || '',
+      description: raw.description,
+      categorie: raw.categorie,
+      typeDisplay: this.pickReclamationDtoLabel(raw?.type) || this.pickReclamationDtoValue(raw?.type),
+      urgenceDisplay:
+        this.pickReclamationDtoLabel(raw?.urgence) || this.pickReclamationDtoValue(raw?.urgence),
+      urgenceCode: this.pickReclamationDtoValue(raw?.urgence),
+      statut,
+      etatReclamation: etatRaw || null,
+      emailUser: raw.emailUser,
+      nomUser: raw.nomUser,
+      telephoneUser: raw.telephoneUser,
+      dateCreation: raw.dateCreation,
+      dateSoumission: raw.dateSoumission,
+      piecesJointes,
+    };
+  }
+
+  getAgentReclamationStatusKey(statut: string): StatusKey {
+    switch (statut) {
+      case 'RESOLU':
+        return 'done';
+      case 'REJETE':
+        return 'blocked';
+      case 'EN_COURS':
+        return 'in_review';
+      case 'SOUMIS':
+        return 'open';
+      default:
+        return 'open';
+    }
   }
 
   updateDemandeTraitementStatus(demande: DemandeInformationItem, status: 'TRAITE' | 'NON_TRAITE'): void {
@@ -980,13 +1771,16 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     const previousStatus = demande.traitementStatus || 'NON_TRAITE';
     demande.traitementStatus = status;
 
-    this.http.put<any>(`http://localhost:8080/api/demande-information/${demande.id}/traitement-status`, {
-      traitementStatus: status
-    }).subscribe({
+    this.http
+      .put<any>(`${environment.apiUrl}/demande-information/${demande.id}/traitement-status`, {
+        traitementStatus: status,
+      })
+      .subscribe({
       next: (response) => {
         const savedStatus = response?.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE';
         demande.traitementStatus = savedStatus;
         this.showNotification(`Statut mis à jour: ${savedStatus === 'TRAITE' ? 'Traité' : 'Non traité'}.`, 'success');
+        this.loadDemandesInformation();
       },
       error: (error) => {
         console.error('Erreur lors de la mise à jour du statut de traitement:', error);
@@ -994,51 +1788,6 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
         this.showNotification('Impossible de mettre à jour le statut de traitement.', 'error');
       }
     });
-  }
-
-  get filteredDemandesInformation(): DemandeInformationItem[] {
-    const search = this.demandeInformationSearchTerm.trim().toLowerCase();
-    return this.demandesInformation.filter((demande) => {
-      const matchesSearch = !search || [
-        demande.nomComplet || '',
-        demande.email || '',
-        demande.sujet || '',
-        demande.message || '',
-        demande.assignedAgentName || ''
-      ].some((value) => value.toLowerCase().includes(search));
-
-      const status = demande.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE';
-      const matchesTraitement =
-        this.demandeInformationTraitementFilter === 'all' ||
-        status === this.demandeInformationTraitementFilter;
-
-      const matchesUrgence =
-        this.demandeInformationUrgenceFilter === 'all' ||
-        (this.demandeInformationUrgenceFilter === 'urgent' && demande.urgent === true) ||
-        (this.demandeInformationUrgenceFilter === 'normal' && !demande.urgent);
-
-      return matchesSearch && matchesTraitement && matchesUrgence;
-    });
-  }
-
-  get assignedDemandesInformation(): DemandeInformationItem[] {
-    if (!this.currentAgentId) {
-      return [];
-    }
-    return this.filteredDemandesInformation.filter((demande) =>
-      Number(demande.assignedAgentId) === this.currentAgentId &&
-      (demande.traitementStatus || 'NON_TRAITE') !== 'TRAITE'
-    );
-  }
-
-  get mainDemandesInformation(): DemandeInformationItem[] {
-    if (!this.currentAgentId) {
-      return this.filteredDemandesInformation;
-    }
-    return this.filteredDemandesInformation.filter((demande) =>
-      !(Number(demande.assignedAgentId) === this.currentAgentId &&
-        (demande.traitementStatus || 'NON_TRAITE') !== 'TRAITE')
-    );
   }
 
   viewDemandeInformationDetails(demande: DemandeInformationItem): void {
@@ -1058,22 +1807,49 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const demande = this.selectedDemandeInformation;
+    this.replyEmailFor = 'demande-information';
     this.replyEmailSubject = `Reponse a votre demande d'information - SmartTax`;
+    this.replyEmailContent = '';
+    this.showReplyEmailModal = true;
+  }
+
+  replyToAgentReclamationByEmail(): void {
+    const rec = this.selectedAgentReclamation;
+    if (!rec?.emailUser?.trim()) {
+      this.showNotification('Adresse email introuvable pour ce contribuable.', 'error');
+      return;
+    }
+    this.replyEmailFor = 'reclamation';
+    const refPart = rec.reference ? ` (${rec.reference})` : '';
+    this.replyEmailSubject = `Reponse a votre reclamation${refPart} - SmartTax`;
     this.replyEmailContent = '';
     this.showReplyEmailModal = true;
   }
 
   closeReplyEmailModal(): void {
     this.showReplyEmailModal = false;
+    this.replyEmailFor = null;
     this.replyEmailSubject = '';
     this.replyEmailContent = '';
     this.isSendingReplyEmail = false;
   }
 
   sendReplyEmail(): void {
-    if (!this.selectedDemandeInformation?.email) {
-      this.showNotification('Adresse email introuvable pour cette demande.', 'error');
+    let recipientEmail: string | undefined;
+    if (this.replyEmailFor === 'reclamation') {
+      recipientEmail = this.selectedAgentReclamation?.emailUser?.trim();
+      if (!recipientEmail) {
+        this.showNotification('Adresse email introuvable pour cette réclamation.', 'error');
+        return;
+      }
+    } else if (this.replyEmailFor === 'demande-information') {
+      recipientEmail = this.selectedDemandeInformation?.email?.trim();
+      if (!recipientEmail) {
+        this.showNotification('Adresse email introuvable pour cette demande.', 'error');
+        return;
+      }
+    } else {
+      this.showNotification('Contexte de réponse invalide.', 'error');
       return;
     }
 
@@ -1084,9 +1860,8 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const demande = this.selectedDemandeInformation;
     this.isSendingReplyEmail = true;
-    this.emailService.sendSimpleEmail(demande.email, subject, body).subscribe({
+    this.emailService.sendSimpleEmail(recipientEmail, subject, body).subscribe({
       next: (response) => {
         this.isSendingReplyEmail = false;
         if (response?.success || response?.emailSent) {
@@ -1112,13 +1887,13 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
 
     const message = `Voulez-vous vraiment supprimer la demande de "${demande.nomComplet}" ?`;
     this.showConfirmation('Confirmation de suppression', message, () => {
-      this.http.delete(`http://localhost:8080/api/demande-information/${demande.id}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/demande-information/${demande.id}`).subscribe({
         next: () => {
-          this.demandesInformation = this.demandesInformation.filter(item => item.id !== demande.id);
           if (this.selectedDemandeInformation?.id === demande.id) {
             this.closeDemandeInformationModal();
           }
           this.showNotification('Demande d\'information supprimée avec succès.', 'success');
+          this.loadDemandesInformation();
         },
         error: (error) => {
           console.error('Erreur lors de la suppression de la demande d\'information:', error);
@@ -1157,11 +1932,53 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
       return;
     }
     const targetId = this.pendingDemandeInformationIdToOpen;
-    const found = this.demandesInformation.find((item) => Number(item?.id) === targetId);
+    const found = this.demandesInformationMain.find((item) => Number(item?.id) === targetId);
     if (found) {
       this.viewDemandeInformationDetails(found);
+      this.pendingDemandeInformationIdToOpen = null;
+      return;
     }
-    this.pendingDemandeInformationIdToOpen = null;
+    this.http.get<DemandeInformationItem>(`${environment.apiUrl}/demande-information/${targetId}`).subscribe({
+      next: (raw) => {
+        if (raw?.id != null) {
+          const item: DemandeInformationItem = {
+            ...raw,
+            traitementStatus: raw.traitementStatus === 'TRAITE' ? 'TRAITE' : 'NON_TRAITE',
+          };
+          this.viewDemandeInformationDetails(item);
+        }
+        this.pendingDemandeInformationIdToOpen = null;
+      },
+      error: () => {
+        this.pendingDemandeInformationIdToOpen = null;
+      },
+    });
+  }
+
+  private tryOpenReclamationFromNotification(): void {
+    const targetId = this.pendingReclamationIdToOpen;
+    if (targetId == null || !Number.isFinite(targetId)) {
+      return;
+    }
+    const found = this.agentReclamations.find((item) => Number(item?.id) === targetId);
+    if (found) {
+      this.viewAgentReclamationDetails(found);
+      this.pendingReclamationIdToOpen = null;
+      return;
+    }
+    this.http.get<any>(`${environment.apiUrl}/reclamation/${targetId}`).subscribe({
+      next: (raw) => {
+        if (raw?.id != null) {
+          this.viewAgentReclamationDetails(this.normalizeAgentReclamationRow(raw));
+        }
+        this.pendingReclamationIdToOpen = null;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.pendingReclamationIdToOpen = null;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   private resolveCurrentAgentId(): number | null {
@@ -1313,10 +2130,11 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     return statusLabels[status] || status;
   }
 
-  formatDate(dateString: string): string {
-    if (!dateString) return 'N/A';
+  formatDate(dateInput: string | Date | undefined | null): string {
+    if (dateInput == null) return 'N/A';
     try {
-      const date = new Date(dateString);
+      const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+      if (Number.isNaN(date.getTime())) return 'N/A';
       return date.toLocaleDateString('fr-FR', {
         day: '2-digit',
         month: '2-digit',

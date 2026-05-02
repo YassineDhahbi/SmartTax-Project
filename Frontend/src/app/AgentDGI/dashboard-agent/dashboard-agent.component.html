@@ -164,6 +164,22 @@
               </div>
             </div>
 
+            <div class="da__notifSection" *ngIf="!isLoadingNotifications && reclamationNotifications.length > 0">
+              <div class="da__notifSectionTitle">Réclamations</div>
+              <div class="da__notifItem" *ngFor="let item of reclamationNotifications; trackBy: trackByNotificationId" [class.da__notifItem--unread]="!item.isRead">
+                <div class="da__notifHead">
+                  <div class="da__notifHeadMain da__notifClickable" (click)="openNotification(item)">
+                    <strong>{{ item.title }}</strong>
+                    <small>{{ formatNotificationDate(item.createdAt) }}</small>
+                  </div>
+                  <button type="button" class="da__notifDeleteBtn" title="Supprimer la notification" [disabled]="isDeletingNotification(item)" (mousedown)="$event.stopPropagation()" (click)="deleteNotification(item, $event)">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <p class="da__notifClickable" (click)="openNotification(item)">{{ item.message }}</p>
+              </div>
+            </div>
+
             <div class="da__notifSection" *ngIf="!isLoadingNotifications && !hasGroupedNotifications && fallbackNotifications.length > 0">
               <div class="da__notifSectionTitle">Autres</div>
               <div class="da__notifItem" *ngFor="let item of fallbackNotifications; trackBy: trackByNotificationId" [class.da__notifItem--unread]="!item.isRead">
@@ -198,10 +214,14 @@
         <div class="da__heroHead">
           <div>
             <div class="da__heroKicker">{{ greeting }}, {{ userName }}</div>
-            <h1 class="da__heroTitle" *ngIf="currentView !== 'publications'">Tableau de bord Agent DGI</h1>
             <h1 class="da__heroTitle" *ngIf="currentView === 'publications'">Actualités & Publications Fiscales</h1>
-            <div class="da__heroDesc" *ngIf="currentView !== 'publications'">Suivi des dossiers, décisions et conformité — vue claire, actions rapides et priorités.</div>
+            <h1 class="da__heroTitle" *ngIf="currentView === 'demande-information'">Demandes d'information</h1>
+            <h1 class="da__heroTitle" *ngIf="currentView === 'reclamation'">Réclamations</h1>
+            <h1 class="da__heroTitle" *ngIf="currentView !== 'publications' && currentView !== 'demande-information' && currentView !== 'reclamation'">Tableau de bord Agent DGI</h1>
             <div class="da__heroDesc" *ngIf="currentView === 'publications'">Gérez les publications fiscales et les actualités du système — création, modification et validation des contenus.</div>
+            <div class="da__heroDesc" *ngIf="currentView === 'demande-information'">Consultez et traitez les demandes d'information des contribuables.</div>
+            <div class="da__heroDesc" *ngIf="currentView === 'reclamation'">Visualisez les réclamations déposées et accédez au détail de chaque dossier.</div>
+            <div class="da__heroDesc" *ngIf="currentView !== 'publications' && currentView !== 'demande-information' && currentView !== 'reclamation'">Suivi des dossiers, décisions et conformité — vue claire, actions rapides et priorités.</div>
           </div>
 
           <div class="da__heroActions">
@@ -580,24 +600,31 @@
               type="search"
               class="da__searchInput"
               [(ngModel)]="demandeInformationSearchTerm"
+              (ngModelChange)="onDemandeInformationSearchInput()"
               placeholder="Rechercher par nom, email, sujet..."
               aria-label="Rechercher une demande d'information" />
             <button
               class="da__searchClear"
               type="button"
               *ngIf="demandeInformationSearchTerm"
-              (click)="demandeInformationSearchTerm = ''"
+              (click)="clearDemandeInformationSearch()"
               title="Effacer la recherche">
               <i class="fa-solid fa-times"></i>
             </button>
           </div>
           <div class="da__demandeFilters">
-            <select class="da__statusFilter da__statusFilter--demandeInfo" [(ngModel)]="demandeInformationTraitementFilter">
+            <select
+              class="da__statusFilter da__statusFilter--demandeInfo"
+              [(ngModel)]="demandeInformationTraitementFilter"
+              (ngModelChange)="onDemandeInformationFilterChange()">
               <option value="all">Tous les traitements</option>
               <option value="TRAITE">Traité</option>
               <option value="NON_TRAITE">Non traité</option>
             </select>
-            <select class="da__statusFilter da__statusFilter--demandeInfo" [(ngModel)]="demandeInformationUrgenceFilter">
+            <select
+              class="da__statusFilter da__statusFilter--demandeInfo"
+              [(ngModel)]="demandeInformationUrgenceFilter"
+              (ngModelChange)="onDemandeInformationFilterChange()">
               <option value="all">Tous les niveaux</option>
               <option value="urgent">Urgent</option>
               <option value="normal">Normal</option>
@@ -605,9 +632,10 @@
           </div>
           <div class="da__panelHint">
             <span *ngIf="isLoadingDemandesInformation">Chargement...</span>
-            <span *ngIf="!isLoadingDemandesInformation">
-              {{ assignedDemandesInformation.length }} affectée(s) | {{ mainDemandesInformation.length }} dans le tableau principal
+            <span *ngIf="!isLoadingDemandesInformation && demandeInfoMainTotalElements > 0">
+              {{ demandeInfoMainPageDisplayFrom }}–{{ demandeInfoMainPageDisplayTo }} sur {{ demandeInfoMainTotalElements }}
             </span>
+            <span *ngIf="!isLoadingDemandesInformation && demandeInfoMainTotalElements === 0">0 résultat</span>
           </div>
         </div>
 
@@ -617,11 +645,9 @@
             <p>Chargement des demandes d'information...</p>
           </div>
 
-          <div class="da__tableWrap" *ngIf="!isLoadingDemandesInformation">
-            <h4 class="da__subTableTitle" *ngIf="assignedDemandesInformation.length > 0">
-              Mes demandes affectées (à traiter)
-            </h4>
-            <table class="da__table" aria-label="Mes demandes d'information affectées" *ngIf="assignedDemandesInformation.length > 0">
+          <ng-container *ngIf="!isLoadingDemandesInformation">
+            <div class="da__tableWrap">
+              <table class="da__table" aria-label="Liste des demandes d'information">
               <thead>
                 <tr>
                   <th>Nom complet</th>
@@ -635,7 +661,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let demande of assignedDemandesInformation">
+                <tr *ngFor="let demande of demandesInformationMain">
                   <td>{{ demande.nomComplet || 'N/A' }}</td>
                   <td>{{ demande.email || 'N/A' }}</td>
                   <td>{{ demande.assignedAgentName || 'Non affectée' }}</td>
@@ -675,65 +701,7 @@
                     </div>
                   </td>
                 </tr>
-              </tbody>
-            </table>
-
-            <h4 class="da__subTableTitle">Tableau principal</h4>
-            <table class="da__table" aria-label="Liste des demandes d'information">
-              <thead>
-                <tr>
-                  <th>Nom complet</th>
-                  <th>Email</th>
-                  <th>Agent affecté</th>
-                  <th>Traitement</th>
-                  <th>Sujet</th>
-                  <th>Urgence</th>
-                  <th>Date</th>
-                  <th class="da__center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let demande of mainDemandesInformation">
-                  <td>{{ demande.nomComplet || 'N/A' }}</td>
-                  <td>{{ demande.email || 'N/A' }}</td>
-                  <td>{{ demande.assignedAgentName || 'Non affectée' }}</td>
-                  <td>
-                    <select
-                      class="da__statusSelect"
-                      [ngClass]="(demande.traitementStatus || 'NON_TRAITE') === 'TRAITE' ? 'da__statusSelect--traite' : 'da__statusSelect--non-traite'"
-                      [ngModel]="demande.traitementStatus || 'NON_TRAITE'"
-                      (ngModelChange)="updateDemandeTraitementStatus(demande, $event)"
-                      aria-label="Statut de traitement de la demande d'information">
-                      <option value="NON_TRAITE">Non traité</option>
-                      <option value="TRAITE">Traité</option>
-                    </select>
-                  </td>
-                  <td>{{ demande.sujet || 'N/A' }}</td>
-                  <td>
-                    <span class="da__status" [attr.data-status]="demande.urgent ? 'blocked' : 'open'">
-                      <span class="da__statusDot" aria-hidden="true"></span>
-                      {{ demande.urgent ? 'Urgent' : 'Normal' }}
-                    </span>
-                  </td>
-                  <td>{{ formatDate(demande.dateCreation) }}</td>
-                  <td class="da__center">
-                    <div class="da__actionsCell">
-                      <button class="da__rowBtn da__rowBtn--primary" type="button"
-                              (click)="viewDemandeInformationDetails(demande)"
-                              title="Voir les détails"
-                              aria-label="Voir les détails de la demande d'information">
-                        <i class="fa-regular fa-eye"></i>
-                      </button>
-                      <button class="da__rowBtn da__rowBtn--danger" type="button"
-                              (click)="deleteDemandeInformation(demande)"
-                              title="Supprimer"
-                              aria-label="Supprimer la demande d'information">
-                        <i class="fa-solid fa-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr *ngIf="mainDemandesInformation.length === 0">
+                <tr *ngIf="demandesInformationMain.length === 0">
                   <td colspan="8" class="da__emptyState">
                     <div class="da__emptyIcon">
                       <i class="fa-solid fa-circle-info"></i>
@@ -750,7 +718,273 @@
                   </td>
                 </tr>
               </tbody>
+              </table>
+            </div>
+
+            <div class="da__pagination" *ngIf="demandeInfoMainTotalElements > 0">
+              <div class="da__paginationSize">
+                <label for="demandeInfoPageSizeMain">Lignes par page</label>
+                <select
+                  id="demandeInfoPageSizeMain"
+                  class="da__paginationSelect"
+                  [ngModel]="demandeInfoPageSize"
+                  (ngModelChange)="onDemandeInfoPageSizeChange($event)">
+                  <option *ngFor="let s of demandeInfoPageSizeOptions" [ngValue]="s">{{ s }}</option>
+                </select>
+              </div>
+              <div class="da__paginationNav">
+                <button
+                  type="button"
+                  class="da__paginationBtn"
+                  (click)="demandeInfoMainPrevPage()"
+                  [disabled]="demandeInfoMainPage <= 0"
+                  aria-label="Page précédente">
+                  <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                  Précédent
+                </button>
+                <span class="da__paginationMeta">
+                  Page {{ demandeInfoMainTotalPages > 0 ? demandeInfoMainPage + 1 : 0 }} / {{ demandeInfoMainTotalPages }}
+                </span>
+                <button
+                  type="button"
+                  class="da__paginationBtn"
+                  (click)="demandeInfoMainNextPage()"
+                  [disabled]="demandeInfoMainTotalPages === 0 || demandeInfoMainPage >= demandeInfoMainTotalPages - 1"
+                  aria-label="Page suivante">
+                  Suivant
+                  <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vue Réclamations -->
+    <section class="da__grid" *ngIf="currentView === 'reclamation'">
+      <div class="da__panel da__panel--wide">
+        <div class="da__panelHead">
+          <div class="da__panelTitle">
+            <i class="fa-solid fa-file-circle-exclamation" aria-hidden="true"></i>
+            Réclamations soumises
+          </div>
+          <div class="da__searchContainer da__searchContainer--demandeInfo">
+            <i class="fa-solid fa-search da__searchIcon"></i>
+            <input
+              type="search"
+              class="da__searchInput"
+              [(ngModel)]="agentReclamationSearchTerm"
+              (ngModelChange)="onAgentReclamationSearchInput()"
+              placeholder="Référence, sujet, email, contribuable..."
+              aria-label="Rechercher une réclamation" />
+            <button
+              class="da__searchClear"
+              type="button"
+              *ngIf="agentReclamationSearchTerm"
+              (click)="clearAgentReclamationSearch()"
+              title="Effacer la recherche">
+              <i class="fa-solid fa-times"></i>
+            </button>
+          </div>
+          <div class="da__demandeFilters">
+            <select
+              class="da__statusFilter da__statusFilter--reclamation"
+              [(ngModel)]="agentReclamationEtatFilter"
+              (ngModelChange)="onAgentReclamationFilterChange()"
+              aria-label="Filtrer par état de traitement">
+              <option value="all">Tous les états</option>
+              <option value="EN_COURS">En cours</option>
+              <option value="TRAITE">Traité</option>
+            </select>
+            <select
+              class="da__statusFilter da__statusFilter--reclamation"
+              [(ngModel)]="agentReclamationUrgenceFilter"
+              (ngModelChange)="onAgentReclamationFilterChange()"
+              aria-label="Filtrer par niveau d'urgence">
+              <option value="all">Toutes urgences</option>
+              <option value="BASSE">Basse</option>
+              <option value="MOYENNE">Moyenne</option>
+              <option value="HAUTE">Haute</option>
+              <option value="URGENTE">Urgente</option>
+            </select>
+          </div>
+          <div class="da__panelHint">
+            <span *ngIf="isLoadingAgentReclamations">Chargement...</span>
+            <span *ngIf="!isLoadingAgentReclamations && agentReclamationTotalElements > 0">
+              {{ agentReclamationPageDisplayFrom }}–{{ agentReclamationPageDisplayTo }} sur {{ agentReclamationTotalElements }}
+            </span>
+            <span *ngIf="!isLoadingAgentReclamations && agentReclamationTotalElements === 0">0 résultat</span>
+          </div>
+        </div>
+
+        <div class="da__panelBody">
+          <div *ngIf="isLoadingAgentReclamations" class="da__loading">
+            <div class="da__spinner"></div>
+            <p>Chargement des réclamations...</p>
+          </div>
+
+          <div class="da__tableWrap" *ngIf="!isLoadingAgentReclamations">
+            <table class="da__table" aria-label="Liste des réclamations">
+              <thead>
+                <tr>
+                  <th class="da__sortTh" scope="col">
+                    <button type="button" class="da__sortBtn" (click)="setAgentReclamationSort('sujet')">
+                      Sujet
+                      <i class="fa-solid" [ngClass]="agentReclamationSortIcon('sujet')" aria-hidden="true"></i>
+                    </button>
+                  </th>
+                  <th class="da__sortTh" scope="col">
+                    <button type="button" class="da__sortBtn" (click)="setAgentReclamationSort('type')">
+                      Type
+                      <i class="fa-solid" [ngClass]="agentReclamationSortIcon('type')" aria-hidden="true"></i>
+                    </button>
+                  </th>
+                  <th class="da__sortTh" scope="col">
+                    <button type="button" class="da__sortBtn" (click)="setAgentReclamationSort('nomUser')">
+                      Contribuable
+                      <i class="fa-solid" [ngClass]="agentReclamationSortIcon('nomUser')" aria-hidden="true"></i>
+                    </button>
+                  </th>
+                  <th class="da__sortTh" scope="col">
+                    <button type="button" class="da__sortBtn" (click)="setAgentReclamationSort('emailUser')">
+                      Email
+                      <i class="fa-solid" [ngClass]="agentReclamationSortIcon('emailUser')" aria-hidden="true"></i>
+                    </button>
+                  </th>
+                  <th class="da__sortTh" scope="col">
+                    <button type="button" class="da__sortBtn" (click)="setAgentReclamationSort('urgence')">
+                      Urgence
+                      <i class="fa-solid" [ngClass]="agentReclamationSortIcon('urgence')" aria-hidden="true"></i>
+                    </button>
+                  </th>
+                  <th class="da__sortTh" scope="col">
+                    <button type="button" class="da__sortBtn" (click)="setAgentReclamationSort('statut')">
+                      Statut
+                      <i class="fa-solid" [ngClass]="agentReclamationSortIcon('statut')" aria-hidden="true"></i>
+                    </button>
+                  </th>
+                  <th class="da__sortTh" scope="col">
+                    <button type="button" class="da__sortBtn" (click)="setAgentReclamationSort('etatReclamation')">
+                      État
+                      <i class="fa-solid" [ngClass]="agentReclamationSortIcon('etatReclamation')" aria-hidden="true"></i>
+                    </button>
+                  </th>
+                  <th class="da__sortTh" scope="col">
+                    <button type="button" class="da__sortBtn" (click)="setAgentReclamationSort('dateSoumission')">
+                      Date
+                      <i class="fa-solid" [ngClass]="agentReclamationSortIcon('dateSoumission')" aria-hidden="true"></i>
+                    </button>
+                  </th>
+                  <th class="da__center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let rec of agentReclamations">
+                 
+                  <td>{{ rec.sujet || '—' }}</td>
+                  <td>{{ rec.typeDisplay || '—' }}</td>
+                  <td>{{ rec.nomUser || '—' }}</td>
+                  <td>{{ rec.emailUser || '—' }}</td>
+                  <td>{{ rec.urgenceDisplay || '—' }}</td>
+                  <td>
+                    <span class="da__status" [attr.data-status]="getAgentReclamationStatusKey(rec.statut)">
+                      <span class="da__statusDot" aria-hidden="true"></span>
+                      {{ formatAgentReclamationStatut(rec.statut) }}
+                    </span>
+                  </td>
+                  <td class="da__etatCell">
+                    <select
+                      class="da__etatSelect"
+                      [ngClass]="
+                        normalizeEtatForSelect(rec.etatReclamation) === 'TRAITE'
+                          ? 'da__etatSelect--traite'
+                          : 'da__etatSelect--enCours'
+                      "
+                      [ngModel]="normalizeEtatForSelect(rec.etatReclamation)"
+                      (ngModelChange)="updateAgentReclamationEtat(rec, $event)"
+                      [disabled]="agentReclamationEtatUpdatingId === rec.id"
+                      [attr.aria-label]="'État de traitement — ' + (rec.reference || rec.sujet || 'réclamation')">
+                      <option value="EN_COURS">En cours</option>
+                      <option value="TRAITE">Traité</option>
+                    </select>
+                  </td>
+                  <td>{{ formatDate(rec.dateSoumission || rec.dateCreation) }}</td>
+                  <td class="da__center">
+                    <div class="da__reclamationRowActions">
+                      <button
+                        class="da__rowBtn da__rowBtn--primary"
+                        type="button"
+                        (click)="viewAgentReclamationDetails(rec)"
+                        title="Voir le détail"
+                        aria-label="Voir le détail de la réclamation">
+                        <i class="fa-regular fa-eye"></i>
+                      </button>
+                      <button
+                        class="da__rowBtn"
+                        type="button"
+                        (click)="openReclamationChat(rec)"
+                        title="Messagerie avec le contribuable"
+                        aria-label="Ouvrir la messagerie pour cette réclamation">
+                        <i class="fa-solid fa-comments"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="agentReclamations.length === 0">
+                  <td colspan="9" class="da__emptyState">
+                    <div class="da__emptyIcon">
+                      <i class="fa-solid fa-file-circle-exclamation"></i>
+                    </div>
+                    <div class="da__emptyText">
+                      <h4>Aucune réclamation</h4>
+                      <p *ngIf="agentReclamationSearchTerm">
+                        Aucun résultat pour cette recherche.
+                      </p>
+                      <p *ngIf="!agentReclamationSearchTerm">
+                        Aucune réclamation au statut « Soumis » pour le moment.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
             </table>
+          </div>
+
+          <div class="da__pagination" *ngIf="!isLoadingAgentReclamations && agentReclamationTotalElements > 0">
+            <div class="da__paginationSize">
+              <label for="agentRecPageSize">Lignes par page</label>
+              <select
+                id="agentRecPageSize"
+                class="da__paginationSelect"
+                [ngModel]="agentReclamationPageSize"
+                (ngModelChange)="onAgentReclamationPageSizeChange($event)">
+                <option *ngFor="let s of agentReclamationPageSizeOptions" [ngValue]="s">{{ s }}</option>
+              </select>
+            </div>
+            <div class="da__paginationNav">
+              <button
+                type="button"
+                class="da__paginationBtn"
+                (click)="agentReclamationPrevPage()"
+                [disabled]="agentReclamationPage <= 0"
+                aria-label="Page précédente">
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                Précédent
+              </button>
+              <span class="da__paginationMeta">
+                Page {{ agentReclamationTotalPages > 0 ? agentReclamationPage + 1 : 0 }} / {{ agentReclamationTotalPages }}
+              </span>
+              <button
+                type="button"
+                class="da__paginationBtn"
+                (click)="agentReclamationNextPage()"
+                [disabled]="agentReclamationTotalPages === 0 || agentReclamationPage >= agentReclamationTotalPages - 1"
+                aria-label="Page suivante">
+                Suivant
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1162,6 +1396,262 @@
   </div>
 </div>
 
+<!-- Modal Détails Réclamation (agent) -->
+<div class="da__modalOverlay" *ngIf="showAgentReclamationModal" (click)="closeAgentReclamationModal()">
+  <div class="da__modal" (click)="$event.stopPropagation()">
+    <div class="da__modalHeader">
+      <div class="da__modalTitle">
+        <i class="fa-solid fa-file-circle-exclamation"></i>
+        Détail de la réclamation
+      </div>
+      <button class="da__modalClose" (click)="closeAgentReclamationModal()" aria-label="Fermer">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="da__modalBody" *ngIf="selectedAgentReclamation">
+      <div class="da__section">
+        <h3 class="da__sectionTitle">Réclamation</h3>
+        <div class="da__infoGrid">
+          <div class="da__infoItem">
+            <label>Référence</label>
+            <span>{{ selectedAgentReclamation.reference || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Statut</label>
+            <span class="da__status" [attr.data-status]="getAgentReclamationStatusKey(selectedAgentReclamation.statut)">
+              <span class="da__statusDot" aria-hidden="true"></span>
+              {{ formatAgentReclamationStatut(selectedAgentReclamation.statut) }}
+            </span>
+          </div>
+          <div class="da__infoItem">
+            <label>État de traitement</label>
+            <select
+              class="da__etatSelect da__etatSelect--modal"
+              [ngClass]="
+                normalizeEtatForSelect(selectedAgentReclamation.etatReclamation) === 'TRAITE'
+                  ? 'da__etatSelect--traite'
+                  : 'da__etatSelect--enCours'
+              "
+              [ngModel]="normalizeEtatForSelect(selectedAgentReclamation.etatReclamation)"
+              (ngModelChange)="updateAgentReclamationEtat(selectedAgentReclamation, $event)"
+              [disabled]="agentReclamationEtatUpdatingId === selectedAgentReclamation.id"
+              aria-label="État de traitement">
+              <option value="EN_COURS">En cours</option>
+              <option value="TRAITE">Traité</option>
+            </select>
+          </div>
+          <div class="da__infoItem">
+            <label>Type</label>
+            <span>{{ selectedAgentReclamation.typeDisplay || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Catégorie</label>
+            <span>{{ selectedAgentReclamation.categorie || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Urgence</label>
+            <span>{{ selectedAgentReclamation.urgenceDisplay || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Date création</label>
+            <span>{{ formatDate(selectedAgentReclamation.dateCreation) }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Date soumission</label>
+            <span>{{ selectedAgentReclamation.dateSoumission ? formatDate(selectedAgentReclamation.dateSoumission) : '—' }}</span>
+          </div>
+          <div class="da__infoItem da__infoItem--full">
+            <label>Sujet</label>
+            <span>{{ selectedAgentReclamation.sujet || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem da__infoItem--full">
+            <label>Description</label>
+            <span>{{ selectedAgentReclamation.description || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem da__infoItem--full">
+            <label>Pièces jointes</label>
+            <ng-container *ngIf="selectedAgentReclamation.piecesJointes?.length; else agentRecNoAttachments">
+              <ul class="da__attachmentList">
+                <li *ngFor="let p of selectedAgentReclamation.piecesJointes">
+                  <a
+                    *ngIf="agentReclamationPieceHref(p) as dlHref"
+                    class="da__attachmentLink"
+                    [href]="dlHref"
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+                    <span class="da__attachmentName">{{ p.nom || 'Fichier' }}</span>
+                    <span class="da__attachmentMeta" *ngIf="formatAttachmentSize(p.taille)">
+                      ({{ formatAttachmentSize(p.taille) }})
+                    </span>
+                  </a>
+                  <span *ngIf="!agentReclamationPieceHref(p)" class="da__attachmentFallback">
+                    <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+                    {{ p.nom || 'Fichier' }}
+                    <span class="da__attachmentMeta" *ngIf="formatAttachmentSize(p.taille)">
+                      ({{ formatAttachmentSize(p.taille) }})
+                    </span>
+                  </span>
+                </li>
+              </ul>
+            </ng-container>
+            <ng-template #agentRecNoAttachments><span>—</span></ng-template>
+          </div>
+        </div>
+      </div>
+
+      <div class="da__section">
+        <h3 class="da__sectionTitle">Contribuable</h3>
+        <div class="da__infoGrid">
+          <div class="da__infoItem">
+            <label>Nom</label>
+            <span>{{ selectedAgentReclamation.nomUser || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Email</label>
+            <span>{{ selectedAgentReclamation.emailUser || 'N/A' }}</span>
+          </div>
+          <div class="da__infoItem">
+            <label>Téléphone</label>
+            <span>{{ selectedAgentReclamation.telephoneUser || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="da__modalFooter">
+      <div class="da__modalFooterLeft">
+        <button
+          class="da__btn da__btn--secondary"
+          type="button"
+          (click)="openReclamationChat(selectedAgentReclamation)"
+          *ngIf="selectedAgentReclamation">
+          <i class="fa-solid fa-comments"></i>
+          Messagerie
+        </button>
+        <button class="da__btn da__btn--primary" type="button" (click)="replyToAgentReclamationByEmail()">
+          <i class="fa-solid fa-paper-plane"></i>
+          Répondre par email
+        </button>
+        <button class="da__btn da__btn--secondary" type="button" (click)="closeAgentReclamationModal()">
+          <i class="fa-solid fa-times"></i>
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal messagerie réclamation (agent ↔ contribuable) -->
+<div
+  class="da__reclamationChatOverlay"
+  *ngIf="showReclamationChatModal"
+  (click)="closeReclamationChatModal()">
+  <div class="da__reclamationChatPanel" (click)="$event.stopPropagation()">
+    <div class="da__reclamationChatHeader">
+      <div class="da__reclamationChatTitle">
+        <i class="fa-solid fa-comments" aria-hidden="true"></i>
+        <div>
+          <h3>Messagerie</h3>
+          <p *ngIf="reclamationChatRow" class="da__reclamationChatSubtitle">
+            {{ reclamationChatRow.reference || 'Sans référence' }}
+            <span *ngIf="reclamationChatRow.sujet"> — {{ reclamationChatRow.sujet }}</span>
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="da__reclamationChatClose"
+        (click)="closeReclamationChatModal()"
+        aria-label="Fermer la messagerie">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <div class="da__reclamationChatMeta" *ngIf="reclamationChatRow">
+      <span><strong>{{ reclamationChatRow.nomUser?.trim() || 'Contribuable' }}</strong></span>
+      <span><strong>Email :</strong> {{ reclamationChatRow.emailUser || '—' }}</span>
+    </div>
+
+    <div class="da__reclamationChatHint">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      {{ reclamationChatRow?.nomUser?.trim() || 'Le contribuable' }} peut répondre après votre premier message.
+    </div>
+
+    <div class="da__reclamationChatMessages" *ngIf="!isLoadingReclamationChat">
+      <div
+        *ngFor="let msg of reclamationChatMessages"
+        class="da__chatBubble"
+        [class.da__chatBubble--agent]="msg.auteur === 'agent'"
+        [class.da__chatBubble--contribuable]="msg.auteur === 'contribuable'">
+        <div class="da__chatBubbleMeta">
+          <strong>{{ reclamationChatAuthorLabel(msg.auteur) }}</strong>
+          <span>{{ formatDate(msg.date) }}</span>
+        </div>
+        <div class="da__chatBubbleText">{{ msg.contenu }}</div>
+        <a
+          *ngIf="reclamationChatAttachmentHref(msg) as attachmentUrl"
+          class="da__chatAttachmentLink"
+          [href]="attachmentUrl"
+          target="_blank"
+          rel="noopener noreferrer">
+          <i class="fa-solid fa-paperclip"></i>
+          <span>{{ reclamationChatAttachmentName(msg) }}</span>
+        </a>
+      </div>
+      <p *ngIf="reclamationChatMessages.length === 0" class="da__chatEmpty">
+        Aucun message. Écrivez ci-dessous pour contacter le contribuable.
+      </p>
+    </div>
+
+    <div class="da__reclamationChatLoading" *ngIf="isLoadingReclamationChat">
+      <div class="da__spinner da__spinner--sm"></div>
+      <span>Chargement des messages…</span>
+    </div>
+
+    <div class="da__reclamationChatComposer">
+      <input
+        type="file"
+        #reclamationChatFileInput
+        class="d-none"
+        (change)="onReclamationChatFileSelected($event)"
+        [disabled]="isSendingReclamationChat || isLoadingReclamationChat" />
+      <input
+        type="text"
+        class="da__reclamationChatInput"
+        [(ngModel)]="reclamationChatInput"
+        (keydown.enter)="$event.preventDefault(); sendReclamationChatMessage()"
+        placeholder="Votre message…"
+        [disabled]="isSendingReclamationChat || isLoadingReclamationChat"
+        aria-label="Message à envoyer au contribuable" />
+      <button
+        type="button"
+        class="da__btn da__btn--secondary da__reclamationChatAttach"
+        [disabled]="isSendingReclamationChat || isLoadingReclamationChat"
+        (click)="reclamationChatFileInput.click()"
+        title="Ajouter une pièce jointe">
+        <i class="fa-solid fa-paperclip"></i>
+      </button>
+      <button
+        type="button"
+        class="da__btn da__btn--primary da__reclamationChatSend"
+        (click)="sendReclamationChatMessage()"
+        [disabled]="isSendingReclamationChat || isLoadingReclamationChat || (!reclamationChatInput.trim() && !reclamationChatFile)">
+        <i class="fa-solid fa-paper-plane"></i>
+        {{ isSendingReclamationChat ? 'Envoi…' : 'Envoyer' }}
+      </button>
+    </div>
+    <div class="da__reclamationChatFileMeta" *ngIf="reclamationChatFile">
+      <i class="fa-solid fa-file" aria-hidden="true"></i>
+      <span>{{ reclamationChatFile.name }}</span>
+      <button type="button" class="da__chatFileRemove" (click)="clearReclamationChatFile()">
+        Retirer
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal de réponse email -->
 <div class="da__replyEmailOverlay" *ngIf="showReplyEmailModal" (click)="closeReplyEmailModal()">
   <div class="da__replyEmailModal" (click)="$event.stopPropagation()">
@@ -1173,9 +1663,16 @@
     </div>
 
     <div class="da__replyEmailBody">
-      <div class="da__replyEmailMeta" *ngIf="selectedDemandeInformation">
+      <div
+        class="da__replyEmailMeta"
+        *ngIf="replyEmailFor === 'demande-information' && selectedDemandeInformation">
         <span><strong>Destinataire:</strong> {{ selectedDemandeInformation.nomComplet || 'N/A' }}</span>
         <span><strong>Email:</strong> {{ selectedDemandeInformation.email || 'N/A' }}</span>
+      </div>
+      <div class="da__replyEmailMeta" *ngIf="replyEmailFor === 'reclamation' && selectedAgentReclamation">
+        <span><strong>Destinataire:</strong> {{ selectedAgentReclamation.nomUser || 'N/A' }}</span>
+        <span><strong>Email:</strong> {{ selectedAgentReclamation.emailUser || 'N/A' }}</span>
+        <span *ngIf="selectedAgentReclamation.reference"><strong>Réf.:</strong> {{ selectedAgentReclamation.reference }}</span>
       </div>
 
       <div class="da__replyEmailField">

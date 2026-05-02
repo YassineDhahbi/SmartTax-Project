@@ -8,6 +8,7 @@ export interface AdminNotificationItem {
   title: string;
   message: string;
   publicationId?: number;
+  reclamationId?: number;
   isRead: boolean;
   createdAt: string;
 }

@@ -47,13 +47,11 @@
           <p class="page-subtitle">Soumettez vos réclamations et suivez leur traitement en temps réel</p>
         </div>
         <div class="col-md-6 text-end">
-          <button class="btn btn-outline-secondary me-2" (click)="toggleMessagerie()">
-            <i class="fas fa-comments me-2"></i>Tester Messagerie
+      
+          <button class="btn btn-outline-primary me-2" (click)="showReclamationsView()">
+            <i class="fas fa-list me-2"></i>Mes Réclamations
           </button>
-          <button class="btn btn-outline-primary me-2" (click)="toggleHistorique()">
-            <i class="fas fa-history me-2"></i>Historique
-          </button>
-          <button class="btn btn-primary" (click)="goToStep(1)">
+          <button class="btn btn-primary" (click)="showNewReclamationForm()">
             <i class="fas fa-plus me-2"></i>Nouvelle Réclamation
           </button>
         </div>
@@ -62,11 +60,11 @@
   </div>
 
   <!-- Historique des réclamations -->
-  <div class="container" *ngIf="showHistorique">
+  <div class="container" *ngIf="activeView === 'list'">
     <div class="historique-section" @fadeIn>
       <div class="card">
         <div class="card-header">
-          <h3><i class="fas fa-history me-2"></i>Historique des Réclamations</h3>
+          <h3><i class="fas fa-history me-2"></i>Vos Réclamations</h3>
         </div>
         <div class="card-body">
           <div class="row" *ngIf="reclamations.length > 0; else noReclamations">
@@ -76,25 +74,60 @@
                   <div class="d-flex justify-content-between align-items-center">
                     <span class="reclamation-type">
                       <i class="fas {{ getTypeIcon(rec.type) }} me-2"></i>
-                      {{ rec.type }}
+                      {{ getTypeDisplay(rec.type) }}
                     </span>
-                    <span class="badge {{ getStatutColor(rec.statut) }}">
-                      <i class="fas {{ getStatutIcon(rec.statut) }} me-1"></i>
-                      {{ rec.statut }}
-                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                      <button
+                        type="button"
+                        class="draft-action-btn edit"
+                        *ngIf="isDraft(rec)"
+                        title="Modifier le brouillon"
+                        (click)="editDraft(rec, $event)">
+                        <i class="fas fa-pen"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="draft-action-btn delete"
+                        *ngIf="isDraft(rec)"
+                        title="Supprimer le brouillon"
+                        (click)="deleteDraft(rec, $event)">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                      <span class="badge {{ getStatutColor(rec.statut) }}">
+                        <i class="fas {{ getStatutIcon(rec.statut) }} me-1"></i>
+                        {{ getStatutDisplay(rec.statut) }}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div class="card-body-custom">
+                  <div
+                    class="reclamation-unread-notice"
+                    *ngIf="showsMessageriePanel(rec) && (rec.unreadAgentMessageCount ?? 0) > 0"
+                    role="status"
+                    aria-live="polite">
+                    <i class="fas fa-envelope-open-text" aria-hidden="true"></i>
+                    <span *ngIf="(rec.unreadAgentMessageCount ?? 0) === 1">Nouveau message de l’agent — non lu</span>
+                    <span *ngIf="(rec.unreadAgentMessageCount ?? 0) > 1"
+                      >{{ rec.unreadAgentMessageCount }} nouveaux messages de l’agent — non lus</span
+                    >
+                  </div>
                   <h6 class="reclamation-sujet">{{ rec.sujet }}</h6>
                   <p class="reclamation-description">{{ rec.description | slice:0:100 }}...</p>
                   <div class="reclamation-meta">
                     <small class="text-muted">
                       <i class="fas fa-calendar me-1"></i>
-                      {{ formatDate(rec.dateCreation) }}
+                      {{ formatDate(rec.dateSoumission || rec.dateCreation) }}
                     </small>
                     <small class="text-muted ms-3">
                       <i class="fas fa-folder me-1"></i>
                       {{ rec.categorie }}
+                    </small>
+                    <small class="ms-3" *ngIf="getEnumValue(rec.statut) === 'SOUMIS'">
+                      <span class="badge {{ getEtatColor(rec.etatReclamation || 'EN_COURS') }}">
+                        <i class="fas fa-tasks me-1"></i>
+                        {{ getEtatDisplay(rec.etatReclamation || 'EN_COURS') }}
+                      </span>
                     </small>
                   </div>
                 </div>
@@ -104,7 +137,10 @@
           <ng-template #noReclamations>
             <div class="text-center py-5">
               <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-              <p class="text-muted">Aucune réclamation trouvée</p>
+              <p class="text-muted">Vous n'avez pas encore de réclamation</p>
+              <button class="btn btn-primary mt-3" (click)="showNewReclamationForm()">
+                <i class="fas fa-plus me-2"></i>Créer ma première réclamation
+              </button>
             </div>
           </ng-template>
         </div>
@@ -112,53 +148,132 @@
     </div>
   </div>
 
-  <!-- Section Messagerie -->
-  <div class="container" *ngIf="selectedReclamation && showMessages">
+  <!-- Détail réclamation (brouillon : sans messagerie) -->
+  <div class="container" *ngIf="activeView === 'list' && selectedReclamation">
     <div class="messaging-section" @slideIn>
       <div class="card">
         <div class="card-header">
           <h4>
-            <i class="fas fa-comments me-2"></i>
-            Discussion - {{ selectedReclamation.sujet }}
+            <i class="fas me-2" [ngClass]="isDraft(selectedReclamation) ? 'fa-file-alt' : 'fa-info-circle'"></i>
+            <ng-container *ngIf="isDraft(selectedReclamation)">Détail du brouillon — {{ selectedReclamation.sujet }}</ng-container>
+            <ng-container *ngIf="!isDraft(selectedReclamation)">Détail de la réclamation — {{ selectedReclamation.sujet }}</ng-container>
           </h4>
-          <button class="btn btn-sm btn-outline-secondary" (click)="showMessages = false">
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="closeReclamationDetail()">
             <i class="fas fa-times"></i>
           </button>
         </div>
         <div class="card-body">
-          <div class="messages-container">
-            <div class="message" *ngFor="let msg of messages" 
-                 [class.message-contribuable]="msg.auteur === 'contribuable'"
-                 [class.message-agent]="msg.auteur === 'agent'">
-              <div class="message-content">
-                <div class="message-header">
-                  <strong>{{ msg.auteur === 'contribuable' ? 'Vous' : 'Agent DGI' }}</strong>
-                  <small class="text-muted">{{ formatDate(msg.date) }}</small>
-                </div>
-                <div class="message-text">{{ msg.contenu }}</div>
+          <div class="selected-reclamation-detail">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <p><strong>Référence:</strong> {{ selectedReclamation.reference || 'N/A' }}</p>
+                <p><strong>Type:</strong> {{ getTypeDisplay(selectedReclamation.type) }}</p>
+                <p><strong>Catégorie:</strong> {{ selectedReclamation.categorie || '—' }}</p>
+              </div>
+              <div class="col-md-6">
+                <p><strong>Statut:</strong> {{ getStatutDisplay(selectedReclamation.statut) }}</p>
+                <p><strong>Date:</strong> {{ formatDate(selectedReclamation.dateSoumission || selectedReclamation.dateCreation) }}</p>
+                <p *ngIf="getEnumValue(selectedReclamation.statut) === 'SOUMIS' || getEnumValue(selectedReclamation.statut) === 'EN_COURS'">
+                  <strong>Etat:</strong>
+                  <span class="badge {{ getEtatColor(selectedReclamation.etatReclamation || 'EN_COURS') }}">
+                    {{ getEtatDisplay(selectedReclamation.etatReclamation || 'EN_COURS') }}
+                  </span>
+                </p>
               </div>
             </div>
+            <p class="mb-0 mt-2"><strong>Description:</strong> {{ selectedReclamation.description }}</p>
           </div>
-          <div class="message-form">
-            <form [formGroup]="messageForm" (ngSubmit)="sendMessage()">
-              <div class="input-group">
-                <input type="text" class="form-control" formControlName="contenu" 
-                       placeholder="Tapez votre message...">
-                <button class="btn btn-primary" type="submit" [disabled]="!messageForm.valid">
-                  <i class="fas fa-paper-plane"></i>
-                </button>
+
+          <p class="text-muted small mb-0 mt-3" *ngIf="isDraft(selectedReclamation)">
+            <i class="fas fa-paper-plane me-1"></i>
+            Après soumission, vous pourrez échanger avec un agent DGI via la messagerie.
+          </p>
+
+          <ng-container *ngIf="showsMessageriePanel(selectedReclamation)">
+            <h6 class="mt-4 mb-3"><i class="fas fa-comments me-2"></i>Messagerie avec l'agent</h6>
+            <div class="alert alert-info messagerie-waiting-hint py-2 mb-3" *ngIf="!isSelectedReclamationResolved() && !agentHasStartedChat()">
+              <i class="fas fa-user-shield me-2"></i>
+              Un agent DGI doit envoyer le premier message. Vous pourrez répondre ensuite.
+            </div>
+            <div class="alert alert-secondary messagerie-waiting-hint py-2 mb-3" *ngIf="isSelectedReclamationResolved()">
+              <i class="fas fa-lock me-2"></i>
+              Réclamation résolue — conversation en lecture seule.
+            </div>
+            <div class="messages-container">
+              <div class="message" *ngFor="let msg of messages" 
+                   [class.message-contribuable]="msg.auteur === 'contribuable'"
+                   [class.message-agent]="msg.auteur === 'agent'">
+                <div class="message-content">
+                  <div class="message-header">
+                    <strong>{{ msg.auteur === 'contribuable' ? 'Vous' : 'Agent DGI' }}</strong>
+                    <small class="text-muted">{{ formatDate(msg.date) }}</small>
+                  </div>
+                  <div class="message-text">{{ msg.contenu }}</div>
+                  <a
+                    *ngIf="msg.pieceJointe && messageAttachmentHref(msg) as attachmentUrl"
+                    [href]="attachmentUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="message-attachment-link">
+                    <i class="fas fa-paperclip me-1"></i>
+                    {{ msg.pieceJointe.nom || 'Pièce jointe' }}
+                  </a>
+                </div>
               </div>
-            </form>
-          </div>
+            </div>
+            <div class="message-form">
+              <form [formGroup]="messageForm" (ngSubmit)="sendMessage()">
+                <div class="input-group">
+                  <input type="text" class="form-control" formControlName="contenu"
+                         [readonly]="!canContribuableSendMessage()"
+                         [placeholder]="canContribuableSendMessage() ? 'Tapez votre message...' : 'En attente du premier message de l\'agent...'">
+                  <input
+                    type="file"
+                    #messageFileInput
+                    class="d-none"
+                    (change)="onMessageFileSelected($event)"
+                    [disabled]="!canContribuableSendMessage() || isSelectedReclamationResolved()">
+                  <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    title="Ajouter une pièce jointe"
+                    (click)="messageFileInput.click()"
+                    [disabled]="!canContribuableSendMessage() || isSelectedReclamationResolved()">
+                    <i class="fas fa-paperclip"></i>
+                  </button>
+                  <button class="btn btn-primary" type="submit"
+                          [disabled]="!canContribuableSendMessage() || (!messageForm.get('contenu')?.value?.trim() && !selectedMessageFile)">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+                <div class="mt-2 small text-muted" *ngIf="selectedMessageFile">
+                  <i class="fas fa-file me-1"></i>
+                  {{ selectedMessageFile.name }}
+                  <button type="button" class="btn btn-link btn-sm p-0 ms-2" (click)="clearSelectedMessageFile()">
+                    Retirer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Formulaire de réclamation -->
-  <div class="container">
+  <div class="container" *ngIf="activeView === 'form'">
     <div class="form-section" @fadeIn>
       <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h3>
+            <i class="fas {{ editingDraftId ? 'fa-pen' : 'fa-plus-circle' }} me-2"></i>
+            {{ editingDraftId ? 'Modifier le Brouillon' : 'Nouvelle Réclamation' }}
+          </h3>
+          <button class="btn btn-outline-light btn-sm" type="button" (click)="showReclamationsView()">
+            <i class="fas fa-arrow-left me-2"></i>Retour à mes réclamations
+          </button>
+        </div>
         <!-- Progress bar -->
         <div class="progress-header">
           <div class="progress">
@@ -217,7 +332,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-6" *ngIf="reclamationForm.get('type')?.value !== 'AUTRE'">
                 <label class="form-label">Catégorie <span class="required">*</span></label>
                 <select class="form-select" formControlName="categorie">
                   <option value="">Sélectionnez une catégorie</option>
@@ -226,6 +341,19 @@
                 </select>
                 <div class="error-message" *ngIf="reclamationForm.get('categorie')?.invalid && reclamationForm.get('categorie')?.touched">
                   La catégorie est obligatoire
+                </div>
+              </div>
+            </div>
+
+            <div class="row mt-3" *ngIf="reclamationForm.get('type')?.value === 'AUTRE'">
+              <div class="col-12">
+                <label class="form-label">Précisez votre type de réclamation <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="typeAutre"
+                       placeholder="Ex: Suggestion, Demande spéciale, etc.">
+                <div class="error-message" *ngIf="reclamationForm.get('typeAutre')?.invalid && reclamationForm.get('typeAutre')?.touched">
+                  <span *ngIf="reclamationForm.get('typeAutre')?.errors?.['required']">Ce champ est obligatoire</span>
+                  <span *ngIf="reclamationForm.get('typeAutre')?.errors?.['minlength']">Minimum 3 caractères</span>
+                  <span *ngIf="reclamationForm.get('typeAutre')?.errors?.['maxlength']">Maximum 100 caractères</span>
                 </div>
               </div>
             </div>
@@ -239,11 +367,6 @@
                   <option value="HAUTE">Haute</option>
                   <option value="URGENTE">Urgente</option>
                 </select>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Référence (optionnel)</label>
-                <input type="text" class="form-control" formControlName="reference" 
-                       placeholder="Numéro de dossier, facture, etc.">
               </div>
             </div>
           </div>
@@ -341,8 +464,8 @@
                 <div class="card-body">
                   <div class="row">
                     <div class="col-md-6">
-                      <p><strong>Type:</strong> {{ reclamationForm.get('type')?.value }}</p>
-                      <p><strong>Catégorie:</strong> {{ reclamationForm.get('categorie')?.value }}</p>
+                      <p><strong>Type:</strong> {{ reclamationForm.get('type')?.value === 'AUTRE' ? reclamationForm.get('typeAutre')?.value : reclamationForm.get('type')?.value }}</p>
+                      <p><strong>Catégorie:</strong> {{ reclamationForm.get('type')?.value === 'AUTRE' ? 'N/A' : reclamationForm.get('categorie')?.value }}</p>
                       <p><strong>Urgence:</strong> {{ reclamationForm.get('urgence')?.value }}</p>
                     </div>
                     <div class="col-md-6">
@@ -389,7 +512,7 @@
               </button>
               
               <button type="button" class="btn btn-success" 
-                      (click)="submitReclamation('SOUmis')" 
+                      (click)="submitReclamation('SOUMIS')" 
                       [disabled]="isSubmitting || !validateCurrentStep()"
                       *ngIf="currentStep === 4">
                 <i class="fas fa-paper-plane me-2"></i>
@@ -426,8 +549,36 @@
           <button type="button" class="btn btn-primary" (click)="closeSuccessModal()">
             <i class="fas fa-home me-2"></i>Retour au tableau de bord
           </button>
-          <button type="button" class="btn btn-outline-secondary" (click)="showSuccessModal = false">
-            <i class="fas fa-plus me-2"></i>Nouvelle réclamation
+     
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmation suppression -->
+  <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);"
+       *ngIf="showDeleteConfirmModal" @fadeIn>
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content delete-confirm-modal">
+        <div class="modal-header border-0">
+          <h5 class="modal-title text-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Confirmation de suppression
+          </h5>
+        </div>
+        <div class="modal-body text-center">
+          <i class="fas fa-trash-alt text-danger fa-3x mb-3"></i>
+          <p class="mb-2 fw-semibold">Voulez-vous supprimer ce brouillon ?</p>
+          <p class="text-muted small mb-0">
+            Cette action est définitive et ne peut pas être annulée.
+          </p>
+        </div>
+        <div class="modal-footer border-0 justify-content-center">
+          <button type="button" class="btn btn-outline-secondary me-2" (click)="closeDeleteModal()">
+            <i class="fas fa-times me-2"></i>Annuler
+          </button>
+          <button type="button" class="btn btn-danger" (click)="confirmDeleteDraft()">
+            <i class="fas fa-trash me-2"></i>Supprimer
           </button>
         </div>
       </div>
