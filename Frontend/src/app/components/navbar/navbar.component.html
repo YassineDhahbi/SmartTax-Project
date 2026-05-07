@@ -68,9 +68,30 @@
                             <button type="button" class="nav-right-link" (click)="logout()"><i class="fas fa-sign-out-alt"></i></button>
                         </div> -->
                         <div class="nav-btn">
-                            <a [routerLink]="[getButtonLink()]" class="theme-btn2">{{ getButtonText() }}<i
-                                    class="fas fa-circle-arrow-right"></i></a>
+                            <a [routerLink]="[getButtonLink()]"
+                               class="theme-btn2"
+                               [class.contribuable-profile-btn]="isContribuableLoggedIn()"
+                               [attr.title]="isContribuableLoggedIn() ? getContribuableIdentityLabel() : getButtonText()">
+                                <ng-container *ngIf="isContribuableLoggedIn(); else defaultProfileButton">
+                                    <span class="contribuable-profile-name">{{ contribuableFullName || 'Mon Profile' }}</span>
+                                    <span class="contribuable-profile-tin" *ngIf="contribuableTin">TIN: {{ contribuableTin }}</span>
+                                </ng-container>
+                                <ng-template #defaultProfileButton>
+                                    <span>{{ getButtonText() }}</span>
+                                    <i class="fas fa-circle-arrow-right"></i>
+                                </ng-template>
+                            </a>
                         </div>
+
+                        <!-- Bouton messagerie -->
+                        <a class="nav-right-link message-btn-icon"
+                           [routerLink]="['/Reclamation']"
+                           title="Messagerie">
+                            <i class="fas fa-envelope"></i>
+                            <span class="message-btn-badge" *ngIf="isContribuableLoggedIn() && unreadAgentMessagesCount > 0">
+                                {{ unreadAgentMessagesCount > 99 ? '99+' : unreadAgentMessagesCount }}
+                            </span>
+                        </a>
                         
                         <!-- Bouton de déconnexion -->
                         <div class="logout-btn" *ngIf="authService.isLoggedIn()">
@@ -95,16 +116,10 @@
                             </div>
                         </div> -->
                         
-                        <!-- Barre de recherche moderne -->
-                        <div class="search-container">
-                            <div class="search-box">
-                                <input type="text" class="search-input" placeholder="Rechercher..." 
-                                       [(ngModel)]="searchQuery" (keyup.enter)="performSearch()">
-                                <button class="search-btn" (click)="performSearch()">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </div>
+                        <!-- Icône recherche uniquement -->
+                        <button type="button" class="nav-right-link search-icon-only" (click)="performSearch()" title="Recherche">
+                            <i class="fas fa-search"></i>
+                        </button>
                         
                         <button type="button" class="sidebar-btn nav-right-link" data-bs-toggle="offcanvas"
                             data-bs-target="#sidebarPopup">

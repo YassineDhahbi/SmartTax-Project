@@ -42,7 +42,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     this.registerForm = this.fb.group({
       cin: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]], // CIN : 8 chiffres obligatoires
       telephone: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]], // Téléphone : 8 chiffres obligatoires
-      adresse: ['', [Validators.required, Validators.minLength(10)]], // Adresse : obligatoire, minimum 10 caractères
+      adresse: ['', [Validators.required]], // Adresse : obligatoire
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.pattern(/^[a-zA-Z\s]*$/)]],
       lastName: ['', [Validators.required, Validators.minLength(2), Validators.pattern(/^[a-zA-Z\s]*$/)]],
       email: ['', [Validators.required, Validators.email]],
@@ -178,7 +178,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
           break;
         case 'adresse':
           if (control.errors?.['required']) message = 'L\'adresse est requise.';
-          else if (control.errors?.['minlength']) message = 'L\'adresse doit contenir au moins 10 caractères.';
           break;
         case 'firstName':
           if (control.errors?.['required']) message = 'Le prénom est requis.';

@@ -7,6 +7,7 @@ import { ValidationService } from '../../services/validation.service';
 import { NotificationService } from '../../services/notification.service';
 import { CinValidatorService } from '../../services/cin/cin-validator.service';
 import { OcrService, CINData } from '../../services/ocr.service';
+import { FaceVerificationResponse, FaceVerificationService } from '../../services/face-verification.service';
 import { 
   Immatriculation, 
   CreateImmatriculationDto, 
@@ -211,11 +212,17 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
   // Webcam
   showWebcamModal: boolean = false;
   stream: any = null;
+  webcamLoading: boolean = false;
+  webcamError: string = '';
   capturedPhoto: boolean = false;
   photoPreview: string = '';
   identityPhoto: string = '';
   capturedPhotoDataUrl: string = '';
   tempPhotoFile: File | null = null;
+  isFaceVerificationInProgress: boolean = false;
+  faceVerificationSimilarity: number | null = null;
+  faceVerificationMessage: string = '';
+  faceVerificationStatus: 'idle' | 'success' | 'error' = 'idle';
 
   // Vérification
   ocrResults: any[] = [];
@@ -334,6 +341,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     private notificationService: NotificationService,
     private cinValidator: CinValidatorService,
     private ocrService: OcrService,
+    private faceVerificationService: FaceVerificationService,
     private renderer: Renderer2
   ) {}
 
@@ -1263,46 +1271,48 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
 
   // Webcam
   openWebcamModal(): void {
+    this.resetCapturedPhotoState();
+    this.webcamError = '';
+    this.webcamLoading = true;
+    this.resetFaceVerificationFeedback();
     this.showWebcamModal = true;
     // Attendre que le modal soit visible avant d'initialiser la webcam
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       this.initializeWebcam();
-    }, 100);
+    });
   }
 
   async initializeWebcam(): Promise<void> {
     try {
-      console.log('Tentative d\'initialisation de la webcam...');
-      console.log('showWebcamModal:', this.showWebcamModal);
-      
       // Attendre un peu plus pour s'assurer que le DOM est prêt
       await new Promise(resolve => setTimeout(resolve, 200));
       
       // Vérifier si l'élément vidéo existe
       if (!this.videoElement || !this.videoElement.nativeElement) {
-        console.error('Erreur: Élément vidéo non trouvé');
-        console.log('videoElement:', this.videoElement);
-        alert('Erreur: Élément vidéo non disponible. Veuillez réessayer.');
+        this.setWebcamError('Élément vidéo non disponible. Veuillez réessayer.');
+        this.webcamLoading = false;
         return;
       }
 
       // Vérifier si le navigateur supporte la webcam
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.error('Erreur: Webcam non supportée par le navigateur');
-        alert('Votre navigateur ne supporte pas la webcam. Veuillez utiliser Chrome ou Firefox.');
+        this.setWebcamError('Votre navigateur ne supporte pas la webcam. Veuillez utiliser Chrome, Edge ou Firefox.');
+        this.webcamLoading = false;
         return;
       }
-
-      console.log('Demande d\'accès à la webcam...');
       
-      // Demander l'accès à la webcam
-      this.stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'user',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
-      });
+      // Demander l'accès à la webcam, puis fallback si nécessaire
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'user',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
+      } catch {
+        this.stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      }
 
       // Assigner le stream à l'élément vidéo
       const video = this.videoElement.nativeElement;
@@ -1310,41 +1320,41 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       
       // Attendre que la vidéo soit chargée
       video.onloadedmetadata = () => {
-        console.log('Webcam initialisée avec succès');
+        this.webcamLoading = false;
+        this.webcamError = '';
         video.play().catch(err => {
           console.error('Erreur lors de la lecture de la vidéo:', err);
+          this.setWebcamError('La caméra est détectée mais la lecture vidéo a échoué.');
         });
       };
 
-      video.onerror = (error) => {
-        console.error('Erreur vidéo:', error);
-        alert('Erreur lors de l\'initialisation de la webcam.');
+      video.onerror = () => {
+        this.webcamLoading = false;
+        this.setWebcamError('Erreur lors de l\'initialisation de la webcam.');
       };
 
     } catch (error: any) {
       console.error('Erreur webcam:', error);
+      this.webcamLoading = false;
       
       // Messages d'erreur spécifiques
       if (error.name === 'NotAllowedError') {
-        alert('Accès à la webcam refusé. Veuillez autoriser l\'utilisation de la webcam dans les paramètres de votre navigateur.');
+        this.setWebcamError('Accès à la webcam refusé. Autorisez la caméra dans votre navigateur puis réessayez.');
       } else if (error.name === 'NotFoundError') {
-        alert('Aucune webcam détectée. Veuillez vérifier que votre webcam est bien connectée.');
+        this.setWebcamError('Aucune webcam détectée. Vérifiez votre matériel.');
       } else if (error.name === 'NotReadableError') {
-        alert('La webcam est déjà utilisée par une autre application.');
+        this.setWebcamError('La webcam est déjà utilisée par une autre application.');
       } else {
-        alert('Impossible d\'accéder à la webcam. Veuillez vérifier les permissions et votre matériel.');
+        this.setWebcamError('Impossible d\'accéder à la webcam. Vérifiez les permissions et votre matériel.');
       }
     }
   }
 
   closeWebcam(): void {
-    console.log('Fermeture de la webcam...');
-    
     // Arrêter tous les tracks du stream
     if (this.stream) {
       this.stream.getTracks().forEach((track: MediaStreamTrack) => {
         track.stop();
-        console.log('Track arrêté:', track.kind);
       });
       this.stream = null;
     }
@@ -1354,9 +1364,10 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       const video = this.videoElement.nativeElement;
       video.srcObject = null;
       video.pause();
-      console.log('Élément vidéo nettoyé');
     }
 
+    this.webcamLoading = false;
+    this.isFaceVerificationInProgress = false;
     this.showWebcamModal = false;
   }
 
@@ -1364,14 +1375,12 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     try {
       // Vérifier si les éléments existent
       if (!this.videoElement || !this.videoElement.nativeElement) {
-        console.error('Erreur: Élément vidéo non trouvé pour la capture');
-        alert('Erreur: Impossible de capturer la photo. Élément vidéo non disponible.');
+        this.notificationService.showError('Impossible de capturer la photo. Élément vidéo non disponible.');
         return;
       }
 
       if (!this.canvas || !this.canvas.nativeElement) {
-        console.error('Erreur: Élément canvas non trouvé pour la capture');
-        alert('Erreur: Impossible de capturer la photo. Canvas non disponible.');
+        this.notificationService.showError('Impossible de capturer la photo. Canvas non disponible.');
         return;
       }
 
@@ -1380,15 +1389,13 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       const context = canvas.getContext('2d');
       
       if (!context) {
-        console.error('Erreur: Impossible d\'obtenir le contexte 2D du canvas');
-        alert('Erreur: Impossible de capturer la photo.');
+        this.notificationService.showError('Impossible de capturer la photo.');
         return;
       }
       
       // Vérifier si la vidéo est prête
       if (video.readyState !== 4) { // HAVE_FUTURE_DATA = 4
-        console.error('Erreur: La vidéo n\'est pas encore chargée');
-        alert('Veuillez attendre que la webcam soit correctement initialisée.');
+        this.notificationService.showWarning('Veuillez attendre que la webcam soit correctement initialisée.');
         return;
       }
       
@@ -1417,21 +1424,19 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
           
           console.log('Photo capturée avec succès:', this.tempPhotoFile);
         } else {
-          console.error('Erreur: Impossible de créer le blob de l\'image');
-          alert('Erreur lors de la capture de la photo.');
+          this.notificationService.showError('Erreur lors de la capture de la photo.');
         }
       }, 'image/jpeg', 0.9);
       
     } catch (error) {
       console.error('Erreur lors de la capture de la photo:', error);
-      alert('Erreur lors de la capture de la photo. Veuillez réessayer.');
+      this.notificationService.showError('Erreur lors de la capture de la photo. Veuillez réessayer.');
     }
   }
 
   retakePhoto(): void {
-    this.capturedPhoto = false;
-    this.capturedPhotoDataUrl = '';
-    this.tempPhotoFile = null;
+    this.resetCapturedPhotoState();
+    this.resetFaceVerificationFeedback();
     
     // Réafficher la vidéo et cacher le canvas
     if (this.videoElement && this.videoElement.nativeElement) {
@@ -1448,17 +1453,84 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       this.files.photo = this.tempPhotoFile;
       this.photoPreview = this.capturedPhotoDataUrl;
       
-      // Fermer la webcam
-      this.closeWebcam();
-      
       // Réinitialiser les variables temporaires
       this.capturedPhoto = false;
       this.capturedPhotoDataUrl = '';
       this.tempPhotoFile = null;
       
-      console.log('Photo personnelle enregistrée avec succès!');
-      alert('Photo personnelle enregistrée avec succès!');
+      this.updateDocumentScore();
+      this.notificationService.showSuccess('Photo personnelle enregistrée avec succès.');
+      this.startAutomaticFaceVerification();
     }
+  }
+
+  retryWebcam(): void {
+    this.closeWebcam();
+    this.openWebcamModal();
+  }
+
+  private setWebcamError(message: string): void {
+    this.webcamError = message;
+    this.notificationService.showError(message, 'Webcam');
+  }
+
+  private resetCapturedPhotoState(): void {
+    this.capturedPhoto = false;
+    this.capturedPhotoDataUrl = '';
+    this.tempPhotoFile = null;
+  }
+
+  private startAutomaticFaceVerification(): void {
+    if (!this.files.photo) {
+      return;
+    }
+
+    if (!this.files.identite) {
+      this.faceVerificationStatus = 'error';
+      this.faceVerificationMessage = 'Veuillez d abord televerser la piece d identite pour lancer la verification automatique.';
+      this.faceVerificationSimilarity = null;
+      return;
+    }
+
+    this.isFaceVerificationInProgress = true;
+    this.faceVerificationStatus = 'idle';
+    this.faceVerificationMessage = 'Verification en cours...';
+    this.faceVerificationSimilarity = null;
+
+    this.faceVerificationService.verifyFace(this.files.photo, this.files.identite).subscribe({
+      next: (result: FaceVerificationResponse) => {
+        this.faceRecognitionScore = result.similarity || 0;
+        this.updateOverallScore();
+        this.isFaceVerificationInProgress = false;
+        this.faceVerificationSimilarity = result.similarity || 0;
+
+        if (result.verified) {
+          this.faceVerificationStatus = 'success';
+          this.faceVerificationMessage = result.message || 'Identite verifiee.';
+          this.notificationService.showSuccess(`Identité vérifiée automatiquement (${result.similarity}% de similarité).`);
+          setTimeout(() => this.closeWebcam(), 1000);
+          return;
+        }
+
+        this.faceVerificationStatus = 'error';
+        this.faceVerificationMessage = result.message || 'La verification faciale a echoue.';
+        this.notificationService.showError(result.message || `Non vérifié (${result.similarity}%).`);
+      },
+      error: (err) => {
+        this.isFaceVerificationInProgress = false;
+        this.faceVerificationStatus = 'error';
+        this.faceVerificationSimilarity = null;
+        this.faceVerificationMessage = err?.error?.message || 'Erreur lors de la verification faciale automatique.';
+        this.notificationService.showError(err?.error?.message || 'Erreur lors de la vérification faciale automatique.');
+      }
+    });
+  }
+
+  private resetFaceVerificationFeedback(): void {
+    this.isFaceVerificationInProgress = false;
+    this.faceVerificationSimilarity = null;
+    this.faceVerificationMessage = '';
+    this.faceVerificationStatus = 'idle';
   }
 
   // Vérification automatique

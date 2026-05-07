@@ -1,0 +1,43 @@
+<div class="face-verification-card">
+  <h5><i class="fas fa-user-shield"></i> Vérification faciale IA</h5>
+  <p class="description">Capturez un selfie: la verification se lance automatiquement avec la photo du document d'identite.</p>
+
+  <div class="webcam-wrapper">
+    <webcam
+      [trigger]="trigger"
+      (imageCapture)="handleImage($event)"
+      (initError)="handleInitError($event)">
+    </webcam>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn-capture" (click)="triggerSnapshot()">
+      <i class="fas fa-camera"></i> Capturer selfie
+    </button>
+    <button type="button" class="btn-verify" (click)="verifyIdentity()" [disabled]="isVerifying || !capturedFile || !identityDocument">
+      <i class="fas fa-fingerprint"></i> Reverifier manuellement
+    </button>
+  </div>
+
+  <div class="preview" *ngIf="webcamImage">
+    <img [src]="webcamImage.imageAsDataUrl" alt="Aperçu selfie">
+  </div>
+
+  <div class="status error" *ngIf="webcamError">
+    <i class="fas fa-exclamation-circle"></i> {{ webcamError }}
+  </div>
+
+  <div class="status loading" *ngIf="isVerifying">
+    <i class="fas fa-spinner fa-spin"></i> Vérification faciale en cours...
+  </div>
+
+  <div class="status success" *ngIf="verificationResult && verificationResult.verified">
+    <i class="fas fa-check-circle"></i>
+    Visage vérifié (similarité: {{ verificationResult.similarity }}%)
+  </div>
+
+  <div class="status error" *ngIf="verificationResult && !verificationResult.verified">
+    <i class="fas fa-times-circle"></i>
+    Non vérifié (similarité: {{ verificationResult.similarity }}%) - {{ verificationResult.message }}
+  </div>
+</div>

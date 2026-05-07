@@ -47,6 +47,9 @@ import { DetailActualiteComponent } from './components/detail-actualite/detail-a
 import { PublicationAdminComponent } from './Admin/publication-admin/publication-admin.component';
 import { DemandeInformationComponent } from './AgentDGI/demande-information/demande-information.component';
 import { DemandeInformationAdminComponent } from './Admin/demande-information-admin/demande-information-admin.component';
+import { ReclamationAdminComponent } from './Admin/reclamation-admin/reclamation-admin.component';
+import { WebcamModule } from 'ngx-webcam';
+import { FaceVerificationWebcamComponent } from './components/face-verification-webcam/face-verification-webcam.component';
 
 
 @NgModule({
@@ -86,7 +89,9 @@ import { DemandeInformationAdminComponent } from './Admin/demande-information-ad
     DetailActualiteComponent,
     PublicationAdminComponent,
     DemandeInformationComponent,
-    DemandeInformationAdminComponent
+    DemandeInformationAdminComponent,
+    ReclamationAdminComponent,
+    FaceVerificationWebcamComponent
     
 
 
@@ -99,7 +104,8 @@ import { DemandeInformationAdminComponent } from './Admin/demande-information-ad
     FormsModule, BrowserAnimationsModule,
     ProfileAdminComponent,
     NgChartsModule,
-    CKEditorModule
+    CKEditorModule,
+    WebcamModule
   ],
   providers: [
     ReclamationService,

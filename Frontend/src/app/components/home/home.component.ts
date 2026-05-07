@@ -1,4 +1,5 @@
 import { Component, OnInit, AfterViewInit, HostListener, ElementRef } from '@angular/core';
+import { PublicationService } from 'src/app/services/publication.service';
 
 @Component({
   selector: 'app-home',
@@ -6,10 +7,13 @@ import { Component, OnInit, AfterViewInit, HostListener, ElementRef } from '@ang
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit, AfterViewInit {
+  readonly fallbackPublicationImage = 'assets/img/actualite/Actualite.png';
+  latestPublications: any[] = [];
 
-  constructor(private el: ElementRef) {}
+  constructor(private el: ElementRef, private publicationService: PublicationService) {}
 
   ngOnInit(): void {
+    this.loadLatestPublications();
     this.initializeAnimations();
     this.initializeScrollEffects();
     this.initializeInteractiveElements();
@@ -17,6 +21,80 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.initializeCounterInteractions();
     this.initializeBlogInteractions();
     this.initializeReclamationInteractions();
+  }
+
+  private loadLatestPublications(): void {
+    this.publicationService.getPublications({
+      page: 0,
+      size: 3,
+      sortBy: 'createdAt',
+      sortDir: 'desc',
+      status: 'PUBLISHED'
+    } as any).subscribe({
+      next: (response: any) => {
+        const rawPublications = Array.isArray(response?.data) ? response.data : [];
+        this.latestPublications = rawPublications
+          .filter((publication: any) => `${publication?.status || ''}`.toUpperCase() === 'PUBLISHED')
+          .slice(0, 3);
+
+        // Re-bind interactions after async render of blog cards.
+        setTimeout(() => this.initializeBlogInteractions(), 0);
+      },
+      error: (error) => {
+        console.error('Erreur chargement publications home:', error);
+        this.latestPublications = [];
+      }
+    });
+  }
+
+  getPublicationImage(publication: any): string {
+    const url = (publication?.imageUrl || publication?.image_url || '').trim();
+    if (!url) {
+      return this.fallbackPublicationImage;
+    }
+    if (url.startsWith('http')) {
+      return url;
+    }
+    if (url.startsWith('uploads/publications/')) {
+      return `http://localhost:8080/${url}`;
+    }
+    if (url.startsWith('/assets/')) {
+      return `http://localhost:8080${url}`;
+    }
+    if (url.startsWith('assets/')) {
+      return `http://localhost:8080/${url}`;
+    }
+    return url;
+  }
+
+  getPublicationAuthor(publication: any): string {
+    return publication?.createdByName || publication?.created_by?.name || publication?.createdBy?.name || 'SmartTax';
+  }
+
+  publicationDay(dateInput: any): string {
+    const date = this.parsePublicationDate(dateInput);
+    return date ? `${date.getDate()}`.padStart(2, '0') : '--';
+  }
+
+  publicationMonth(dateInput: any): string {
+    const date = this.parsePublicationDate(dateInput);
+    return date ? date.toLocaleDateString('fr-FR', { month: 'short' }).replace('.', '') : '---';
+  }
+
+  publicationExcerpt(publication: any): string {
+    const text = `${publication?.summary || publication?.content || ''}`.trim();
+    if (!text) {
+      return 'Consultez cette publication pour découvrir les dernières informations fiscales.';
+    }
+    return text.length > 120 ? `${text.slice(0, 120)}...` : text;
+  }
+
+  private parsePublicationDate(dateInput: any): Date | null {
+    if (!dateInput) {
+      return null;
+    }
+    const date = new Date(dateInput);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   ngAfterViewInit(): void {

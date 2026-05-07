@@ -172,6 +172,10 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
             if (response.lastName != null) {
               localStorage.setItem('lastName', String(response.lastName));
             }
+            if (response.matricule != null || response.tin != null || response.matriculeFiscal != null) {
+              localStorage.setItem('matricule', String(response.matricule || response.tin || response.matriculeFiscal));
+              localStorage.setItem('tin', String(response.tin || response.matricule || response.matriculeFiscal));
+            }
             if (response.telephone) {
               localStorage.setItem('telephone', String(response.telephone));
             }

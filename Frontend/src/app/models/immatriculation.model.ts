@@ -31,6 +31,7 @@ export interface Immatriculation {
   
   // Personne Morale
   raisonSociale?: string;
+  matriculeFiscal?: string;
   matriculeFiscalExistant?: string;
   registreCommerce?: string;
   representantLegal?: string;

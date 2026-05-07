@@ -103,7 +103,8 @@ export class TopbarComponent implements OnInit, OnDestroy {
       (item) =>
         !this.isImmatriculationNotification(item) &&
         !this.isUserNotification(item) &&
-        !this.isDemandeInformationNotification(item)
+        !this.isDemandeInformationNotification(item) &&
+        !this.isReclamationNotification(item)
     );
   }
 
@@ -117,6 +118,10 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
   get demandeInformationNotifications(): AdminNotificationItem[] {
     return this.notifications.filter((item) => this.isDemandeInformationNotification(item));
+  }
+
+  get reclamationNotifications(): AdminNotificationItem[] {
+    return this.notifications.filter((item) => this.isReclamationNotification(item));
   }
 
   private navigateFromNotification(item: AdminNotificationItem): void {
@@ -146,6 +151,14 @@ export class TopbarComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (eventType.includes('RECLAMATION')) {
+      const recId = item.reclamationId != null ? Number(item.reclamationId) : null;
+      this.router.navigate(['/admin/reclamations'], {
+        queryParams: recId ? { openReclamationId: recId } : {}
+      });
+      return;
+    }
+
     if (item.publicationId) {
       this.router.navigate(['/admin/publications'], { queryParams: { openPublicationId: item.publicationId } });
     }
@@ -164,6 +177,11 @@ export class TopbarComponent implements OnInit, OnDestroy {
   private isDemandeInformationNotification(item: AdminNotificationItem): boolean {
     const eventType = `${item?.eventType || ''}`.toUpperCase();
     return eventType.includes('DEMANDE_INFORMATION');
+  }
+
+  private isReclamationNotification(item: AdminNotificationItem): boolean {
+    const eventType = `${item?.eventType || ''}`.toUpperCase();
+    return eventType.includes('RECLAMATION');
   }
 
   private refreshNotifications(): void {

@@ -1182,18 +1182,43 @@
         </div>
         <div class="modal-body">
             <div class="webcam-container">
+                <div class="webcam-status webcam-loading" *ngIf="webcamLoading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Initialisation de la caméra...</span>
+                </div>
+                <div class="webcam-status webcam-error" *ngIf="webcamError && !webcamLoading">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>{{ webcamError }}</span>
+                    <button type="button" class="btn-webcam-retry" (click)="retryWebcam()">
+                        <i class="fas fa-redo"></i> Réessayer
+                    </button>
+                </div>
                 <video #videoElement id="webcam" autoplay playsinline></video>
                 <canvas #canvas id="canvas" style="display: none;"></canvas>
                 <div class="webcam-controls">
-                    <button type="button" class="btn-capture" (click)="capturePhoto()" *ngIf="!capturedPhoto">
+                    <button type="button" class="btn-capture" (click)="capturePhoto()" *ngIf="!capturedPhoto" [disabled]="webcamLoading || !!webcamError || isFaceVerificationInProgress">
                         <i class="fas fa-camera"></i> Capturer
                     </button>
-                    <button type="button" class="btn-retake" (click)="retakePhoto()" *ngIf="capturedPhoto">
+                    <button type="button" class="btn-retake" (click)="retakePhoto()" *ngIf="capturedPhoto" [disabled]="isFaceVerificationInProgress">
                         <i class="fas fa-redo"></i> Reprendre
                     </button>
-                    <button type="button" class="btn-use-photo" (click)="usePhoto()" *ngIf="capturedPhoto">
+                    <button type="button" class="btn-use-photo" (click)="usePhoto()" *ngIf="capturedPhoto" [disabled]="isFaceVerificationInProgress">
                         <i class="fas fa-check"></i> Utiliser cette image
                     </button>
+                </div>
+                <div class="face-verification-feedback" *ngIf="isFaceVerificationInProgress || faceVerificationMessage">
+                    <div class="feedback-line info" *ngIf="isFaceVerificationInProgress">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Verification en cours...</span>
+                    </div>
+                    <div class="feedback-line success" *ngIf="!isFaceVerificationInProgress && faceVerificationStatus === 'success'">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ faceVerificationMessage }} ({{ faceVerificationSimilarity }}%)</span>
+                    </div>
+                    <div class="feedback-line error" *ngIf="!isFaceVerificationInProgress && faceVerificationStatus === 'error'">
+                        <i class="fas fa-times-circle"></i>
+                        <span>{{ faceVerificationMessage }}<ng-container *ngIf="faceVerificationSimilarity !== null"> ({{ faceVerificationSimilarity }}%)</ng-container></span>
+                    </div>
                 </div>
             </div>
         </div>

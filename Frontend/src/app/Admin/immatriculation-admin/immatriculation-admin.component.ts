@@ -774,7 +774,7 @@ export class ImmatriculationAdminComponent implements OnInit {
         } else {
           // Notification par défaut si pas de notification personnalisée
           this.showNotification(
-            'Dossier validé avec succès ! Un email avec le TIN a été envoyé.',
+            'Dossier validé avec succès ! Un email avec le matricule fiscal a été envoyé.',
             'success'
           );
         }

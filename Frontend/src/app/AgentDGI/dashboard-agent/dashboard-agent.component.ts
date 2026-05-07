@@ -2130,6 +2130,20 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     return statusLabels[status] || status;
   }
 
+  getTinDisplayValue(immatriculation: any): string {
+    const matriculeFiscal = `${immatriculation?.matriculeFiscal || immatriculation?.matriculeFiscalExistant || ''}`.trim();
+    const dossierNumber = `${immatriculation?.dossierNumber || ''}`.trim();
+    const status = `${immatriculation?.status || ''}`.toUpperCase();
+
+    // Après validation, on affiche uniquement le TIN fiscal final.
+    if (status === 'VALIDE') {
+      return matriculeFiscal || 'TIN en attente';
+    }
+
+    // Avant validation, on garde le numéro de dossier.
+    return dossierNumber || matriculeFiscal || `${immatriculation?.id || 'N/A'}`;
+  }
+
   formatDate(dateInput: string | Date | undefined | null): string {
     if (dateInput == null) return 'N/A';
     try {

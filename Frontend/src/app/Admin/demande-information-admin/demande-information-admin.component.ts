@@ -54,6 +54,9 @@ export class DemandeInformationAdminComponent implements OnInit, OnDestroy {
   showDetailsModal = false;
   selectedDemandeForDetails: DemandeInformationAdminItem | null = null;
   pendingDemandeIdToOpen: number | null = null;
+  deletingDemandeId: number | null = null;
+  showDeleteModal = false;
+  selectedDemandeToDelete: DemandeInformationAdminItem | null = null;
 
   stats = [
     { title: 'Total demandes', value: '0', subtitle: 'Toutes les demandes', delta: '--', trend: 'neutral' },
@@ -304,6 +307,47 @@ export class DemandeInformationAdminComponent implements OnInit, OnDestroy {
   openDetailsModal(demande: DemandeInformationAdminItem): void {
     this.selectedDemandeForDetails = demande;
     this.showDetailsModal = true;
+  }
+
+  openDeleteModal(demande: DemandeInformationAdminItem): void {
+    if (!demande?.id) {
+      return;
+    }
+    this.selectedDemandeToDelete = demande;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    if (this.deletingDemandeId !== null) {
+      return;
+    }
+    this.showDeleteModal = false;
+    this.selectedDemandeToDelete = null;
+  }
+
+  confirmDeleteDemande(): void {
+    const demande = this.selectedDemandeToDelete;
+    const id = Number(demande?.id);
+    if (!Number.isFinite(id) || id <= 0 || this.deletingDemandeId === id) {
+      return;
+    }
+
+    this.deletingDemandeId = id;
+    this.http.delete<void>(`${environment.apiUrl}/demande-information/${id}`).subscribe({
+      next: () => {
+        if (this.selectedDemandeForDetails?.id === id) {
+          this.closeDetailsModal();
+        }
+        this.showDeleteModal = false;
+        this.selectedDemandeToDelete = null;
+        this.deletingDemandeId = null;
+        this.loadDemandesInformation();
+      },
+      error: () => {
+        this.deletingDemandeId = null;
+        this.errorMessage = 'Impossible de supprimer la demande d\'information.';
+      },
+    });
   }
 
   closeDetailsModal(): void {

@@ -123,6 +123,31 @@
             <p>{{ item.message }}</p>
           </div>
         </div>
+
+        <div class="notif-section" *ngIf="!isLoadingNotifications && reclamationNotifications.length > 0">
+          <h5 class="notif-section-title">Réclamations</h5>
+          <div
+            class="notif-item"
+            *ngFor="let item of reclamationNotifications"
+            [class.notif-item--unread]="!item.isRead"
+            (click)="openNotification(item)">
+            <div class="notif-head">
+              <div class="notif-head-main">
+                <strong>{{ item.title }}</strong>
+                <small>{{ formatNotificationDate(item.createdAt) }}</small>
+              </div>
+              <button
+                type="button"
+                class="notif-delete-btn"
+                title="Supprimer la notification"
+                [disabled]="deletingNotificationId === item.id"
+                (click)="deleteNotification(item, $event)">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <p>{{ item.message }}</p>
+          </div>
+        </div>
       </div>
     </div>
     <button class="btn primary">Nouveau rapport</button>

@@ -3,6 +3,8 @@ import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../services/auth/auth.service';
 import { interval, Subscription } from 'rxjs';
+import { UserService } from '../../services/user/user.service';
+import { ReclamationService } from '../../services/reclamation.service';
 
 @Component({
   selector: 'app-navbar',
@@ -14,12 +16,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
   activeLink: string = 'home';
   sessionTimeRemaining: string = '';
   sessionTimer: Subscription | null = null;
+  unreadMessagesTimer: Subscription | null = null;
   showSessionWarning: boolean = false;
+  contribuableFullName: string = '';
+  contribuableTin: string = '';
+  unreadAgentMessagesCount: number = 0;
 
   constructor(
     public authService: AuthService,
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private userService: UserService,
+    private reclamationService: ReclamationService
   ) {}
 
   ngOnInit(): void {
@@ -30,17 +38,26 @@ export class NavbarComponent implements OnInit, OnDestroy {
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
       this.updateActiveLink();
+      this.loadContribuableIdentity();
+      this.loadUnreadAgentMessageCount();
     });
 
     // Démarrer le timer de session si l'utilisateur est connecté
     if (this.authService.isLoggedIn()) {
       this.startSessionTimer();
     }
+
+    this.loadContribuableIdentity();
+    this.loadUnreadAgentMessageCount();
+    this.startUnreadMessagesRealtimeRefresh();
   }
 
   ngOnDestroy(): void {
     if (this.sessionTimer) {
       this.sessionTimer.unsubscribe();
+    }
+    if (this.unreadMessagesTimer) {
+      this.unreadMessagesTimer.unsubscribe();
     }
   }
 
@@ -71,6 +88,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.sessionTimer.unsubscribe();
       this.sessionTimer = null;
     }
+  }
+
+  private startUnreadMessagesRealtimeRefresh(): void {
+    if (this.unreadMessagesTimer) {
+      this.unreadMessagesTimer.unsubscribe();
+      this.unreadMessagesTimer = null;
+    }
+
+    // Rafraîchissement léger en quasi temps réel.
+    this.unreadMessagesTimer = interval(8000).subscribe(() => {
+      this.loadUnreadAgentMessageCount();
+    });
   }
 
   private updateActiveLink(): void {
@@ -152,9 +181,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   getButtonText(): string {
-    if (this.authService.isLoggedIn()) {
-      const role = localStorage.getItem('role');
-      return role === 'CONTRIBUABLE' ? 'Mon Profile' : 'Espace Contribuable';
+    if (this.isContribuableLoggedIn()) {
+      return 'Mon Profile';
     }
     return 'Espace Contribuable';
   }
@@ -165,6 +193,129 @@ export class NavbarComponent implements OnInit, OnDestroy {
       return role === 'CONTRIBUABLE' ? '/profile' : '/login';
     }
     return '/login';
+  }
+
+  isContribuableLoggedIn(): boolean {
+    return this.authService.isLoggedIn() && localStorage.getItem('role') === 'CONTRIBUABLE';
+  }
+
+  getContribuableIdentityLabel(): string {
+    const fullName = this.contribuableFullName || 'Mon Profile';
+    if (!this.contribuableTin) {
+      return fullName;
+    }
+    return `${fullName} - TIN: ${this.contribuableTin}`;
+  }
+
+  private loadContribuableIdentity(): void {
+    if (!this.isContribuableLoggedIn()) {
+      this.contribuableFullName = '';
+      this.contribuableTin = '';
+      return;
+    }
+
+    const firstName = localStorage.getItem('firstName')?.trim() || '';
+    const lastName = localStorage.getItem('lastName')?.trim() || '';
+    const userInfo = this.getParsedUserInfo();
+    const tokenPayload = this.getJwtPayload();
+
+    const resolvedFirstName = firstName || userInfo?.firstName || userInfo?.prenom || '';
+    const resolvedLastName = lastName || userInfo?.lastName || userInfo?.nom || '';
+    const resolvedFullName = `${resolvedFirstName} ${resolvedLastName}`.trim();
+
+    this.contribuableFullName = resolvedFullName || userInfo?.fullName || userInfo?.name || 'Mon Profile';
+    this.contribuableTin = (
+      localStorage.getItem('tin') ||
+      localStorage.getItem('matricule') ||
+      localStorage.getItem('matriculeFiscal') ||
+      userInfo?.tin ||
+      userInfo?.matricule ||
+      userInfo?.matriculeFiscal ||
+      userInfo?.TIN ||
+      tokenPayload?.tin ||
+      tokenPayload?.matricule ||
+      tokenPayload?.matriculeFiscal ||
+      tokenPayload?.TIN ||
+      ''
+    ).toString().trim();
+
+    if (!this.contribuableTin) {
+      this.loadContribuableTinFromApi();
+    }
+  }
+
+  private loadUnreadAgentMessageCount(): void {
+    if (!this.isContribuableLoggedIn()) {
+      this.unreadAgentMessagesCount = 0;
+      return;
+    }
+
+    this.reclamationService.getReclamations().subscribe({
+      next: (reclamations: any[]) => {
+        this.unreadAgentMessagesCount = (reclamations || []).reduce((sum, rec) => {
+          const unread = Number(rec?.unreadAgentMessageCount ?? 0);
+          return sum + (Number.isFinite(unread) ? unread : 0);
+        }, 0);
+      },
+      error: () => {
+        this.unreadAgentMessagesCount = 0;
+      }
+    });
+  }
+
+  private getParsedUserInfo(): any | null {
+    const raw = localStorage.getItem('userInfo');
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  private getJwtPayload(): any | null {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const payloadBase64 = token.split('.')[1];
+      if (!payloadBase64) {
+        return null;
+      }
+
+      const normalizedBase64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(atob(normalizedBase64));
+    } catch {
+      return null;
+    }
+  }
+
+  private loadContribuableTinFromApi(): void {
+    const userIdRaw = localStorage.getItem('userId');
+    const userId = Number(userIdRaw);
+
+    if (!userIdRaw || Number.isNaN(userId) || userId <= 0) {
+      return;
+    }
+
+    this.userService.getUserById(userId).subscribe({
+      next: (user: any) => {
+        const apiTin = (user?.matricule || user?.tin || user?.matriculeFiscal || '').toString().trim();
+        if (apiTin) {
+          this.contribuableTin = apiTin;
+          localStorage.setItem('matricule', apiTin);
+          localStorage.setItem('tin', apiTin);
+        }
+      },
+      error: () => {
+        // Ne rien faire : la navbar continue de fonctionner même sans appel API.
+      }
+    });
   }
 
   extendSession(): void {

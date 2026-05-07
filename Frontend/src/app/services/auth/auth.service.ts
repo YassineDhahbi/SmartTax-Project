@@ -30,6 +30,8 @@ export class AuthService {
           localStorage.setItem('role', response.role);
           localStorage.setItem('firstName', response.firstName || response.prenom || '');
           localStorage.setItem('lastName', response.lastName || response.nom || '');
+          localStorage.setItem('matricule', response.matricule || response.tin || response.matriculeFiscal || '');
+          localStorage.setItem('tin', response.tin || response.matricule || response.matriculeFiscal || '');
           localStorage.setItem('email', response.email);
           localStorage.setItem('dateNaissance', response.dateNaissance || '');
           localStorage.setItem('dateInscription', response.dateInscription || '');
@@ -64,6 +66,8 @@ export class AuthService {
     localStorage.removeItem('role');
     localStorage.removeItem('firstName');
     localStorage.removeItem('lastName');
+    localStorage.removeItem('matricule');
+    localStorage.removeItem('tin');
     localStorage.removeItem('email');
     localStorage.removeItem('dateNaissance');
     localStorage.removeItem('dateInscription');
@@ -214,5 +218,13 @@ export class AuthService {
   // Méthode pour vérifier un TIN
   verifyTIN(tin: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/verify-tin`, { tin });
+  }
+
+  // Vérification faciale (selfie vs document officiel)
+  verifyFace(selfie: Blob, document: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('selfie', selfie, 'selfie.png');
+    formData.append('document', document);
+    return this.http.post(`${this.apiUrl}/verify-face`, formData);
   }
 }

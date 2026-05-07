@@ -22,6 +22,7 @@ import { ProfileAdminComponent } from './Admin/profile-admin/profile-admin.compo
 import { ImmatriculationAdminComponent } from './Admin/immatriculation-admin/immatriculation-admin.component';
 import { PublicationAdminComponent } from './Admin/publication-admin/publication-admin.component';
 import { DemandeInformationAdminComponent } from './Admin/demande-information-admin/demande-information-admin.component';
+import { ReclamationAdminComponent } from './Admin/reclamation-admin/reclamation-admin.component';
 import { PublicationsFiscalesComponent } from './AgentDGI/publications-fiscales/publications-fiscales.component';
 import { DetailActualiteComponent } from './components/detail-actualite/detail-actualite.component';
 
@@ -49,6 +50,7 @@ const routes: Routes = [
   { path: 'admin/immatriculations', component: ImmatriculationAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'admin/publications', component: PublicationAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'admin/demandes-information', component: DemandeInformationAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
+  { path: 'admin/reclamations', component: ReclamationAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'admin/profile', component: ProfileAdminComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'publications-fiscales', component: PublicationsFiscalesComponent, canActivate: [AuthGuard], data: { roles: ['AGENT', 'ADMIN'] } },
   { path: 'trash', component: TrashViewComponent, canActivate: [AuthGuard], data: { roles: ['AGENT', 'ADMIN'] } },

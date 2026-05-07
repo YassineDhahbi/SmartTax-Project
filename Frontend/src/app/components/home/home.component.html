@@ -273,95 +273,17 @@
                         </div>
                     </div>
                     <div class="row g-4">
-                        <div class="col-md-6 col-lg-4">
-                            <article class="blog-item" data-blog="fiscal">
+                        <div class="col-md-6 col-lg-4" *ngFor="let publication of latestPublications; let i = index">
+                            <article class="blog-item" [attr.data-blog]="i === 0 ? 'fiscal' : (i === 1 ? 'conseils' : 'actualites')">
                                 <div class="blog-image">
-                                    <img src="assets/img/blog/01.jpg" alt="Conseils fiscaux">
+                                    <img [src]="getPublicationImage(publication)" [alt]="publication?.title || 'Publication SmartTax'">
                                     <div class="blog-date">
-                                        <strong>10</strong>
-                                        <span>Jan</span>
+                                        <strong>{{ publicationDay(publication?.publishedAt || publication?.published_at || publication?.createdAt || publication?.created_at) }}</strong>
+                                        <span>{{ publicationMonth(publication?.publishedAt || publication?.published_at || publication?.createdAt || publication?.created_at) }}</span>
                                     </div>
                                     <div class="blog-overlay">
                                         <div class="blog-category">
-                                            <i class="fas fa-file-invoice-dollar"></i>
-                                            <span>Fiscalité</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="blog-content">
-                                    <div class="blog-meta">
-                                        <div class="blog-author">
-                                            <i class="fas fa-user-circle"></i>
-                                            <span>Alicia Davis</span>
-                                        </div>
-                                        <div class="blog-comments">
-                                            <i class="fas fa-comments"></i>
-                                            <span>2.5k</span>
-                                        </div>
-                                    </div>
-                                    <h3 class="blog-title">
-                                        <a href="blog-single.html">Les nouvelles réglementations fiscales 2024</a>
-                                    </h3>
-                                    <p class="blog-excerpt">
-                                        Découvrez les dernières changements fiscaux qui impactent les entreprises et particuliers cette année.
-                                    </p>
-                                    <a class="blog-link" href="blog-single.html">
-                                        Lire la suite
-                                        <i class="fas fa-arrow-right"></i>
-                                    </a>
-                                </div>
-                            </article>
-                        </div>
-                        <div class="col-md-6 col-lg-4">
-                            <article class="blog-item" data-blog="conseils">
-                                <div class="blog-image">
-                                    <img src="assets/img/blog/02.jpg" alt="Optimisation fiscale">
-                                    <div class="blog-date">
-                                        <strong>11</strong>
-                                        <span>Jan</span>
-                                    </div>
-                                    <div class="blog-overlay">
-                                        <div class="blog-category">
-                                            <i class="fas fa-lightbulb"></i>
-                                            <span>Conseils</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="blog-content">
-                                    <div class="blog-meta">
-                                        <div class="blog-author">
-                                            <i class="fas fa-user-circle"></i>
-                                            <span>Alicia Davis</span>
-                                        </div>
-                                        <div class="blog-comments">
-                                            <i class="fas fa-comments"></i>
-                                            <span>1.2k</span>
-                                        </div>
-                                    </div>
-                                    <h3 class="blog-title">
-                                        <a href="blog-single.html">Optimisez votre déclaration d'impôts</a>
-                                    </h3>
-                                    <p class="blog-excerpt">
-                                        Nos experts vous partagent les meilleures stratégies pour optimiser votre fiscalité légalement.
-                                    </p>
-                                    <a class="blog-link" href="blog-single.html">
-                                        Lire la suite
-                                        <i class="fas fa-arrow-right"></i>
-                                    </a>
-                                </div>
-                            </article>
-                        </div>
-                        <div class="col-md-6 col-lg-4">
-                            <article class="blog-item" data-blog="actualites">
-                                <div class="blog-image">
-                                    <img src="assets/img/blog/03.jpg" alt="Actualités SmartTax">
-                                    <div class="blog-date">
-                                        <strong>12</strong>
-                                        <span>Jan</span>
-                                    </div>
-                                    <div class="blog-overlay">
-                                        <div class="blog-category">
-                                            <i class="fas fa-bullhorn"></i>
+                                            <i class="fas fa-newspaper"></i>
                                             <span>Actualités</span>
                                         </div>
                                     </div>
@@ -370,25 +292,32 @@
                                     <div class="blog-meta">
                                         <div class="blog-author">
                                             <i class="fas fa-user-circle"></i>
-                                            <span>Alicia Davis</span>
+                                            <span>{{ getPublicationAuthor(publication) }}</span>
                                         </div>
                                         <div class="blog-comments">
-                                            <i class="fas fa-comments"></i>
-                                            <span>2.8k</span>
+                                            <i class="fas fa-thumbs-up"></i>
+                                            <span>{{ publication?.likes_count || publication?.likesCount || 0 }}</span>
+                                        </div>
+                                        <div class="blog-comments">
+                                            <i class="fas fa-thumbs-down"></i>
+                                            <span>{{ publication?.dislikes_count || publication?.dislikesCount || 0 }}</span>
                                         </div>
                                     </div>
                                     <h3 class="blog-title">
-                                        <a href="blog-single.html">Nouveaux services SmartTax en ligne</a>
+                                        <a [routerLink]="['/actualite']">{{ publication?.title || 'Publication SmartTax' }}</a>
                                     </h3>
                                     <p class="blog-excerpt">
-                                        Découvrez nos nouvelles fonctionnalités digitales pour simplifier votre gestion fiscale.
+                                        {{ publicationExcerpt(publication) }}
                                     </p>
-                                    <a class="blog-link" href="blog-single.html">
+                                    <a class="blog-link" [routerLink]="['/actualite']">
                                         Lire la suite
                                         <i class="fas fa-arrow-right"></i>
                                     </a>
                                 </div>
                             </article>
+                        </div>
+                        <div class="col-12" *ngIf="latestPublications.length === 0">
+                            <p class="text-center text-muted">Aucune publication disponible pour le moment.</p>
                         </div>
                     </div>
                 </div>

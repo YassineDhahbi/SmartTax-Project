@@ -4984,6 +4984,50 @@
   margin: 0;
 }
 
+/* Immatriculations: fit all columns without horizontal scrollbar */
+.da__tableWrap--immatriculations {
+  overflow-x: hidden;
+}
+
+.da__table--immatriculations {
+  min-width: 0;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.da__table--immatriculations th,
+.da__table--immatriculations td {
+  padding: 10px 8px;
+  font-size: 13px;
+}
+
+.da__table--immatriculations th:nth-child(1),
+.da__table--immatriculations td:nth-child(1) { width: 16%; }
+.da__table--immatriculations th:nth-child(2),
+.da__table--immatriculations td:nth-child(2) { width: 30%; }
+.da__table--immatriculations th:nth-child(3),
+.da__table--immatriculations td:nth-child(3) { width: 13%; }
+.da__table--immatriculations th:nth-child(4),
+.da__table--immatriculations td:nth-child(4) { width: 18%; }
+.da__table--immatriculations th:nth-child(5),
+.da__table--immatriculations td:nth-child(5) { width: 11%; }
+.da__table--immatriculations th:nth-child(6),
+.da__table--immatriculations td:nth-child(6) { width: 12%; }
+
+.da__table--immatriculations .da__mono,
+.da__table--immatriculations .da__strong,
+.da__table--immatriculations .da__small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.da__table--immatriculations td.da__center .da__rowBtn {
+  width: 30px;
+  height: 30px;
+  margin-left: 4px;
+}
+
 .da__reclamationChatOverlay {
   position: fixed;
   inset: 0;

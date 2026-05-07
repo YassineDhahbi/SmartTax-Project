@@ -110,6 +110,14 @@
                     <button class="icon-btn icon-btn--view" type="button" title="Voir d�tails" (click)="openDetailsModal(demande)">
                       <i class="fa-regular fa-eye"></i>
                     </button>
+                    <button
+                      class="icon-btn icon-btn--delete"
+                      type="button"
+                      title="Supprimer"
+                      [disabled]="deletingDemandeId === demande.id"
+                      (click)="openDeleteModal(demande)">
+                      <i class="fa-regular fa-trash-can"></i>
+                    </button>
                     <button class="assign-btn" type="button" (click)="openAssignAgentModal(demande)">
                       <i class="fa-solid fa-user-check"></i>
                       Affecter à un agent
@@ -199,6 +207,30 @@
     <div class="modal-footer">
       <button type="button" class="modal-btn modal-btn--secondary" (click)="closeDetailsModal()">
         Fermer
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showDeleteModal && selectedDemandeToDelete" (click)="closeDeleteModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Suppression</h4>
+      <button type="button" class="modal-close" (click)="closeDeleteModal()" [disabled]="deletingDemandeId !== null">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-text">
+        Confirmer la suppression de "<strong>{{ selectedDemandeToDelete.sujet || 'cette demande' }}</strong>" ?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closeDeleteModal()" [disabled]="deletingDemandeId !== null">
+        Annuler
+      </button>
+      <button type="button" class="modal-btn modal-btn--danger" (click)="confirmDeleteDemande()" [disabled]="deletingDemandeId !== null">
+        {{ deletingDemandeId !== null ? 'Suppression...' : 'Supprimer' }}
       </button>
     </div>
   </div>

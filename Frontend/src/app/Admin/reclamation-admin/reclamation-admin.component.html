@@ -1,0 +1,243 @@
+<div class="admin-dashboard">
+  <app-topbar></app-topbar>
+
+  <div class="layout">
+    <aside>
+      <app-side-admin></app-side-admin>
+    </aside>
+
+    <main class="content">
+      <section class="stats-grid">
+        <article class="stat-card" *ngFor="let stat of stats">
+          <p class="label">{{ stat.title }}</p>
+          <h3>{{ stat.value }}</h3>
+          <small>{{ stat.subtitle }}</small>
+          <span class="trend" [ngClass]="stat.trend">{{ stat.delta }}</span>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>R�clamations</h3>
+          </div>
+          <div class="panel-actions">
+            <span class="count" *ngIf="totalElements > 0">
+              {{ page * pageSize + 1 }}�{{ (page + 1) * pageSize > totalElements ? totalElements : (page + 1) * pageSize }} sur {{ totalElements }}
+            </span>
+            <span class="count" *ngIf="totalElements === 0 && !loading">0 r�sultat</span>
+          </div>
+        </div>
+
+        <div class="search-section">
+          <div class="search-bar-container">
+            <div class="search-bar">
+              <div class="search-input-wrapper">
+                <i class="fa-solid fa-search search-icon-main"></i>
+                <input
+                  type="text"
+                  class="search-input-main"
+                  [value]="searchTerm"
+                  (input)="onSearchChange($any($event.target).value)"
+                  placeholder="Rechercher par sujet, email, nom..."
+                />
+                <button class="search-clear-main" type="button" (click)="clearSearch()" *ngIf="searchTerm">
+                  <i class="fa-solid fa-times"></i>
+                </button>
+              </div>
+
+              <div class="search-actions">
+                <select class="filter-select" [value]="selectedStatutFilter" (change)="onStatutFilterChange($any($event.target).value)">
+                  <option value="ALL">Tous les statuts</option>
+                  <option value="BROUILLON">Brouillon</option>
+                  <option value="SOUMIS">Soumis</option>
+                  <option value="EN_COURS">En cours</option>
+                  <option value="RESOLU">R�solu</option>
+                  <option value="REJETE">Rejet�</option>
+                </select>
+
+                <select class="filter-select" [value]="selectedEtatFilter" (change)="onEtatFilterChange($any($event.target).value)">
+                  <option value="ALL">Tous les �tats</option>
+                  <option value="EN_COURS">En cours</option>
+                  <option value="TRAITE">Trait�</option>
+                </select>
+
+                <select class="filter-select" [value]="selectedUrgenceFilter" (change)="onUrgenceFilterChange($any($event.target).value)">
+                  <option value="ALL">Toutes urgences</option>
+                  <option value="BASSE">Basse</option>
+                  <option value="MOYENNE">Moyenne</option>
+                  <option value="HAUTE">Haute</option>
+                  <option value="URGENTE">Urgente</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p *ngIf="loading" class="state">Chargement des r�clamations...</p>
+        <p *ngIf="!loading && errorMessage" class="state error">{{ errorMessage }}</p>
+        <p *ngIf="!loading && !errorMessage && reclamations.length === 0" class="state">
+          Aucune r�clamation trouv�e.
+        </p>
+
+        <div class="table-wrap" *ngIf="!loading && !errorMessage && reclamations.length > 0">
+          <table>
+            <thead>
+              <tr>
+              
+                <th>Sujet</th>
+                <th>Contribuable</th>
+                <th>Email</th>
+                <th>Urgence</th>
+                <th>Statut</th>
+                <th>�tat</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of reclamations">
+              
+                <td>{{ item.sujet || '-' }}</td>
+                <td>{{ item.nomUser || '-' }}</td>
+                <td>{{ item.emailUser || '-' }}</td>
+                <td>{{ item.urgenceDisplay || '-' }}</td>
+                <td>{{ item.statutDisplay || '-' }}</td>
+                <td>
+                  <select
+                    class="status-select"
+                    [ngClass]="item.etatCode === 'TRAITE' ? 'status-select--done' : 'status-select--pending'"
+                    [value]="item.etatCode || 'EN_COURS'"
+                    (change)="updateEtat(item, $any($event.target).value)"
+                    [disabled]="etatUpdatingId === item.id">
+                    <option value="EN_COURS">En cours</option>
+                    <option value="TRAITE">Trait�</option>
+                  </select>
+                </td>
+                <td>{{ formatDate(item.dateSoumission || item.dateCreation) }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="icon-btn icon-btn--view" type="button" title="Voir d�tails" (click)="openDetailsModal(item)">
+                      <i class="fa-regular fa-eye"></i>
+                    </button>
+                    <button class="icon-btn icon-btn--delete" type="button" title="Supprimer" (click)="openDeleteModal(item)">
+                      <i class="fa-regular fa-trash-can"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination-bar" *ngIf="!loading && !errorMessage && totalElements > 0">
+          <div class="pagination-size">
+            <label for="adminReclamationPageSize">Lignes par page</label>
+            <select
+              id="adminReclamationPageSize"
+              [ngModel]="pageSize"
+              (ngModelChange)="onPageSizeChange($event)">
+              <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
+            </select>
+          </div>
+          <div class="pagination-nav">
+            <button type="button" (click)="prevPage()" [disabled]="page <= 0">Pr�c�dent</button>
+            <span>Page {{ totalPages > 0 ? page + 1 : 0 }} / {{ totalPages }}</span>
+            <button type="button" (click)="nextPage()" [disabled]="totalPages === 0 || page >= totalPages - 1">Suivant</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showDeleteModal && selectedReclamationToDelete" (click)="closeDeleteModal()">
+  <div class="modal-card delete-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Confirmer la suppression</h4>
+      <button type="button" class="modal-close" (click)="closeDeleteModal()" [disabled]="isDeleting">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>
+        Supprimer la r�clamation
+        <strong>{{ selectedReclamationToDelete.reference || ('#' + selectedReclamationToDelete.id) }}</strong> ?
+      </p>
+      <small>Seuls les brouillons peuvent �tre supprim�s.</small>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closeDeleteModal()" [disabled]="isDeleting">
+        Annuler
+      </button>
+      <button type="button" class="modal-btn modal-btn--danger" (click)="confirmDeleteReclamation()" [disabled]="isDeleting">
+        {{ isDeleting ? 'Suppression' : 'Supprimer' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showDetailsModal && selectedReclamationForDetails" (click)="closeDetailsModal()">
+  <div class="modal-card details-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header details-modal__header">
+      <h4>D�tails de la r�clamation</h4>
+      <button type="button" class="modal-close" (click)="closeDetailsModal()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="details-grid">
+        <div><strong>R�f�rence :</strong> {{ selectedReclamationForDetails.reference || '-' }}</div>
+        <div><strong>Sujet :</strong> {{ selectedReclamationForDetails.sujet || '-' }}</div>
+        <div><strong>Cat�gorie :</strong> {{ selectedReclamationForDetails.categorie || '-' }}</div>
+        <div><strong>Contribuable :</strong> {{ selectedReclamationForDetails.nomUser || '-' }}</div>
+        <div><strong>Email :</strong> {{ selectedReclamationForDetails.emailUser || '-' }}</div>
+        <div><strong>Urgence :</strong> {{ selectedReclamationForDetails.urgenceDisplay || '-' }}</div>
+        <div><strong>Statut :</strong> {{ selectedReclamationForDetails.statutDisplay || '-' }}</div>
+        <div><strong>�tat :</strong> {{ selectedReclamationForDetails.etatDisplay || '-' }}</div>
+        <div><strong>Date soumission :</strong> {{ formatDate(selectedReclamationForDetails.dateSoumission || selectedReclamationForDetails.dateCreation) }}</div>
+      </div>
+      <div class="message-block">
+        <strong>Description :</strong>
+        <p>{{ selectedReclamationForDetails.description || '-' }}</p>
+      </div>
+
+      <div class="message-block">
+        <strong>Messagerie (agent / contribuable) :</strong>
+        <p *ngIf="isLoadingMessages" class="messages-state">Chargement des messages...</p>
+        <p *ngIf="!isLoadingMessages && reclamationMessages.length === 0" class="messages-state">
+          Aucun message pour cette r�clamation.
+        </p>
+        <div class="messages-list" *ngIf="!isLoadingMessages && reclamationMessages.length > 0">
+          <div class="message-row" *ngFor="let msg of reclamationMessages" [class.message-row--agent]="msg.auteur === 'agent'">
+            <div class="message-item" [class.message-item--agent]="msg.auteur === 'agent'" [class.message-item--contribuable]="msg.auteur !== 'agent'">
+              <div class="message-meta">
+                <strong>
+                  <span class="message-author-dot" [class.message-author-dot--agent]="msg.auteur === 'agent'"></span>
+                  {{ messageAuteurLabel(msg.auteur) }}
+                </strong>
+                <span>{{ formatDate(msg.dateEnvoi) }}</span>
+              </div>
+              <div class="message-content">{{ msg.contenu || '�' }}</div>
+              <a
+                *ngIf="msg.pieceJointe && messageAttachmentHref(msg) as href"
+                class="message-attachment"
+                [href]="href"
+                target="_blank"
+                rel="noopener noreferrer">
+                <i class="fa-solid fa-paperclip"></i>
+                {{ msg.pieceJointe.nom || 'Pi�ce jointe' }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closeDetailsModal()">
+        Fermer
+      </button>
+    </div>
+  </div>
+</div>
+
