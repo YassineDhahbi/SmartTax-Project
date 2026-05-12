@@ -263,7 +263,7 @@
             <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
             Performance
           </div>
-          <div class="da__panelHint">Évolution des traitements (placeholder)</div>
+          <div class="da__panelHint">Créations d’immatriculations sur les 7 derniers jours</div>
         </div>
 
         <div class="da__panelBody">
@@ -272,17 +272,17 @@
               <polyline class="da__chartGrid" points="0,32 520,32"></polyline>
               <polyline class="da__chartGrid" points="0,80 520,80"></polyline>
               <polyline class="da__chartGrid" points="0,128 520,128"></polyline>
-              <polyline class="da__chartArea" [attr.points]="linePoints + ' 510,148 10,148'"></polyline>
-              <polyline class="da__chartLine" [attr.points]="linePoints"></polyline>
+              <polyline class="da__chartArea" [attr.points]="overviewLinePoints + ' 510,148 10,148'"></polyline>
+              <polyline class="da__chartLine" [attr.points]="overviewLinePoints"></polyline>
             </svg>
           </div>
 
           <div class="da__miniBars" aria-hidden="true">
-            <div class="da__bar" *ngFor="let v of activityBars" [style.height.%]="v"></div>
+            <div class="da__bar" *ngFor="let v of overviewActivityBars" [style.height.%]="v"></div>
           </div>
 
           <div class="da__quick">
-            <button class="da__qa" type="button" *ngFor="let a of quickActions" [attr.data-tone]="a.tone">
+            <button class="da__qa" type="button" *ngFor="let a of quickActions" [attr.data-tone]="a.tone" (click)="onOverviewQuickNav(a)">
               <span class="da__qaIcon" aria-hidden="true"><i class="{{ a.icon }}"></i></span>
               <span class="da__qaText">
                 <span class="da__qaTitle">{{ a.title }}</span>
@@ -305,23 +305,22 @@
 
         <div class="da__panelBody">
           <div class="da__donutWrap">
-            <div class="da__donut" [style.background]="donutStyle" aria-label="Répartition" role="img">
+            <div class="da__donut" [style.background]="overviewDonutStyle" aria-label="Répartition" role="img">
               <div class="da__donutCenter">
-                <div class="da__donutValue">52</div>
-                <div class="da__donutLabel">Total</div>
+                <div class="da__donutValue">{{ getTotalImmatriculationsCount() }}</div>
+                <div class="da__donutLabel">Immatriculations</div>
               </div>
             </div>
 
             <div class="da__legend" aria-label="Légende statuts">
-              <div class="da__legRow"><span class="da__dot is-brand"></span><span>Ouvert</span><span class="da__legVal">46%</span></div>
-              <div class="da__legRow"><span class="da__dot is-success"></span><span>Terminé</span><span class="da__legVal">30%</span></div>
-              <div class="da__legRow"><span class="da__dot is-warning"></span><span>En revue</span><span class="da__legVal">16%</span></div>
-              <div class="da__legRow"><span class="da__dot is-danger"></span><span>Bloqué</span><span class="da__legVal">8%</span></div>
+              <div class="da__legRow" *ngFor="let leg of overviewImmatriculationLegend">
+                <span class="da__dot" [ngClass]="leg.dotClass"></span><span>{{ leg.label }}</span><span class="da__legVal">{{ leg.pctLabel }}</span>
+              </div>
             </div>
           </div>
 
           <div class="da__alerts">
-            <div class="da__alert" *ngFor="let a of alerts" [attr.data-tone]="a.tone">
+            <div class="da__alert" *ngFor="let a of overviewAlerts" [attr.data-tone]="a.tone">
               <div class="da__alertIcon" aria-hidden="true"><i class="{{ a.icon }}"></i></div>
               <div class="da__alertBody">
                 <div class="da__alertTitle">{{ a.title }}</div>
@@ -339,7 +338,7 @@
             <i class="fa-solid fa-list-check" aria-hidden="true"></i>
             Dernières opérations
           </div>
-          <button class="da__link" type="button">Voir tout</button>
+          <button class="da__link" type="button" (click)="setActiveNav('work')">Voir tout</button>
         </div>
 
         <div class="da__panelBody">
@@ -356,7 +355,10 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of recentOps">
+                <tr *ngIf="overviewRecentOps.length === 0">
+                  <td colspan="6">Aucune opération récente sur les modules.</td>
+                </tr>
+                <tr *ngFor="let row of overviewRecentOps">
                   <td class="da__mono">{{ row.ref }}</td>
                   <td>{{ row.subject }}</td>
                   <td>{{ row.kind }}</td>
@@ -368,9 +370,7 @@
                   </td>
                   <td class="da__right">{{ row.updatedAt }}</td>
                   <td class="da__right">
-                    <button class="da__rowBtn" type="button" aria-label="Ouvrir"><i class="fa-regular fa-folder-open"></i></button>
-                    <button class="da__rowBtn" type="button" aria-label="Éditer"><i class="fa-regular fa-pen-to-square"></i></button>
-                    <button class="da__rowBtn" type="button" aria-label="Plus"><i class="fa-solid fa-ellipsis"></i></button>
+                    <button class="da__rowBtn" type="button" aria-label="Ouvrir" (click)="openOverviewRecentOp(row)"><i class="fa-regular fa-folder-open"></i></button>
                   </td>
                 </tr>
               </tbody>
@@ -385,12 +385,12 @@
             <i class="fa-solid fa-list" aria-hidden="true"></i>
             À faire
           </div>
-          <div class="da__panelHint">Rappels</div>
+          <div class="da__panelHint">Raccourcis vers les modules</div>
         </div>
         <div class="da__panelBody">
           <div class="da__tasks">
-            <button class="da__task" type="button" *ngFor="let t of tasks" [class.is-done]="t.done" [attr.data-tone]="t.tone" (click)="toggleTask(t)">
-              <span class="da__check" aria-hidden="true"><i class="fa-solid" [class.fa-check]="t.done" [class.fa-minus]="!t.done"></i></span>
+            <button class="da__task" type="button" *ngFor="let t of overviewTaskItems" [attr.data-tone]="t.tone" (click)="onOverviewTaskNav(t)">
+              <span class="da__check" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
               <span class="da__taskBody">
                 <span class="da__taskTitle">{{ t.title }}</span>
                 <span class="da__taskMeta">{{ t.meta }}</span>
@@ -529,7 +529,7 @@
                   <td>
                     <div class="da__contribuableInfo">
                       <div class="da__strong">
-                        {{ immatriculation.matriculeFiscal || getContribuableName(immatriculation) }}
+                        {{ getContribuableName(immatriculation) }}
                       </div>
                       <div class="da__small">{{ immatriculation.email || 'N/A' }}</div>
                     </div>

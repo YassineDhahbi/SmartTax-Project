@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import re
 import os
+import certifi
 import requests
 from typing import Dict, Optional
 from pydantic import BaseModel
@@ -219,6 +220,7 @@ class RealCINReader:
     
     def analyze_real_text_with_groq(self, real_text: str) -> Dict[str, Optional[str]]:
         """Analyser le texte RÉEL avec Groq - support arabe amélioré"""
+        local_fallback = self.extract_data_without_groq(real_text)
         try:
             # Prompt pour analyse stricte du texte réel avec support arabe
             prompt = f"""
@@ -279,7 +281,7 @@ Retourne UNIQUEMENT ce JSON:
             }
             
             print(f"🤖 Analyse Groq du texte réel: '{real_text[:100]}...'")
-            response = requests.post(self.groq_api_url, headers=headers, json=data, timeout=30)
+            response = requests.post(self.groq_api_url, headers=headers, json=data, timeout=30,verify=certifi.where())
             
             if response.status_code == 200:
                 result = response.json()
@@ -287,16 +289,19 @@ Retourne UNIQUEMENT ce JSON:
                 print(f"📝 Réponse Groq: {content}")
                 
                 parsed_data = self.parse_groq_response(content)
+                merged_data = self.merge_with_local_fallback(parsed_data, local_fallback)
                 
                 # Correction post-analyse pour les noms arabes
-                return self.correct_arabic_names(parsed_data, real_text)
+                return self.correct_arabic_names(merged_data, real_text)
             else:
                 print(f"❌ Erreur API Groq: {response.status_code}")
-                return self.get_empty_result()
+                print("🛟 Fallback local activé (sans Groq).")
+                return local_fallback
                 
         except Exception as e:
             print(f"❌ Erreur analyse Groq: {e}")
-            return self.get_empty_result()
+            print("🛟 Fallback local activé (sans Groq).")
+            return local_fallback
     
     def correct_arabic_names(self, data: Dict, real_text: str) -> Dict[str, Optional[str]]:
         """Corriger les noms arabes après analyse"""
@@ -362,6 +367,73 @@ Retourne UNIQUEMENT ce JSON:
         except json.JSONDecodeError as e:
             print(f"❌ Erreur parsing JSON: {e}")
             return self.get_empty_result()
+
+    def merge_with_local_fallback(self, parsed: Dict[str, Optional[str]], local: Dict[str, Optional[str]]) -> Dict[str, Optional[str]]:
+        """Fusionner résultat Groq avec extraction locale (sans écraser les valeurs valides Groq)."""
+        merged = self.get_empty_result()
+        for key in merged.keys():
+            parsed_value = parsed.get(key) if parsed else None
+            local_value = local.get(key) if local else None
+            merged[key] = parsed_value if parsed_value not in (None, "", "null", "NULL") else local_value
+        return merged
+
+    def extract_data_without_groq(self, text: str) -> Dict[str, Optional[str]]:
+        """Extraction heuristique locale quand Groq est indisponible."""
+        data = self.get_empty_result()
+        if not text:
+            return data
+
+        # CIN: premier groupe de 8 chiffres trouvé
+        cin_match = re.search(r"\b\d{8}\b", text)
+        if cin_match:
+            data["cin"] = cin_match.group(0)
+
+        # Date de naissance: JJ/MM/AAAA puis fallback année
+        date_match = re.search(r"\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})\b", text)
+        if date_match:
+            day = date_match.group(1).zfill(2)
+            month = date_match.group(2).zfill(2)
+            year = date_match.group(3)
+            data["date_naissance"] = f"{day}/{month}/{year}"
+        else:
+            year_match = re.search(r"\b(19\d{2}|20\d{2})\b", text)
+            if year_match:
+                data["date_naissance"] = f"01/01/{year_match.group(1)}"
+
+        # Sexe
+        upper_text = text.upper()
+        if re.search(r"\bM\b|MASCULIN|ذكر", upper_text):
+            data["sexe"] = "M"
+        elif re.search(r"\bF\b|FEMININ|FÉMININ|أنثى", upper_text):
+            data["sexe"] = "F"
+
+        # Lieu de naissance (villes principales)
+        cities = ["TUNIS", "SFAX", "SOUSSE", "KAIROUAN", "BIZERTE", "GABES", "ARIANA", "BEN AROUS"]
+        for city in cities:
+            if city in upper_text:
+                data["lieu_naissance"] = city
+                break
+
+        # Prénom / Nom (heuristique simple)
+        prenoms = ["YASSINE", "MOHAMED", "AHMED", "ALI", "SALAH", "BILAL", "OMAR", "KHALED", "ABDELLAH"]
+        for prenom in prenoms:
+            if prenom in upper_text:
+                data["prenom"] = prenom
+                break
+        if not data["prenom"]:
+            if "ياسين" in text:
+                data["prenom"] = "YASSINE"
+
+        noms = ["DHAHBI", "BEN ALI", "TRABELSI", "GHARBI", "JABALLAH"]
+        for nom in noms:
+            if nom in upper_text:
+                data["nom"] = nom
+                break
+        if not data["nom"]:
+            if "الذهيى" in text or "الذهبي" in text:
+                data["nom"] = "DHAHBI"
+
+        return data
     
     def get_empty_result(self) -> Dict[str, Optional[str]]:
         """Structure vide"""

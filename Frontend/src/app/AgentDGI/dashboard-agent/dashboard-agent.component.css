@@ -885,6 +885,7 @@
 .da__dot.is-success{ background: rgba(34,197,94,.95); box-shadow: 0 0 0 4px rgba(34,197,94,.16); }
 .da__dot.is-warning{ background: rgba(245,158,11,.95); box-shadow: 0 0 0 4px rgba(245,158,11,.16); }
 .da__dot.is-danger{ background: rgba(239,68,68,.95); box-shadow: 0 0 0 4px rgba(239,68,68,.16); }
+.da__dot.is-neutral{ background: rgba(148,163,184,.95); box-shadow: 0 0 0 4px rgba(148,163,184,.14); }
 
 /* Alerts */
 .da__alerts{ margin-top: 12px; display:grid; gap:10px; }
@@ -2697,6 +2698,7 @@
 .da__dot.is-success{ background: rgba(34,197,94,.95); box-shadow: 0 0 0 4px rgba(34,197,94,.16); }
 .da__dot.is-warning{ background: rgba(245,158,11,.95); box-shadow: 0 0 0 4px rgba(245,158,11,.16); }
 .da__dot.is-danger{ background: rgba(239,68,68,.95); box-shadow: 0 0 0 4px rgba(239,68,68,.16); }
+.da__dot.is-neutral{ background: rgba(148,163,184,.95); box-shadow: 0 0 0 4px rgba(148,163,184,.14); }
 
 /* Alerts */
 .da__alerts{ margin-top: 12px; display:grid; gap:10px; }

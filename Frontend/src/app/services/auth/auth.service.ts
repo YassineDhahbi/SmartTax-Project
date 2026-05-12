@@ -44,7 +44,7 @@ export class AuthService {
     );
   }
 
-  register(user: { firstName: string; lastName: string; email: string; password: string; dateNaissance: string; photo: string | null }): Observable<any> {
+  register(user: Record<string, unknown>): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, user, { withCredentials: true });
   }
 

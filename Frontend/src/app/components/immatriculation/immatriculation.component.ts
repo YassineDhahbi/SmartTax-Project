@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef, HostListener, Renderer2, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormControl, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, FormControl, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { ImmatriculationService } from '../../services/immatriculation.service';
@@ -15,6 +15,8 @@ import {
   DossierStatus, 
   SubmissionMode 
 } from '../../models/immatriculation.model';
+import jsPDF from 'jspdf';
+import * as QRCode from 'qrcode';
 
 @Component({
   selector: 'app-immatriculation',
@@ -239,6 +241,8 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
   confirmed: boolean = true; // Changé à true pour que le bouton soit toujours cliquable
   isSubmitting: boolean = false;
   showSuccessModal: boolean = false;
+  /** Reçu PDF bien généré après la dernière soumission (message du modal). */
+  receiptPdfDownloadedOk: boolean = false;
   dossierNumber: string = '';
 
   // Messages d'erreur de validation
@@ -464,12 +468,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       formeJuridique: ['', [
         Validators.required
       ]],
-      actionnaire: ['', [
-        Validators.pattern(/^[A-Za-z\u00C0-\u017F\s'-]{3,50}$/),
-        Validators.minLength(3),
-        Validators.maxLength(50),
-        Validators.required
-      ]],
+      actionnaires: this.fb.array([this.fb.control('', [])]),
       registreCommerce: ['', [
         Validators.pattern(/^[A-Za-z0-9]{1,20}$/), // Alphanumérique, 1-20 caractères
         Validators.required
@@ -534,6 +533,72 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     this.immatriculationForm.get('typeContribuable')?.valueChanges.subscribe(value => {
       this.updateValidatorsByType(value);
     });
+  }
+
+  get actionnaires(): FormArray {
+    return this.immatriculationForm.get('actionnaires') as FormArray;
+  }
+
+  private static readonly ACTIONNAIRES_SEPARATOR = ' • ';
+
+  private shareholderNameValidators(): ValidatorFn[] {
+    return [
+      Validators.required,
+      Validators.pattern(/^[A-Za-z\u00C0-\u017F\s'-]{3,50}$/),
+      Validators.minLength(3),
+      Validators.maxLength(50)
+    ];
+  }
+
+  private applyActionnairesValidatorsFromType(type: string | null | undefined): void {
+    const arr = this.actionnaires;
+    if (!arr) {
+      return;
+    }
+    const t = type?.toUpperCase();
+    if (t === 'PHYSIQUE') {
+      while (arr.length > 1) {
+        arr.removeAt(arr.length - 1);
+      }
+      arr.at(0)?.setValue('', { emitEvent: false });
+      arr.controls.forEach(c => {
+        c.clearValidators();
+        c.updateValueAndValidity({ emitEvent: false });
+      });
+      return;
+    }
+    if (t === 'MORALE') {
+      const validators = this.shareholderNameValidators();
+      arr.controls.forEach(c => {
+        c.setValidators(validators);
+        c.updateValueAndValidity({ emitEvent: false });
+      });
+      return;
+    }
+    arr.controls.forEach(c => {
+      c.clearValidators();
+      c.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
+  addActionnaire(): void {
+    const ctrl = this.fb.control('', []);
+    this.actionnaires.push(ctrl);
+    this.applyActionnairesValidatorsFromType(this.immatriculationForm.get('typeContribuable')?.value);
+  }
+
+  removeActionnaire(index: number): void {
+    if (this.actionnaires.length <= 1) {
+      return;
+    }
+    this.actionnaires.removeAt(index);
+  }
+
+  serializeActionnaires(): string | undefined {
+    const parts = this.actionnaires.controls
+      .map(c => `${c.value ?? ''}`.trim())
+      .filter(v => v.length > 0);
+    return parts.length > 0 ? parts.join(ImmatriculationComponent.ACTIONNAIRES_SEPARATOR) : undefined;
   }
 
   // Validateurs personnalisés
@@ -644,6 +709,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     matriculeFiscalControl?.updateValueAndValidity();
     registreCommerceControl?.updateValueAndValidity();
     representantLegalControl?.updateValueAndValidity();
+    this.applyActionnairesValidatorsFromType(type);
   }
 
   // Navigation entre étapes
@@ -806,7 +872,6 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     } else if (type === 'MORALE') {
       const raisonSociale = this.immatriculationForm.get('raisonSociale');
       const formeJuridique = this.immatriculationForm.get('formeJuridique');
-      const actionnaire = this.immatriculationForm.get('actionnaire');
       const registreCommerce = this.immatriculationForm.get('registreCommerce');
       const representantLegal = this.immatriculationForm.get('representantLegal');
       
@@ -820,9 +885,30 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
         return false;
       }
       
-      if (!actionnaire?.value) {
-        this.notificationService.showError('Le nom de l\'actionnaire est obligatoire', 'Champ manquant');
+      const actionnairesArr = this.actionnaires;
+      if (actionnairesArr.length === 0) {
+        this.notificationService.showError('Au moins un actionnaire est obligatoire', 'Champ manquant');
         return false;
+      }
+      let actionnaireRow = 0;
+      for (const ctrl of actionnairesArr.controls) {
+        actionnaireRow++;
+        if (!ctrl.value?.toString().trim()) {
+          this.notificationService.showError(`Le nom de l'actionnaire (ligne ${actionnaireRow}) est obligatoire`, 'Champ manquant');
+          ctrl.markAsTouched();
+          return false;
+        }
+        if (ctrl.invalid) {
+          if (ctrl.errors?.['pattern']) {
+            this.notificationService.showError(`L'actionnaire (ligne ${actionnaireRow}) contient des caractères invalides`, 'Format invalide');
+          } else if (ctrl.errors?.['minlength']) {
+            this.notificationService.showError(`L'actionnaire (ligne ${actionnaireRow}) doit contenir au moins 3 caractères`, 'Format invalide');
+          } else {
+            this.notificationService.showError(`L'actionnaire (ligne ${actionnaireRow}) est invalide`, 'Erreur de format');
+          }
+          ctrl.markAsTouched();
+          return false;
+        }
       }
       
       if (!registreCommerce?.value) {
@@ -832,17 +918,6 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       
       if (!representantLegal?.value) {
         this.notificationService.showError('Le représentant légal est obligatoire', 'Champ manquant');
-        return false;
-      }
-      
-      if (actionnaire?.invalid) {
-        if (actionnaire?.errors?.['pattern']) {
-          this.notificationService.showError('Le nom de l\'actionnaire contient des caractères invalides', 'Format invalide');
-        } else if (actionnaire?.errors?.['minlength']) {
-          this.notificationService.showError('Le nom de l\'actionnaire doit contenir au moins 3 caractères', 'Format invalide');
-        } else {
-          this.notificationService.showError('Le nom de l\'actionnaire est invalide', 'Erreur de format');
-        }
         return false;
       }
       
@@ -1663,12 +1738,199 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     return this.documentsScore;
   }
 
+  private formatReceiptDate(value: string | undefined): string {
+    if (!value) {
+      return '—';
+    }
+    try {
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) {
+        return value;
+      }
+      return d.toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return value;
+    }
+  }
+
+  private statusLabelFr(status: string | undefined): string {
+    if (!status) {
+      return '—';
+    }
+    const map: Record<string, string> = {
+      EN_COURS_VERIFICATION: 'En cours de vérification',
+      SOUMIS: 'Soumis',
+      VALIDE: 'Validé',
+      REJETE: 'Rejeté',
+      BROUILLON: 'Brouillon'
+    };
+    return map[status] || status;
+  }
+
+  /**
+   * Reçu PDF téléchargé automatiquement après soumission réussie (sans pièces jointes binaires).
+   */
+  private async generateImmatriculationReceiptPdf(
+    result: Immatriculation,
+    submitted: CreateImmatriculationDto
+  ): Promise<void> {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageW = 210;
+    const margin = 16;
+    const maxW = pageW - margin * 2;
+    let y = 10;
+
+    const ensureSpace = (mm: number): void => {
+      if (y + mm > 278) {
+        doc.addPage();
+        y = 16;
+      }
+    };
+
+    const addParagraph = (text: string, fontSize = 10): void => {
+      doc.setFontSize(fontSize);
+      const lines = doc.splitTextToSize(text, maxW);
+      ensureSpace(lines.length * fontSize * 0.42 + 2);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lines, margin, y);
+      y += lines.length * fontSize * 0.42 + 3;
+    };
+
+    const addSectionTitle = (title: string): void => {
+      ensureSpace(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11.5);
+      doc.setTextColor(13, 110, 253);
+      doc.text(title, margin, y);
+      y += 7;
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+    };
+
+    const addLine = (label: string, value: string | number | undefined | null): void => {
+      const v =
+        value !== undefined && value !== null && String(value).trim() !== ''
+          ? String(value)
+          : '—';
+      addParagraph(`${label} : ${v}`, 10);
+    };
+
+    doc.setFillColor(13, 110, 253);
+    doc.rect(0, 0, pageW, 26, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.text('SmartTax', margin, 12);
+    doc.setFontSize(11);
+    doc.text('Reçu d\'immatriculation fiscale', margin, 20);
+    doc.setTextColor(40, 40, 40);
+    y = 34;
+    doc.setFont('helvetica', 'normal');
+    addParagraph(
+      `Document généré le ${new Date().toLocaleString('fr-FR')}. Conservez ce reçu : il résume les informations transmises à l'administration.`,
+      9
+    );
+
+    addSectionTitle('Référence du dossier');
+    addLine('Numéro de dossier', result.dossierNumber);
+    addLine('Matricule fiscal (TIN)', result.matriculeFiscal);
+    addLine('Statut', this.statusLabelFr(result.status));
+    addLine('Date d\'enregistrement', this.formatReceiptDate(result.dateCreation));
+
+    addSectionTitle('Type de contribuable');
+    addLine(
+      'Type',
+      submitted.typeContribuable === TypeContribuable.MORALE ? 'Personne morale' : 'Personne physique'
+    );
+
+    if (submitted.typeContribuable === TypeContribuable.PHYSIQUE) {
+      addSectionTitle('Identité');
+      addLine('Nom', submitted.nom);
+      addLine('Prénom', submitted.prenom);
+      addLine('CIN / pièce', submitted.cin);
+      addLine('Date de naissance', submitted.dateNaissance);
+    } else {
+      addSectionTitle('Personne morale');
+      addLine('Raison sociale', submitted.raisonSociale);
+      addLine('Forme juridique', submitted.formeJuridique);
+      addLine('Registre de commerce (N° RC)', submitted.registreCommerce);
+      addLine('Actionnaire(s)', submitted.actionnaire);
+      addLine('Représentant légal', submitted.representantLegal);
+    }
+
+    addSectionTitle('Coordonnées');
+    addLine('Email', submitted.email);
+    addLine('Téléphone', submitted.telephone);
+    addLine('Adresse', submitted.adresse);
+    const villeTxt = [submitted.ville, submitted.autreVille].filter(Boolean).join(' — ');
+    addLine('Ville / localité', villeTxt || undefined);
+    addLine('Nationalité', submitted.nationalite);
+
+    addSectionTitle('Activité');
+    addLine('Type d\'activité', submitted.typeActivite);
+    addLine('Secteur', submitted.secteur);
+    addLine('Adresse professionnelle', submitted.adresseProfessionnelle);
+    addLine('Date de début d\'activité', submitted.dateDebutActivite);
+    addSectionTitle('Description de l\'activité');
+    addParagraph(submitted.descriptionActivite || '—', 9);
+
+    addSectionTitle('Pièces transmises');
+    addLine('Pièce d\'identité', submitted.identiteFile ? 'Oui (jointe)' : 'Non');
+    addLine('Justificatif d\'activité', submitted.activiteFile ? 'Oui (jointe)' : 'Non');
+    addLine('Photo', submitted.photoFile ? 'Oui (jointe)' : 'Non');
+    const autresCount = submitted.autresFiles?.length ?? 0;
+    addLine('Autres documents', autresCount > 0 ? `${autresCount} fichier(s)` : 'Aucun');
+
+    addSectionTitle('Scores de complétude (indicatifs)');
+    addLine('Score global', result.overallScore ?? submitted.overallScore);
+    addLine('Complétude', result.completenessScore ?? submitted.completenessScore);
+    addLine('Vérification', result.verificationScore ?? submitted.verificationScore);
+    addLine('Documents', result.documentsScore ?? submitted.documentsScore);
+
+    ensureSpace(40);
+    const qrPayload = JSON.stringify({
+      dossierNumber: result.dossierNumber,
+      email: submitted.email,
+      type: submitted.typeContribuable
+    });
+    const qrDataUrl = await QRCode.toDataURL(qrPayload, {
+      width: 160,
+      margin: 1,
+      color: { dark: '#000000', light: '#FFFFFF' }
+    });
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('QR — rappel dossier (non contractuel)', margin, y);
+    doc.addImage(qrDataUrl, 'PNG', pageW - margin - 32, y - 2, 32, 32);
+    y += 36;
+
+    ensureSpace(10);
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 100, 100);
+    addParagraph(
+      'Ce reçu atteste du dépôt de votre demande. Il ne vaut pas immatriculation définitive. Vous serez informé par email de l\'évolution de votre dossier.',
+      8.5
+    );
+    doc.setTextColor(0, 0, 0);
+
+    const safe = (result.dossierNumber || 'dossier').replace(/[^\w.-]+/g, '_');
+    doc.save(`Recu_immatriculation_SmartTax_${safe}.pdf`);
+  }
+
   // Soumission
   async submitForm(): Promise<void> {
     if (!this.confirmed) return;
     
     this.isSubmitting = true;
-    
+    this.receiptPdfDownloadedOk = false;
+
     try {
       // Créer le DTO à partir du formulaire
       const typeContribuableValue = this.immatriculationForm.get('typeContribuable')?.value;
@@ -1705,7 +1967,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
         dateNaissance: this.immatriculationForm.get('dateNaissance')?.value || undefined,
         raisonSociale: this.immatriculationForm.get('raisonSociale')?.value || undefined,
         formeJuridique: this.immatriculationForm.get('formeJuridique')?.value || undefined,
-        actionnaire: this.immatriculationForm.get('actionnaire')?.value || undefined,
+        actionnaire: this.serializeActionnaires(),
         registreCommerce: this.immatriculationForm.get('registreCommerce')?.value || undefined,
         representantLegal: this.immatriculationForm.get('representantLegal')?.value || undefined,
         email: this.immatriculationForm.get('email')?.value || '',
@@ -1745,6 +2007,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       }
 
       let result: Immatriculation;
+      let submittedPayload: CreateImmatriculationDto = dto;
 
       // Utiliser l'endpoint JSON réel pour sauvegarder dans la base de données
       console.log('🔍 DTO envoyé au backend:', dto);
@@ -1784,6 +2047,7 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
         };
         console.log('🧪 DTO de test:', testDto);
         result = await this.immatriculationService.createImmatriculation(testDto).toPromise() as Immatriculation;
+        submittedPayload = testDto;
       } else {
         result = await this.immatriculationService.createImmatriculation(dto).toPromise() as Immatriculation;
       }
@@ -1793,6 +2057,18 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
       
       // Mettre à jour le numéro de dossier
       this.dossierNumber = result.dossierNumber;
+
+      try {
+        await this.generateImmatriculationReceiptPdf(result, submittedPayload);
+        this.receiptPdfDownloadedOk = true;
+      } catch (pdfErr) {
+        console.error('Erreur génération reçu PDF:', pdfErr);
+        this.receiptPdfDownloadedOk = false;
+        this.notificationService.showWarning(
+          'Votre immatriculation est bien enregistrée, mais le téléchargement automatique du reçu PDF a échoué.',
+          'Reçu PDF'
+        );
+      }
       
       // Afficher le modal de succès
       this.showSuccessModal = true;
@@ -1877,6 +2153,11 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
           console.error(`❌ Champ personne morale manquant: ${field}`);
           return false;
         }
+      }
+      const actionnairesJoined = this.serializeActionnaires();
+      if (!actionnairesJoined || actionnairesJoined.trim() === '') {
+        console.error('❌ Actionnaires manquants');
+        return false;
       }
     }
     

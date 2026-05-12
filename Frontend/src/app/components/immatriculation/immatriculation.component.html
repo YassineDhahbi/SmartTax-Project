@@ -310,12 +310,34 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="actionnaire">Actionnaire <span class="required">*</span></label>
-                                            <input type="text" id="actionnaire" class="form-control" 
-                                                   formControlName="actionnaire" placeholder="Nom de l'actionnaire principal">
-                                            <div class="error-message" *ngIf="immatriculationForm.get('actionnaire')?.invalid && immatriculationForm.get('actionnaire')?.touched">
-                                                Le nom de l'actionnaire est requis
+                                            <label>Actionnaires <span class="required">*</span></label>
+                                           
+                                            <div formArrayName="actionnaires">
+                                                <div *ngFor="let ctrl of actionnaires.controls; let i = index" class="mb-2">
+                                                    <div class="d-flex align-items-start">
+                                                        <input type="text" class="form-control flex-grow-1 me-2"
+                                                               [formControl]="$any(ctrl)"
+                                                               [id]="'actionnaire-' + i"
+                                                               placeholder="Nom de l'actionnaire"
+                                                               [class.is-invalid]="ctrl.invalid && ctrl.touched">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm flex-shrink-0"
+                                                                (click)="removeActionnaire(i)"
+                                                                *ngIf="actionnaires.length > 1"
+                                                                [attr.aria-label]="'Retirer l\'actionnaire ' + (i + 1)">
+                                                            <i class="fas fa-times" aria-hidden="true"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="error-message mt-1" *ngIf="ctrl.invalid && ctrl.touched">
+                                                        <span *ngIf="ctrl.errors?.['required']">Le nom est obligatoire</span>
+                                                        <span *ngIf="ctrl.errors?.['minlength']">Au moins 3 caractères</span>
+                                                        <span *ngIf="ctrl.errors?.['pattern']">Lettres, espaces et tirets uniquement</span>
+                                                    </div>
+                                                </div>
                                             </div>
+                                            <button type="button" class="btn-add-actionnaire" (click)="addActionnaire()">
+                                                <span class="btn-add-actionnaire__icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
+                                                <span class="btn-add-actionnaire__label">Ajouter un actionnaire</span>
+                                            </button>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -1238,6 +1260,8 @@
                 Votre dossier a été soumis pour validation. Vous recevrez un email dès que le traitement commencera.
                 <br>
                 <strong>TIN (Numéro d'Immatriculation Fiscale):</strong> {{ dossierNumber }}
+                <br><br>
+                <span *ngIf="receiptPdfDownloadedOk" class="text-muted small"><i class="fas fa-file-pdf" aria-hidden="true"></i> Un reçu PDF récapitulatif de votre demande a été téléchargé (vérifiez le dossier Téléchargements de votre navigateur).</span>
             </p>
             <div class="modal-actions">
              

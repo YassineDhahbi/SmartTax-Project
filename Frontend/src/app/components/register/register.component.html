@@ -93,6 +93,32 @@
           </div>
         </div>
 
+        <div class="form-group">
+          <label for="securityCode">
+            <i class="fas fa-shield-alt me-2"></i>
+            Code de sécurité (8 chiffres)
+            <span class="badge bg-danger text-white ms-2">*</span>
+          </label>
+          <div class="form-icon">
+            <i class="fas fa-key"></i>
+            <input
+              id="securityCode"
+              type="text"
+              inputmode="numeric"
+              maxlength="8"
+              autocomplete="one-time-code"
+              formControlName="securityCode"
+              class="form-control"
+              placeholder="Ex : 04219876 (reçu par email avec votre TIN)"
+              (blur)="validateField('securityCode')"
+            />
+          </div>
+          <small class="text-muted">
+            <i class="fas fa-info-circle me-1"></i>
+            Ce code vous a été envoyé par email en même temps que votre TIN, après validation de votre dossier par un agent.
+          </small>
+        </div>
+
          <div class="form-grid">
           <div class="form-group">
             <label for="cin">CIN</label>

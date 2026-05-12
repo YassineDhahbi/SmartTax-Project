@@ -23,23 +23,25 @@
     </aside>
 
     <main class="content">
+      <p class="load-banner" *ngIf="loading">Chargement des données du tableau de bord…</p>
+      <p class="load-banner error" *ngIf="loadError">{{ loadError }}</p>
+
       <section class="hero">
         <div>
           <h2>Bienvenue, Administrateur</h2>
-          <p>
-            Vous avez 24 dossiers critiques à valider aujourd'hui.
-            Gardez un oeil sur les alertes et priorisez les demandes urgentes.
-          </p>
+          <p>{{ heroLead || 'Chargement de la synthèse multi-modules…' }}</p>
         </div>
         <div class="hero-meta card">
-          <span>Mis à jour: aujourd'hui, 09:42</span>
-          <strong>24 validations prioritaires</strong>
-          <small>8 dossiers marqués urgents</small>
-          <button class="btn primary">Actualiser</button>
+          <span>Mis à jour : {{ lastRefreshLabel }}</span>
+          <strong>{{ heroMetaPrimary }}</strong>
+          <small>{{ heroMetaSecondary }}</small>
+          <button class="btn primary" type="button" (click)="refresh()" [disabled]="loading">
+            {{ loading ? 'Actualisation…' : 'Actualiser' }}
+          </button>
         </div>
       </section>
 
-      <section class="stats-grid">
+      <section class="stats-grid" *ngIf="stats.length">
         <article class="stat-card" *ngFor="let stat of stats">
           <p class="label">{{ stat.title }}</p>
           <h3>{{ stat.value }}</h3>
@@ -51,27 +53,25 @@
       <section class="analytics-grid">
         <article class="panel">
           <div class="panel-head">
-            <h3>Tendance hebdomadaire des recettes</h3>
-            <button class="btn ghost">30 jours</button>
+            <h3>Créations d’immatriculations (7 jours)</h3>
           </div>
-          <div class="sparkline">
-            <span class="bar h45"></span>
-            <span class="bar h62"></span>
-            <span class="bar h50"></span>
-            <span class="bar h74"></span>
-            <span class="bar h66"></span>
-            <span class="bar h84"></span>
-            <span class="bar h79"></span>
+          <div class="sparkline" *ngIf="sparklineBarHeightsPx.length === 7; else sparklinePlaceholder">
+            <span class="bar" *ngFor="let h of sparklineBarHeightsPx" [style.height.px]="h"></span>
           </div>
+          <ng-template #sparklinePlaceholder>
+            <div class="sparkline sparkline--placeholder">
+              <span class="bar" *ngFor="let _ of [1,2,3,4,5,6,7]"></span>
+            </div>
+          </ng-template>
           <div class="chart-legend">
-            <p>Cette semaine: <strong>1.96 M TND</strong></p>
-            <p>Variation: <strong class="good">+11.2%</strong></p>
+            <p>Volume (7 j) : <strong>{{ weekImmatriculationCreations }} création(s)</strong></p>
+            <p>{{ chartLegendSecondary }}</p>
           </div>
         </article>
 
         <article class="panel">
           <div class="panel-head">
-            <h3>Performance par région</h3>
+            <h3>Répartition des statuts (immatriculations)</h3>
           </div>
           <div class="region" *ngFor="let region of regions">
             <div class="region-head">
@@ -89,9 +89,10 @@
         <article class="panel">
           <div class="panel-head">
             <h3>Activité récente</h3>
-            <button class="btn ghost">Voir tout</button>
+            <button class="btn ghost" type="button" routerLink="/admin/immatriculations">Modules</button>
           </div>
           <ul class="activity-list">
+            <li *ngIf="!activities.length" class="activity-empty">Aucune activité récente à afficher.</li>
             <li *ngFor="let activity of activities">
               <span class="severity" [ngClass]="activity.severity"></span>
               <div>
@@ -121,7 +122,9 @@
           <div class="panel-head">
             <h3>Actions rapides</h3>
           </div>
-          <button class="action-btn" *ngFor="let action of quickActions">{{ action }}</button>
+          <button class="action-btn" type="button" *ngFor="let action of quickActions" (click)="go(action.route)">
+            {{ action.label }}
+          </button>
         </article>
 
         <article class="panel calendar-panel">
@@ -146,8 +149,8 @@
       <section class="bottom-grid">
         <article class="panel">
           <div class="panel-head">
-            <h3>Dossiers prioritaires</h3>
-            <button class="btn ghost">Exporter</button>
+            <h3>Derniers dossiers d’immatriculation</h3>
+            <button class="btn ghost" type="button" routerLink="/admin/immatriculations">Voir tout</button>
           </div>
           <div class="table-wrap">
             <table>
@@ -161,16 +164,15 @@
                 </tr>
               </thead>
               <tbody>
+                <tr *ngIf="!cases.length">
+                  <td colspan="5">Aucun dossier à afficher.</td>
+                </tr>
                 <tr *ngFor="let item of cases">
                   <td>{{ item.id }}</td>
                   <td>{{ item.citizen }}</td>
                   <td>{{ item.type }}</td>
                   <td>
-                    <span class="status" [ngClass]="{
-                      'late': item.status === 'En retard',
-                      'in-progress': item.status === 'En cours',
-                      'done': item.status === 'Validé'
-                    }">{{ item.status }}</span>
+                    <span class="status" [ngClass]="item.statusClass">{{ item.statusLabel }}</span>
                   </td>
                   <td>{{ item.due }}</td>
                 </tr>

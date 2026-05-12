@@ -52,7 +52,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       photo: ['', Validators.pattern(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/)],
       role: ['CONTRIBUABLE', Validators.required],
       tin: ['', [Validators.required, Validators.pattern(/^[12]\d{7}[A-Z]{2}$/)]], // Champ pour le TIN (obligatoire)
-      securityCode: [''] // Champ pour le code de sécurité (gardé pour compatibilité)
+      securityCode: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]]
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -212,6 +212,10 @@ export class RegisterComponent implements OnInit, AfterViewInit {
           if (control.errors?.['required']) message = 'Le TIN est requis pour créer un compte.';
           else if (control.errors?.['pattern']) message = 'Format TIN invalide. Exemple: 22600001PU';
           break;
+        case 'securityCode':
+          if (control.errors?.['required']) message = 'Le code de sécurité est requis (8 chiffres reçus par email).';
+          else if (control.errors?.['pattern']) message = 'Le code doit contenir exactement 8 chiffres.';
+          break;
       }
       if (message) {
         this.addToast(title, message, 'toast-error');
@@ -226,12 +230,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       control?.markAsTouched({ onlySelf: true });
       this.validateField(field);
     });
-
-    // Validation spéciale pour le code de sécurité si requis
-    if (this.isFromValidationEmail && !this.registerForm.value.securityCode) {
-      this.addToast('Erreur', 'Le code de sécurité est requis pour créer votre compte.', 'toast-error');
-      return;
-    }
 
     // Vérifier que le TIN est valide avant de permettre l'inscription
     if (!this.tinVerificationSuccess) {
@@ -340,6 +338,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
           this.tinVerificationMessage = `TIN valide !`;
           this.tinVerificationSuccess = true;
           this.tinVerified = true;
+          this.showSecurityCodeInput = true;
           
           // Debug : Afficher toutes les données retournées par le backend
           console.log('🔍 Réponse complète du backend:', response);

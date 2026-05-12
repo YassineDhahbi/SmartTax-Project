@@ -8,8 +8,8 @@ import { Immatriculation } from '../../models/immatriculation.model';
 import { PublicationStats } from '../../models/publication.model';
 import jsPDF from 'jspdf';
 import * as QRCode from 'qrcode';
-import { Subscription, Subject, interval } from 'rxjs';
-import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { Subscription, Subject, interval, forkJoin, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil, catchError } from 'rxjs/operators';
 import { AdminNotificationItem, AdminNotificationService } from '../../services/admin-notification.service';
 import { environment } from '../../../environments/environment';
 import { ReclamationService, Message as ReclamationChatMessage } from '../../services/reclamation.service';
@@ -46,6 +46,8 @@ interface QuickAction {
   sub: string;
   icon: string;
   tone: Tone;
+  /** Navigation latérale (vue d’ensemble) */
+  navKey?: string;
 }
 
 interface RecentOp {
@@ -55,6 +57,23 @@ interface RecentOp {
   status: string;
   statusKey: StatusKey;
   updatedAt: string;
+  /** ISO date for tri du fil d’activité vue d’ensemble */
+  sortDate?: string;
+  module?: 'immatriculation' | 'demande-information' | 'reclamation' | 'publication';
+  linkId?: number;
+}
+
+interface OverviewLegendRow {
+  label: string;
+  pctLabel: string;
+  dotClass: string;
+}
+
+interface OverviewTaskNavItem {
+  title: string;
+  meta: string;
+  tone: Tone;
+  nav: string;
 }
 
 interface TaskItem {
@@ -277,7 +296,12 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     total_favorites: 0,
     total_reports: 0
   };
-  
+
+  /** Fil d’activité fusionné (tous modules) — vue d’ensemble. */
+  overviewRecentOps: RecentOp[] = [];
+  /** Raccourcis « À faire » avec navigation. */
+  overviewTaskItems: OverviewTaskNavItem[] = [];
+
   // Filtre par nationalité
   nationaliteFilter: string = 'tous'; // 'tous', 'tunisien', 'etranger'
   
@@ -356,6 +380,11 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
         this.demandeInfoMainPage = 0;
         this.loadDemandesInformation();
       });
+
+    this.loadImmatriculations();
+    this.loadDemandeInformationStats();
+    this.loadAgentReclamationStats();
+    this.loadPublicationStats();
   }
 
   ngOnDestroy(): void {
@@ -488,7 +517,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
       title: 'Pilotage',
       items: [
         { key: 'overview', label: 'Vue d\'ensemble', icon: 'fa-solid fa-grid-2' },
-        { key: 'work', label: 'Dossiers', icon: 'fa-solid fa-folder-open', badge: 7 },
+        { key: 'work', label: 'Immatriculations', icon: 'fa-solid fa-folder-open', badge: 7 },
        
         { key: 'publications', label: 'Publications', icon: 'fa-solid fa-newspaper' },
       ],
@@ -630,6 +659,47 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
           delta: '+0%',
           deltaUp: false,
           tone: 'danger',
+        },
+      ];
+    }
+
+    if (this.currentView === 'overview') {
+      return [
+        {
+          label: 'Immatriculations',
+          value: this.getTotalImmatriculationsCount().toString(),
+          sub: `${this.getEnCoursCount()} en vérification · ${this.getATraiterCount()} soumis`,
+          icon: 'fa-solid fa-folder-open',
+          delta: '—',
+          deltaUp: true,
+          tone: 'neutral',
+        },
+        {
+          label: 'Demandes d\'information',
+          value: this.getTotalDemandesInformationCount().toString(),
+          sub: `${this.getDemandesNonTraiteesCount()} non traitées · ${this.getDemandesUrgentesCount()} urgentes`,
+          icon: 'fa-solid fa-circle-info',
+          delta: '—',
+          deltaUp: true,
+          tone: 'warning',
+        },
+        {
+          label: 'Réclamations',
+          value: this.getAgentReclamationsTotalCount().toString(),
+          sub: `${this.countAgentReclamationsByEtat('EN_COURS')} en cours · ${this.countAgentReclamationsByEtat('TRAITE')} traitées`,
+          icon: 'fa-solid fa-file-circle-exclamation',
+          delta: '—',
+          deltaUp: true,
+          tone: 'brand',
+        },
+        {
+          label: 'Publications',
+          value: `${this.publicationStats.total || 0}`,
+          sub: `${this.publicationStats.published || 0} publiées · ${this.publicationStats.pending || 0} en attente`,
+          icon: 'fa-solid fa-newspaper',
+          delta: '—',
+          deltaUp: true,
+          tone: 'success',
         },
       ];
     }
@@ -1050,10 +1120,34 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   }
 
   quickActions: QuickAction[] = [
-    { title: 'Créer un dossier', sub: 'Nouveau traitement', icon: 'fa-solid fa-circle-plus', tone: 'brand' },
-    { title: 'Valider une demande', sub: 'Contrôle & conformité', icon: 'fa-solid fa-user-check', tone: 'success' },
-    { title: 'Exporter un état', sub: 'PDF / Excel', icon: 'fa-solid fa-file-export', tone: 'neutral' },
-    { title: 'Consulter procédures', sub: 'Guides & FAQ', icon: 'fa-solid fa-book-open', tone: 'warning' },
+    {
+      title: 'Immatriculations',
+      sub: 'Liste et validation des dossiers',
+      icon: 'fa-solid fa-folder-open',
+      tone: 'brand',
+      navKey: 'work',
+    },
+    {
+      title: 'Demandes d\'information',
+      sub: 'Messages et statuts de traitement',
+      icon: 'fa-solid fa-circle-info',
+      tone: 'warning',
+      navKey: 'demande-information',
+    },
+    {
+      title: 'Réclamations',
+      sub: 'Dossiers soumis et en cours',
+      icon: 'fa-solid fa-file-circle-exclamation',
+      tone: 'brand',
+      navKey: 'reclamation',
+    },
+    {
+      title: 'Publications',
+      sub: 'Contenus, brouillons et modération',
+      icon: 'fa-solid fa-newspaper',
+      tone: 'neutral',
+      navKey: 'publications',
+    },
   ];
 
   activityBars7d: number[] = [34, 52, 41, 68, 48, 73, 59];
@@ -1091,7 +1185,222 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   }
 
   get linePoints(): string {
-    const series = this.lineSeries;
+    return this.svgLinePointsFromSeries(this.lineSeries);
+  }
+
+  /** Histogramme des immatriculations créées sur les 7 derniers jours (vue d’ensemble). */
+  get overviewLineSeries(): number[] {
+    const days = 7;
+    const buckets = new Array(days).fill(0);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    for (const imm of this.immatriculations) {
+      const raw = imm?.dateCreation || imm?.dateSoumission;
+      if (!raw) {
+        continue;
+      }
+      const d = new Date(raw);
+      if (Number.isNaN(d.getTime())) {
+        continue;
+      }
+      d.setHours(0, 0, 0, 0);
+      const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+      if (diffDays < 0 || diffDays >= days) {
+        continue;
+      }
+      buckets[days - 1 - diffDays] += 1;
+    }
+    return buckets;
+  }
+
+  get overviewLinePoints(): string {
+    return this.svgLinePointsFromSeries(this.overviewLineSeries);
+  }
+
+  get overviewActivityBars(): number[] {
+    const series = this.overviewLineSeries;
+    const max = Math.max(...series, 1);
+    return series.map((v) => Math.round((v / max) * 100));
+  }
+
+  /** Donut = répartition des statuts d’immatriculation (données réelles). */
+  get overviewDonutStyle(): string {
+    const imm = this.immatriculations;
+    const n = imm.length;
+    if (!n) {
+      return 'conic-gradient(from 210deg, rgba(148,163,184,0.35) 0% 100%)';
+    }
+    const order: Array<{ key: string; color: string }> = [
+      { key: 'EN_COURS_VERIFICATION', color: 'rgba(99,102,241,0.95)' },
+      { key: 'SOUMIS', color: 'rgba(245,158,11,0.95)' },
+      { key: 'VALIDE', color: 'rgba(34,197,94,0.95)' },
+      { key: 'REJETE', color: 'rgba(239,68,68,0.95)' },
+      { key: 'BROUILLON', color: 'rgba(148,163,184,0.85)' },
+    ];
+    const counts = new Map<string, number>();
+    for (const { key } of order) {
+      counts.set(key, 0);
+    }
+    let other = 0;
+    for (const i of imm) {
+      const s = `${i?.status || ''}`.toUpperCase();
+      if (counts.has(s)) {
+        counts.set(s, (counts.get(s) || 0) + 1);
+      } else {
+        other += 1;
+      }
+    }
+    let acc = 0;
+    const parts: string[] = [];
+    const add = (frac: number, color: string) => {
+      if (frac <= 0) {
+        return;
+      }
+      const pct = (frac / n) * 100;
+      const start = acc;
+      acc += pct;
+      parts.push(`${color} ${start}% ${acc}%`);
+    };
+    for (const { key, color } of order) {
+      add(counts.get(key) || 0, color);
+    }
+    if (other > 0) {
+      add(other, 'rgba(59,130,246,0.8)');
+    }
+    if (!parts.length) {
+      return 'conic-gradient(from 210deg, rgba(148,163,184,0.35) 0% 100%)';
+    }
+    return `conic-gradient(from 210deg, ${parts.join(', ')})`;
+  }
+
+  get overviewImmatriculationLegend(): OverviewLegendRow[] {
+    const total = this.immatriculations.length;
+    const pct = (c: number) => (total ? `${Math.round((c / total) * 100)}%` : '0%');
+    const countOf = (status: string) =>
+      this.immatriculations.filter((i) => `${i?.status || ''}`.toUpperCase() === status).length;
+    const rows: OverviewLegendRow[] = [
+      { label: 'En vérification', pctLabel: pct(countOf('EN_COURS_VERIFICATION')), dotClass: 'is-brand' },
+      { label: 'Soumis', pctLabel: pct(countOf('SOUMIS')), dotClass: 'is-warning' },
+      { label: 'Validé', pctLabel: pct(countOf('VALIDE')), dotClass: 'is-success' },
+      { label: 'Rejeté', pctLabel: pct(countOf('REJETE')), dotClass: 'is-danger' },
+      { label: 'Brouillon', pctLabel: pct(countOf('BROUILLON')), dotClass: 'is-neutral' },
+    ];
+    const known =
+      countOf('EN_COURS_VERIFICATION') +
+      countOf('SOUMIS') +
+      countOf('VALIDE') +
+      countOf('REJETE') +
+      countOf('BROUILLON');
+    const autre = Math.max(0, total - known);
+    if (autre > 0) {
+      rows.push({ label: 'Autre', pctLabel: pct(autre), dotClass: 'is-brand' });
+    }
+    return rows;
+  }
+
+  get overviewAlerts(): AlertItem[] {
+    const out: AlertItem[] = [];
+    if (this.unreadCount > 0) {
+      out.push({
+        title: `${this.unreadCount} notification(s) non lue(s)`,
+        meta: 'Centre de notifications',
+        tone: 'brand',
+        icon: 'fa-regular fa-bell',
+      });
+    }
+    if (this.demandeInformationStats.nonTraitees > 0) {
+      out.push({
+        title: `${this.demandeInformationStats.nonTraitees} demande(s) non traitée(s)`,
+        meta: 'Module demandes d\'information',
+        tone: 'warning',
+        icon: 'fa-solid fa-circle-info',
+      });
+    }
+    if (this.agentReclamationStats.etatEnCours > 0) {
+      out.push({
+        title: `${this.agentReclamationStats.etatEnCours} réclamation(s) en cours`,
+        meta: 'Suivi des dossiers',
+        tone: 'brand',
+        icon: 'fa-solid fa-file-circle-exclamation',
+      });
+    }
+    if (this.getBloquésCount() > 0) {
+      out.push({
+        title: `${this.getBloquésCount()} immatriculation(s) rejetée(s)`,
+        meta: 'Contrôle des dossiers',
+        tone: 'danger',
+        icon: 'fa-solid fa-circle-xmark',
+      });
+    }
+    if ((this.publicationStats.pending || 0) > 0) {
+      out.push({
+        title: `${this.publicationStats.pending} publication(s) en attente`,
+        meta: 'Modération éditoriale',
+        tone: 'warning',
+        icon: 'fa-solid fa-newspaper',
+      });
+    }
+    if (!out.length) {
+      return [
+        {
+          title: 'Aucune alerte prioritaire',
+          meta: 'Les indicateurs sont dans les plages habituelles',
+          tone: 'success',
+          icon: 'fa-solid fa-circle-check',
+        },
+      ];
+    }
+    return out.slice(0, 5);
+  }
+
+  onOverviewQuickNav(a: QuickAction): void {
+    if (a.navKey) {
+      this.setActiveNav(a.navKey);
+    }
+  }
+
+  openOverviewRecentOp(row: RecentOp): void {
+    const id = row.linkId;
+    if (row.module === 'immatriculation' && id != null) {
+      this.pendingImmatriculationIdToOpen = id;
+      this.setActiveNav('work');
+      return;
+    }
+    if (row.module === 'demande-information' && id != null) {
+      this.pendingDemandeInformationIdToOpen = id;
+      this.setActiveNav('demande-information');
+      return;
+    }
+    if (row.module === 'reclamation' && id != null) {
+      this.pendingReclamationIdToOpen = id;
+      this.agentReclamationSearchTerm = '';
+      this.agentReclamationEtatFilter = 'all';
+      this.agentReclamationUrgenceFilter = 'all';
+      this.setActiveNav('reclamation');
+      return;
+    }
+    if (row.module === 'publication' && id != null) {
+      this.pendingPublicationIdToOpen = null;
+      this.setActiveNav('publications');
+      setTimeout(() => {
+        this.pendingPublicationIdToOpen = id;
+        this.cdr.detectChanges();
+      }, 0);
+      return;
+    }
+    this.showNotification('Impossible d\'ouvrir cet élément.', 'info');
+  }
+
+  onOverviewTaskNav(item: OverviewTaskNavItem): void {
+    if (item?.nav) {
+      this.setActiveNav(item.nav);
+    }
+  }
+
+  private svgLinePointsFromSeries(series: number[]): string {
+    if (!series.length) {
+      return '10,80 510,80';
+    }
     const max = Math.max(...series, 1);
     const min = Math.min(...series, 0);
     const range = Math.max(max - min, 1);
@@ -1111,9 +1420,257 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
       .join(' ');
   }
 
-  get donutStyle(): string {
-    // Conic-gradient segment order: brand, success, warning, danger
-    return 'conic-gradient(from 210deg, rgba(99,102,241,0.95) 0 46%, rgba(34,197,94,0.95) 46% 76%, rgba(245,158,11,0.95) 76% 92%, rgba(239,68,68,0.95) 92% 100%)';
+  private refreshOverviewWidgets(): void {
+    const items: OverviewTaskNavItem[] = [];
+    const soumis = this.getATraiterCount();
+    if (soumis > 0) {
+      items.push({
+        title: `Traiter ${soumis} dossier(s) au statut soumis`,
+        meta: 'Immatriculations',
+        tone: 'brand',
+        nav: 'work',
+      });
+    }
+    if (this.getEnCoursCount() > 0) {
+      items.push({
+        title: `${this.getEnCoursCount()} dossier(s) en vérification`,
+        meta: 'Immatriculations',
+        tone: 'warning',
+        nav: 'work',
+      });
+    }
+    if (this.demandeInformationStats.nonTraitees > 0) {
+      items.push({
+        title: `Répondre à ${this.demandeInformationStats.nonTraitees} demande(s) d'information`,
+        meta: 'Demandes d\'information',
+        tone: 'warning',
+        nav: 'demande-information',
+      });
+    }
+    if (this.agentReclamationStats.etatEnCours > 0) {
+      items.push({
+        title: `Suivre ${this.agentReclamationStats.etatEnCours} réclamation(s) en cours`,
+        meta: 'Réclamations',
+        tone: 'brand',
+        nav: 'reclamation',
+      });
+    }
+    if ((this.publicationStats.pending || 0) > 0) {
+      items.push({
+        title: `Modérer ${this.publicationStats.pending} publication(s) en attente`,
+        meta: 'Publications',
+        tone: 'neutral',
+        nav: 'publications',
+      });
+    }
+    this.overviewTaskItems = items.length
+      ? items.slice(0, 6)
+      : [
+          {
+            title: 'Aucune priorité détectée',
+            meta: 'Consultez les modules pour le détail',
+            tone: 'success',
+            nav: 'work',
+          },
+        ];
+  }
+
+  private loadOverviewRecentOpsMerged(): void {
+    const immRows = this.mapImmatriculationsToRecentOps(this.immatriculations);
+    forkJoin({
+      demandes: this.http
+        .get<any>(`${environment.apiUrl}/demande-information/all`, {
+          params: new HttpParams().set('page', '0').set('size', '8'),
+        })
+        .pipe(catchError(() => of({ items: [] }))),
+      reclams: this.http
+        .get<any>(`${environment.apiUrl}/reclamation/all`, {
+          params: new HttpParams()
+            .set('page', '0')
+            .set('size', '8')
+            .set('statut', 'SOUMIS')
+            .set('sort', 'dateSoumission')
+            .set('direction', 'DESC'),
+        })
+        .pipe(catchError(() => of({ content: [] }))),
+      pubs: this.publicationService
+        .getPublications({ page: 0, limit: 8 })
+        .pipe(catchError(() => of({ data: [] }))),
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ demandes, reclams, pubs }) => {
+        const diItems = this.mapDemandeInformationItems(demandes?.items || []);
+        const diRows: RecentOp[] = diItems.map((it) => ({
+          ref: `DI-${it.id}`,
+          subject: (it.nomComplet || it.email || '—').trim(),
+          kind: "Demande d'information",
+          status: it.traitementStatus === 'TRAITE' ? 'Traitée' : 'Non traitée',
+          statusKey: it.traitementStatus === 'TRAITE' ? 'done' : 'open',
+          updatedAt: this.formatOverviewRelativeTime(it.dateCreation),
+          sortDate: it.dateCreation,
+          module: 'demande-information',
+          linkId: it.id,
+        }));
+
+        const recContent = Array.isArray(reclams?.content) ? reclams.content : [];
+        const recRows: RecentOp[] = recContent.map((raw: any) => {
+          const row = this.normalizeAgentReclamationRow(raw);
+          const etat = row.etatReclamation || '';
+          return {
+            ref: row.reference || `REC-${row.id}`,
+            subject: (row.nomUser || row.emailUser || '—').trim(),
+            kind: 'Réclamation',
+            status: this.formatAgentReclamationEtat(etat) || this.formatAgentReclamationStatut(row.statut),
+            statusKey: this.mapReclamationEtatToStatusKey(etat, row.statut),
+            updatedAt: this.formatOverviewRelativeTime(row.dateSoumission || row.dateCreation),
+            sortDate: row.dateSoumission || row.dateCreation,
+            module: 'reclamation',
+            linkId: row.id,
+          };
+        });
+
+        const pubData = Array.isArray(pubs?.data) ? pubs.data : [];
+        const pubRows: RecentOp[] = pubData.map((p: any) => {
+          const st = `${p?.status || ''}`.toUpperCase();
+          return {
+            ref: `PUB-${p?.id ?? ''}`,
+            subject: String(p?.title || p?.titre || '—').slice(0, 120),
+            kind: 'Publication',
+            status: this.formatPublicationStatusFr(st),
+            statusKey: this.mapPublicationStatusToKey(st),
+            updatedAt: this.formatOverviewRelativeTime(p?.updated_at || p?.updatedAt || p?.created_at || p?.createdAt),
+            sortDate: p?.updated_at || p?.updatedAt || p?.created_at || p?.createdAt,
+            module: 'publication',
+            linkId: p?.id != null ? Number(p.id) : undefined,
+          };
+        });
+
+        const merged = [...immRows, ...diRows, ...recRows, ...pubRows];
+        merged.sort((a, b) => this.parseOverviewOpSortTime(b) - this.parseOverviewOpSortTime(a));
+        this.overviewRecentOps = merged.slice(0, 5);
+        this.refreshOverviewWidgets();
+        this.cdr.markForCheck();
+      });
+  }
+
+  private mapImmatriculationsToRecentOps(list: any[]): RecentOp[] {
+    return (Array.isArray(list) ? list : []).map((imm) => {
+      const isMorale = `${imm?.typeContribuable || ''}`.toUpperCase() === 'MORALE';
+      const subj = isMorale
+        ? (imm?.raisonSociale || imm?.email || '—')
+        : `${imm?.prenom || ''} ${imm?.nom || ''}`.trim() || imm?.email || '—';
+      const stat = `${imm?.status || ''}`.toUpperCase();
+      const sortDate = imm?.dateSoumission || imm?.dateCreation;
+      return {
+        ref: imm?.dossierNumber || (imm?.id != null ? `IMM-${imm.id}` : '—'),
+        subject: subj,
+        kind: 'Immatriculation',
+        status: this.formatImmStatusFr(stat),
+        statusKey: this.mapImmStatusToKey(stat),
+        updatedAt: this.formatOverviewRelativeTime(sortDate),
+        sortDate,
+        module: 'immatriculation',
+        linkId: imm?.id != null ? Number(imm.id) : undefined,
+      };
+    });
+  }
+
+  private formatImmStatusFr(status: string): string {
+    const map: Record<string, string> = {
+      EN_COURS_VERIFICATION: 'En vérification',
+      SOUMIS: 'Soumis',
+      VALIDE: 'Validé',
+      REJETE: 'Rejeté',
+      BROUILLON: 'Brouillon',
+    };
+    return map[status] || status || '—';
+  }
+
+  private mapImmStatusToKey(status: string): StatusKey {
+    if (status === 'VALIDE') {
+      return 'done';
+    }
+    if (status === 'REJETE') {
+      return 'blocked';
+    }
+    if (status === 'EN_COURS_VERIFICATION') {
+      return 'in_review';
+    }
+    return 'open';
+  }
+
+  private formatPublicationStatusFr(status: string): string {
+    const map: Record<string, string> = {
+      DRAFT: 'Brouillon',
+      PENDING: 'En attente',
+      VALIDATED: 'Validée',
+      PUBLISHED: 'Publiée',
+      SCHEDULED: 'Planifiée',
+      REJECTED: 'Rejetée',
+      ARCHIVED: 'Archivée',
+      DELETED: 'Supprimée',
+    };
+    return map[status] || status || '—';
+  }
+
+  private mapPublicationStatusToKey(status: string): StatusKey {
+    if (status === 'PUBLISHED' || status === 'ARCHIVED') {
+      return 'done';
+    }
+    if (status === 'REJECTED' || status === 'DELETED') {
+      return 'blocked';
+    }
+    if (status === 'PENDING' || status === 'VALIDATED' || status === 'SCHEDULED') {
+      return 'in_review';
+    }
+    return 'open';
+  }
+
+  private mapReclamationEtatToStatusKey(etat: string, statut: string): StatusKey {
+    const e = `${etat || ''}`.toUpperCase();
+    if (e === 'TRAITE') {
+      return 'done';
+    }
+    if (e === 'EN_COURS') {
+      return 'in_review';
+    }
+    return this.getAgentReclamationStatusKey(`${statut || ''}`.toUpperCase());
+  }
+
+  private parseOverviewOpSortTime(row: RecentOp): number {
+    if (row.sortDate) {
+      const t = new Date(row.sortDate).getTime();
+      return Number.isNaN(t) ? 0 : t;
+    }
+    return 0;
+  }
+
+  private formatOverviewRelativeTime(iso?: string): string {
+    if (!iso) {
+      return '—';
+    }
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) {
+      return '—';
+    }
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) {
+      return "À l'instant";
+    }
+    if (diffMin < 60) {
+      return `Il y a ${diffMin} min`;
+    }
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) {
+      return diffH <= 1 ? 'Il y a 1 h' : `Il y a ${diffH} h`;
+    }
+    const diffDays = Math.floor(diffH / 24);
+    if (diffDays < 7) {
+      return diffDays === 1 ? 'Hier' : `Il y a ${diffDays} j`;
+    }
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   toggleSidebar(): void {
@@ -1160,6 +1717,14 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
       this.logout();
     } else {
       this.currentView = 'overview';
+      this.loadDemandeInformationStats();
+      this.loadAgentReclamationStats();
+      this.loadPublicationStats();
+      if (this.immatriculations.length > 0) {
+        this.loadOverviewRecentOpsMerged();
+      } else {
+        this.loadImmatriculations();
+      }
     }
   }
 
@@ -1183,6 +1748,8 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
             total_favorites: statsFromApi.total_favorites || 0,
             total_reports: statsFromApi.total_reports || 0
           };
+          this.refreshOverviewWidgets();
+          this.cdr.markForCheck();
           return;
         }
 
@@ -1199,9 +1766,12 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
           total_favorites: publications.reduce((sum: number, p: any) => sum + (Number(p?.favorites_count) || 0), 0),
           total_reports: publications.reduce((sum: number, p: any) => sum + (Number(p?.reports_count) || 0), 0)
         };
+        this.refreshOverviewWidgets();
+        this.cdr.markForCheck();
       },
       error: (error) => {
         console.error('Erreur lors du chargement des statistiques des publications:', error);
+        this.refreshOverviewWidgets();
       }
     });
   }
@@ -1468,24 +2038,27 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     this.isLoadingImmatriculations = true;
     this.immatriculationService.getAllImmatriculations().subscribe({
       next: (data) => {
-        console.log('Données reçues de l\'API:', data);
-        console.log('Vérification des autresFiles:', data.map(imm => ({
+        const list = Array.isArray(data) ? data : [];
+        console.log('Données reçues de l\'API:', list);
+        console.log('Vérification des autresFiles:', list.map(imm => ({
           id: imm.id,
           dossierNumber: imm.dossierNumber,
           autresFiles: imm.autresFiles,
           autresFilesLength: imm.autresFiles?.length || 0
         })));
-        this.immatriculations = data;
+        this.immatriculations = list;
         this.applyFilter();
         this.tryOpenImmatriculationFromNotification();
         this.cdr.detectChanges(); // Forcer la mise à jour des KPI
         this.isLoadingImmatriculations = false;
+        this.loadOverviewRecentOpsMerged();
       },
       error: (error) => {
         console.error('Erreur lors du chargement des immatriculations:', error);
         this.isLoadingImmatriculations = false;
         this.immatriculations = [];
         this.filteredImmatriculations = [];
+        this.loadOverviewRecentOpsMerged();
       }
     });
   }
@@ -1499,9 +2072,13 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
           nonTraitees: Number(s?.nonTraitees) || 0,
           urgentes: Number(s?.urgentes) || 0,
         };
+        this.refreshOverviewWidgets();
         this.cdr.markForCheck();
       },
-      error: (err) => console.error('Erreur stats demandes information:', err),
+      error: (err) => {
+        console.error('Erreur stats demandes information:', err);
+        this.refreshOverviewWidgets();
+      },
     });
   }
 
@@ -1634,9 +2211,13 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
             etatTraite: Number(s?.etatTraite) || 0,
             prioriteHaute: Number(s?.prioriteHaute) || 0,
           };
+          this.refreshOverviewWidgets();
           this.cdr.markForCheck();
         },
-        error: (err) => console.error('Erreur stats réclamations agent:', err),
+        error: (err) => {
+          console.error('Erreur stats réclamations agent:', err);
+          this.refreshOverviewWidgets();
+        },
       });
   }
 
