@@ -17,6 +17,7 @@ import {
 } from '../../models/immatriculation.model';
 import jsPDF from 'jspdf';
 import * as QRCode from 'qrcode';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-immatriculation',
@@ -1654,12 +1655,31 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
   }
 
   private async performFaceRecognition(): Promise<void> {
-    // Simulation reconnaissance faciale
-    // En réalité, comparer les images avec une API ML
-    this.faceRecognitionScore = Math.floor(Math.random() * 20) + 80; // 80-99%
-    
-    // Simulation de délai
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Ne pas écraser le score issu de la vérification faciale (DeepFace / similarité réelle)
+    if (this.faceVerificationSimilarity != null) {
+      this.faceRecognitionScore = Math.round(this.faceVerificationSimilarity);
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return;
+    }
+
+    const typeRaw = this.immatriculationForm.get('typeContribuable')?.value;
+    const isPhysique = String(typeRaw ?? '').toLowerCase() === 'physique';
+    if (!isPhysique || !this.files.photo || !this.files.identite) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return;
+    }
+
+    try {
+      const result = await firstValueFrom(
+        this.faceVerificationService.verifyFace(this.files.photo, this.files.identite)
+      );
+      const sim = result.similarity ?? 0;
+      this.faceRecognitionScore = Math.round(sim);
+      this.faceVerificationSimilarity = sim;
+    } catch {
+      this.faceRecognitionScore = 0;
+      this.faceVerificationSimilarity = null;
+    }
   }
 
   private async performDuplicateDetection(): Promise<void> {
@@ -1689,10 +1709,15 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     
     this.completenessScore = Math.floor((completedFields / totalFields) * 100);
     
-    // Score de vérification (basé sur OCR et reconnaissance faciale)
-    const ocrScore = this.ocrResults.filter(r => r.match).length / Math.max(this.ocrResults.length, 1) * 100;
-    const faceScore = this.faceRecognitionScore;
-    this.verificationScore = Math.floor((ocrScore + faceScore) / 2);
+    // Score de vérification : aligné sur SWIN (pièce d'identité) lorsqu'il est disponible
+    const swinScore = this.identityValidationScore ?? 0;
+    if (swinScore > 0) {
+      this.verificationScore = Math.min(100, Math.round(swinScore));
+    } else {
+      const ocrScore = this.ocrResults.filter(r => r.match).length / Math.max(this.ocrResults.length, 1) * 100;
+      const faceScore = this.faceRecognitionScore;
+      this.verificationScore = Math.floor((ocrScore + faceScore) / 2);
+    }
     
     // Score des documents
     let documentScore = 0;
@@ -1994,7 +2019,9 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
         verificationScore: this.verificationScore || 0,
         documentsScore: this.documentsScore || 0,
         faceRecognitionScore: this.faceRecognitionScore || 0,
-        identityValidationScore: this.identityValidationScore || 0 // Score de validation SWIN Transformer
+        identityValidationScore: this.identityValidationScore
+          ? Math.min(100, Math.round(this.identityValidationScore))
+          : 0
       };
 
       // Validation préalable des données

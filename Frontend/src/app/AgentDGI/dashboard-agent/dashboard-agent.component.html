@@ -1249,16 +1249,10 @@
                 {{ selectedImmatriculation.overallScore }}%
               </div>
             </div>
-            <div class="da__scoreItem" *ngIf="selectedImmatriculation.completenessScore !== undefined">
-              <div class="da__scoreLabel">Complétude</div>
-              <div class="da__scoreValue" [attr.data-score]="getScoreLevel(selectedImmatriculation.completenessScore)">
-                {{ selectedImmatriculation.completenessScore }}%
-              </div>
-            </div>
-            <div class="da__scoreItem" *ngIf="selectedImmatriculation.verificationScore !== undefined">
-              <div class="da__scoreLabel">Vérification</div>
-              <div class="da__scoreValue" [attr.data-score]="getScoreLevel(selectedImmatriculation.verificationScore)">
-                {{ selectedImmatriculation.verificationScore }}%
+            <div class="da__scoreItem" *ngIf="selectedImmatriculation.faceRecognitionScore !== undefined">
+              <div class="da__scoreLabel">Score de reconnaissance faciale</div>
+              <div class="da__scoreValue" [attr.data-score]="getScoreLevel(selectedImmatriculation.faceRecognitionScore)">
+                {{ selectedImmatriculation.faceRecognitionScore }}%
               </div>
             </div>
             <div class="da__scoreItem" *ngIf="selectedImmatriculation.documentsScore !== undefined">
