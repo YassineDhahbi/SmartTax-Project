@@ -1,0 +1,96 @@
+<div class="admin-dashboard">
+  <app-topbar></app-topbar>
+
+  <div class="layout">
+    <aside>
+      <app-side-admin></app-side-admin>
+    </aside>
+
+    <main class="content">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>Centre documentaire</h3>
+            <p class="muted" style="margin: 0.35rem 0 0; font-size: 0.9rem; color: rgba(148, 163, 184, 0.9);">
+              Gestion du catalogue de documents téléchargeables (même outil que l’espace agent).
+            </p>
+          </div>
+          <div class="panel-actions">
+            <button type="button" class="modal-btn modal-btn--primary" (click)="openStats()">
+              <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+              Statistiques
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-documents-vars da" data-theme="dark">
+          <app-documents></app-documents>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay admin-stats-overlay" *ngIf="statsOpen" (click)="closeStats()">
+  <div
+    class="modal-card details-modal admin-stats-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="admin-stats-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal-header details-modal__header">
+      <h4 id="admin-stats-title">Statistiques de téléchargement</h4>
+      <button type="button" class="modal-close" (click)="closeStats()" aria-label="Fermer">
+        <i class="fa-solid fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-text" *ngIf="statsLoading">Chargement des données…</p>
+      <p class="modal-text" *ngIf="statsError" style="color: #fca5a5">{{ statsError }}</p>
+
+      <ng-container *ngIf="!statsLoading && !statsError">
+        <h5 class="admin-stats-subtitle">Documents les plus téléchargés</h5>
+        <p class="modal-text" *ngIf="topDownloaded().length === 0">
+          Aucun téléchargement enregistré pour l’instant. Les fichiers servis par l’API sont comptés à chaque accès au fichier ;
+          les liens externes sont comptés au clic sur « Télécharger » depuis le site.
+        </p>
+        <ol class="admin-stats-toplist" *ngIf="topDownloaded().length > 0">
+          <li *ngFor="let doc of topDownloaded(); let i = index">
+            <span class="admin-stats-rank">{{ i + 1 }}</span>
+            <span class="admin-stats-top-main">
+              <strong>{{ doc.title }}</strong>
+              <span class="admin-stats-meta">{{ categoryLabel(doc.categoryId) }} · {{ displayFileLabel(doc) }}</span>
+            </span>
+            <span class="admin-stats-count">{{ doc.downloadCount ?? 0 }}</span>
+          </li>
+        </ol>
+
+        <h5 class="admin-stats-subtitle">Détail par fichier</h5>
+        <div class="admin-stats-table-wrap">
+          <table class="admin-stats-table">
+            <thead>
+              <tr>
+                <th>Titre</th>
+                <th>Rubrique</th>
+                <th>Fichier / lien</th>
+                <th class="admin-stats-th-num">Téléchargements</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let doc of statsRows">
+                <td>{{ doc.title }}</td>
+                <td>{{ categoryLabel(doc.categoryId) }}</td>
+                <td>{{ displayFileLabel(doc) }}</td>
+                <td class="admin-stats-td-num">{{ doc.downloadCount ?? 0 }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn--secondary" (click)="closeStats()">Fermer</button>
+    </div>
+  </div>
+</div>

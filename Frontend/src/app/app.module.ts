@@ -50,6 +50,8 @@ import { DemandeInformationAdminComponent } from './Admin/demande-information-ad
 import { ReclamationAdminComponent } from './Admin/reclamation-admin/reclamation-admin.component';
 import { WebcamModule } from 'ngx-webcam';
 import { FaceVerificationWebcamComponent } from './components/face-verification-webcam/face-verification-webcam.component';
+import { DocumentsComponent } from './AgentDGI/documents/documents.component';
+import { DocumentsAdminComponent } from './Admin/documents-admin/documents-admin.component';
 
 
 @NgModule({
@@ -91,7 +93,9 @@ import { FaceVerificationWebcamComponent } from './components/face-verification-
     DemandeInformationComponent,
     DemandeInformationAdminComponent,
     ReclamationAdminComponent,
-    FaceVerificationWebcamComponent
+    FaceVerificationWebcamComponent,
+    DocumentsComponent,
+    DocumentsAdminComponent
     
 
 

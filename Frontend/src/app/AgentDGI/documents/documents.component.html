@@ -1,0 +1,198 @@
+<section class="doc-lib" aria-labelledby="doc-lib-title">
+  <header class="doc-lib__hero">
+    <div class="doc-lib__heroText">
+      <p class="doc-lib__kicker">Centre documentaire</p>
+      <h2 id="doc-lib-title" class="doc-lib__title">Documents à télécharger</h2>
+   
+    </div>
+    <div class="doc-lib__heroStat" aria-hidden="true">
+      <span class="doc-lib__heroStatValue">{{ isFilterActive() ? displayedResultsCount() : documents.length }}</span>
+      <span class="doc-lib__heroStatLabel">{{ isFilterActive() ? 'résultat(s) affiché(s)' : 'fichiers publiés' }}</span>
+    </div>
+  </header>
+
+  <div class="doc-lib__alert" *ngIf="feedback" [class.doc-lib__alert--error]="feedbackIsError" role="status">
+    {{ feedback }}
+  </div>
+
+  <!-- Recherche & filtre -->
+  <div class="doc-lib__toolbar" role="region" aria-label="Recherche et filtrage des documents">
+    <div class="doc-lib__toolbarSearch">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <input
+        type="search"
+        class="doc-lib__toolbarInput"
+        [(ngModel)]="searchQuery"
+        name="docSearchQuery"
+        placeholder="Rechercher par titre, description, fichier ou lien…"
+        autocomplete="off"
+      />
+    </div>
+    <label class="doc-lib__toolbarField">
+      <span class="doc-lib__toolbarLabel">Rubrique</span>
+      <select class="doc-lib__toolbarSelect" [(ngModel)]="filterCategoryId" name="docFilterCategory">
+        <option [ngValue]="'all'">Toutes les rubriques</option>
+        <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+      </select>
+    </label>
+    <button
+      type="button"
+      class="doc-lib__btn doc-lib__btn--ghost doc-lib__toolbarClear"
+      *ngIf="isFilterActive()"
+      (click)="clearListFilters()"
+    >
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      Réinitialiser
+    </button>
+  </div>
+  <p class="doc-lib__toolbarHint" *ngIf="isFilterActive()">
+    {{ displayedResultsCount() }} résultat(s) sur {{ documents.length }} document(s) au total.
+  </p>
+
+  <!-- Formulaire d’ajout -->
+  <div class="doc-lib__upload">
+    <div class="doc-lib__uploadHead">
+      <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+      <div>
+        <h3 class="doc-lib__uploadTitle">Ajouter un document</h3>
+        <p class="doc-lib__uploadHint">
+          Sélectionnez la rubrique, puis le titre et un fichier <strong>PDF uniquement</strong> (max 10 Mo) ou un lien HTTPS.
+        </p>
+      </div>
+    </div>
+
+    <div class="doc-lib__formGrid">
+      <label class="doc-lib__field doc-lib__field--full">
+        <span class="doc-lib__label">Catégorie <abbr title="obligatoire">*</abbr></span>
+        <select class="doc-lib__select" [(ngModel)]="selectedCategoryId" name="docCategory">
+          <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+        </select>
+      </label>
+
+      <label class="doc-lib__field">
+        <span class="doc-lib__label">Titre <abbr title="obligatoire">*</abbr></span>
+        <input class="doc-lib__input" type="text" [(ngModel)]="fileTitle" name="docTitle" placeholder="Ex. Déclaration IR 2026" />
+      </label>
+
+      <label class="doc-lib__field">
+        <span class="doc-lib__label">Description</span>
+        <input
+          class="doc-lib__input"
+          type="text"
+          [(ngModel)]="fileDescription"
+          name="docDesc"
+          placeholder="Courte description (optionnel)"
+        />
+      </label>
+
+      <label class="doc-lib__field doc-lib__field--full">
+        <span class="doc-lib__label">Fichier (PDF uniquement)</span>
+        <input
+          class="doc-lib__file"
+          type="file"
+          accept="application/pdf,.pdf"
+          (change)="onPickFile($event)"
+        />
+        <span class="doc-lib__fileMeta" *ngIf="pendingFile">{{ pendingFile.name }} · {{ (pendingFile.size / 1024).toFixed(0) }} Ko</span>
+      </label>
+
+      <label class="doc-lib__field doc-lib__field--full">
+        <span class="doc-lib__label">Ou lien direct (HTTPS)</span>
+        <input
+          class="doc-lib__input"
+          type="url"
+          [(ngModel)]="fileUrl"
+          name="docUrl"
+          placeholder="https://exemple.gov.tn/fichier.pdf"
+        />
+      </label>
+    </div>
+
+    <p class="doc-lib__fileError" *ngIf="fileError">{{ fileError }}</p>
+
+    <div class="doc-lib__formActions">
+      <button type="button" class="doc-lib__btn doc-lib__btn--ghost" (click)="resetForm()">Réinitialiser</button>
+      <button type="button" class="doc-lib__btn doc-lib__btn--primary" (click)="submitDocument()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Enregistrer dans la catégorie
+      </button>
+    </div>
+  </div>
+
+  <!-- Liste par catégorie -->
+  <div class="doc-lib__columns" [class.doc-lib__columns--single]="filterCategoryId !== 'all'">
+    <section *ngFor="let c of visibleCategories()" class="doc-lib__column" [attr.data-cat]="c.id" [attr.aria-label]="c.name">
+      <header class="doc-lib__columnHead">
+        <span class="doc-lib__columnIcon" aria-hidden="true">
+          <i class="fa-solid fa-file-lines" *ngIf="c.icon === 'file'"></i>
+          <i class="fa-solid fa-book" *ngIf="c.icon === 'book'"></i>
+          <i class="fa-solid fa-scale-balanced" *ngIf="c.icon === 'gavel'"></i>
+          <i class="fa-solid fa-clone" *ngIf="c.icon === 'copy'"></i>
+        </span>
+        <div class="doc-lib__columnTitles">
+          <h4 class="doc-lib__columnName">{{ c.name }}</h4>
+          <span class="doc-lib__columnCount">
+            <ng-container *ngIf="searchQuery.trim(); else colCountNoSearch">
+              {{ filteredDocsFor(c.id).length }} affiché(s) · {{ countIn(c.id) }} au total
+            </ng-container>
+            <ng-template #colCountNoSearch>{{ filteredDocsFor(c.id).length }} élément(s)</ng-template>
+          </span>
+        </div>
+      </header>
+
+      <ul class="doc-lib__fileList" *ngIf="filteredDocsFor(c.id).length > 0">
+        <li *ngFor="let doc of filteredDocsFor(c.id)" class="doc-lib__fileRow">
+          <div class="doc-lib__fileMain">
+            <p class="doc-lib__fileTitle">{{ doc.title }}</p>
+            <p class="doc-lib__fileDesc" *ngIf="doc.description">{{ doc.description }}</p>
+            <div class="doc-lib__fileMetaRow">
+              <span>{{ formatSize(doc) }}</span>
+              <span class="doc-lib__dot">·</span>
+              <span>{{ formatDate(doc.updatedAt) }}</span>
+            </div>
+          </div>
+          <div class="doc-lib__fileActions">
+            <button type="button" class="doc-lib__iconBtn" (click)="download(doc)" title="Télécharger / ouvrir">
+              <i class="fa-solid fa-download"></i>
+            </button>
+            <button type="button" class="doc-lib__iconBtn doc-lib__iconBtn--danger" (click)="openDeleteModal(doc, $event)" title="Supprimer">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </li>
+      </ul>
+
+      <p class="doc-lib__empty" *ngIf="filteredDocsFor(c.id).length === 0">
+        <ng-container *ngIf="searchQuery.trim(); else emptyCat">Aucun document ne correspond à votre recherche.</ng-container>
+        <ng-template #emptyCat>Aucun fichier dans cette rubrique.</ng-template>
+      </p>
+    </section>
+  </div>
+
+  <!-- Modale confirmation suppression -->
+  <div class="doc-lib__modalOverlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()" aria-hidden="true"></div>
+  <div
+    class="doc-lib__modal"
+    *ngIf="showDeleteModal && documentToDelete as del"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="doc-del-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="doc-lib__modalIcon" aria-hidden="true">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <h3 id="doc-del-title" class="doc-lib__modalTitle">Retirer du catalogue ?</h3>
+    <p class="doc-lib__modalText">
+      Retirer <span class="doc-lib__modalQuote">« {{ del.title }} »</span> du catalogue ? Cette action est définitive
+      (fichier sur serveur et enregistrement en base).
+    </p>
+    <div class="doc-lib__modalActions">
+      <button type="button" class="doc-lib__btn doc-lib__btn--ghost" (click)="closeDeleteModal()">Annuler</button>
+      <button type="button" class="doc-lib__btn doc-lib__btn--danger" (click)="confirmDelete()">
+        <i class="fa-solid fa-trash" aria-hidden="true"></i>
+        Retirer du catalogue
+      </button>
+    </div>
+  </div>
+</section>

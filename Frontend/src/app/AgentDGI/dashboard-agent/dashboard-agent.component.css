@@ -4,6 +4,13 @@
   min-width: 0;
   display: block;
 }
+
+.da__grid > app-documents {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  display: block;
+}
 :host{
   --bg-0:#0b1220;
   --bg-1:#0d1526;
@@ -5616,5 +5623,138 @@
   border-radius: 10px;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+/* Barre d’action + stats catalogue (vue Documents agent) */
+.da__documentsCatalogBar {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.da__documentsCatalogBar .da__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.da__modal--catalogStats {
+  max-width: min(920px, 96vw);
+}
+
+.da__docCatalogStatsSubtitle {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.da__docCatalogStatsSubtitle:first-of-type {
+  margin-top: 0;
+}
+
+.da__docCatalogStatsToplist {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.da__docCatalogStatsToplist li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.35rem;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.da__docCatalogStatsRank {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--brand);
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.da__docCatalogStatsTopMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.da__docCatalogStatsTopMain strong {
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.da__docCatalogStatsMeta {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.da__docCatalogStatsCount {
+  flex-shrink: 0;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+  font-size: 1rem;
+}
+
+.da__docCatalogStatsTableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+}
+
+.da__docCatalogStatsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.da__docCatalogStatsTable th,
+.da__docCatalogStatsTable td {
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.da__docCatalogStatsTable thead th {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.da__docCatalogStatsThNum,
+.da__docCatalogStatsTdNum {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.da__docCatalogStatsTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.da[data-theme="light"] .da__docCatalogStatsRank {
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.da[data-theme="light"] .da__docCatalogStatsTable thead th {
+  background: rgba(15, 23, 42, 0.04);
 }
 

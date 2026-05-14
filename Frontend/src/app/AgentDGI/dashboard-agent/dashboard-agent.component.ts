@@ -14,6 +14,12 @@ import { AdminNotificationItem, AdminNotificationService } from '../../services/
 import { environment } from '../../../environments/environment';
 import { ReclamationService, Message as ReclamationChatMessage } from '../../services/reclamation.service';
 import { ReclamationChatStompService } from '../../services/reclamation-chat-stomp.service';
+import {
+  AgentDownloadDocument,
+  DOCUMENT_LIBRARY_CATEGORIES,
+  DownloadDocumentCatalogService,
+  LibraryCategoryId,
+} from '../../services/download-document-catalog.service';
 
 type Tone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger';
 
@@ -39,6 +45,8 @@ interface KpiCard {
   deltaUp: boolean;
   icon: string;
   tone: Tone;
+  /** Si true, la pastille / tendance (delta) n'est pas affichée (ex. KPI documents par rubrique). */
+  hideDelta?: boolean;
 }
 
 interface QuickAction {
@@ -158,7 +166,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
 
   activeNavKey: string = 'overview';
 
-  currentView: string = 'overview'; // 'overview', 'dossiers', 'demande-information', 'reclamation', 'publications', or 'profile'
+  currentView: string = 'overview'; // 'overview' | 'dossiers' | 'demande-information' | 'reclamation' | 'publications' | 'documents' | 'profile'
 
   activityRange: '7d' | '30d' = '7d';
 
@@ -174,6 +182,11 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   pendingDemandeInformationIdToOpen: number | null = null;
   pendingReclamationIdToOpen: number | null = null;
   currentAgentId: number | null = null;
+  /** Modale statistiques de téléchargement (catalogue centre documentaire). */
+  documentsLibraryStatsOpen = false;
+  documentsLibraryStatsLoading = false;
+  documentsLibraryStatsError: string | null = null;
+  documentsLibraryStatsRows: AgentDownloadDocument[] = [];
   private refreshNotificationsSub?: Subscription;
 
   constructor(
@@ -185,7 +198,8 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     private reclamationService: ReclamationService,
     private reclamationChatStomp: ReclamationChatStompService,
     private cdr: ChangeDetectorRef,
-    private notificationService: AdminNotificationService
+    private notificationService: AdminNotificationService,
+    private downloadDocumentCatalog: DownloadDocumentCatalogService
   ) {}
 
   // Méthode pour formater l'adresse avec gouvernorat et ville
@@ -520,6 +534,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
         { key: 'work', label: 'Immatriculations', icon: 'fa-solid fa-folder-open', badge: 7 },
        
         { key: 'publications', label: 'Publications', icon: 'fa-solid fa-newspaper' },
+        { key: 'documents', label: 'Documents', icon: 'fa-solid fa-file-lines' },
       ],
     },
     {
@@ -540,6 +555,25 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   ];
 
   get kpis(): KpiCard[] {
+    if (this.currentView === 'documents') {
+      const toneByCat: Record<LibraryCategoryId, Tone> = {
+        formulaires: 'brand',
+        guides: 'success',
+        lois: 'warning',
+        modeles: 'neutral',
+      };
+      return DOCUMENT_LIBRARY_CATEGORIES.map((c) => ({
+        label: c.name,
+        value: String(this.downloadDocumentCatalog.countInCategory(c.id)),
+        sub: c.description,
+        delta: '',
+        deltaUp: true,
+        icon: this.downloadCategoryIconClass(c.icon),
+        tone: toneByCat[c.id],
+        hideDelta: true,
+      }));
+    }
+
     if (this.currentView === 'publications') {
       return [
         {
@@ -1711,6 +1745,12 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     } else if (key === 'publications') {
       this.currentView = 'publications';
       this.loadPublicationStats();
+    } else if (key === 'documents') {
+      this.currentView = 'documents';
+      this.downloadDocumentCatalog.loadAll().subscribe({
+        next: () => this.cdr.markForCheck(),
+        error: () => this.cdr.markForCheck(),
+      });
     } else if (key === 'settings') {
       this.currentView = 'profile';
     } else if (key === 'logout') {
@@ -2201,9 +2241,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
   }
 
   private loadAgentReclamationStats(): void {
-    this.http
-      .get<AgentReclamationStats>(`${environment.apiUrl}/reclamation/agent-stats?statut=SOUMIS`)
-      .subscribe({
+    this.reclamationService.getAgentReclamationStats('SOUMIS').subscribe({
         next: (s) => {
           this.agentReclamationStats = {
             totalSoumises: Number(s?.totalSoumises) || 0,
@@ -2239,7 +2277,7 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     if (this.agentReclamationUrgenceFilter !== 'all') {
       params = params.set('urgence', this.agentReclamationUrgenceFilter);
     }
-    this.http.get<any>(`${environment.apiUrl}/reclamation/all`, { params }).subscribe({
+    this.reclamationService.getAllReclamationsPaged(params).subscribe({
       next: (page) => {
         const content = Array.isArray(page?.content) ? page.content : [];
         this.agentReclamations = content.map((raw: any) => this.normalizeAgentReclamationRow(raw));
@@ -3176,6 +3214,56 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
     printWindow.close();
   }
 
+  openDocumentsLibraryStats(): void {
+    this.documentsLibraryStatsOpen = true;
+    this.documentsLibraryStatsLoading = true;
+    this.documentsLibraryStatsError = null;
+    this.documentsLibraryStatsRows = [];
+    this.downloadDocumentCatalog.loadAll().subscribe({
+      next: () => {
+        this.documentsLibraryStatsRows = [...this.downloadDocumentCatalog.snapshot()].sort(
+          (a, b) => (b.downloadCount ?? 0) - (a.downloadCount ?? 0)
+        );
+        this.documentsLibraryStatsLoading = false;
+      },
+      error: () => {
+        this.documentsLibraryStatsError =
+          'Impossible de charger les statistiques. Vérifiez que le serveur est disponible.';
+        this.documentsLibraryStatsLoading = false;
+      },
+    });
+  }
+
+  closeDocumentsLibraryStats(): void {
+    this.documentsLibraryStatsOpen = false;
+  }
+
+  topDocumentsLibraryByDownloadCount(max = 8): AgentDownloadDocument[] {
+    return this.documentsLibraryStatsRows.filter((d) => (d.downloadCount ?? 0) > 0).slice(0, max);
+  }
+
+  documentsLibraryCategoryLabel(catId: string): string {
+    return this.downloadDocumentCatalog.categories.find((c) => c.id === catId)?.name ?? catId;
+  }
+
+  documentsLibraryDisplayFileLabel(doc: AgentDownloadDocument): string {
+    if (doc.originalFileName?.trim()) {
+      return doc.originalFileName.trim();
+    }
+    if (doc.downloadUrl?.trim()) {
+      try {
+        const u = new URL(doc.downloadUrl.trim(), window.location.origin);
+        if (/\/api\/download-documents\/\d+\/file$/.test(u.pathname)) {
+          return 'Fichier PDF (serveur)';
+        }
+        return 'Lien externe';
+      } catch {
+        return 'Lien externe';
+      }
+    }
+    return '—';
+  }
+
   // Méthodes de gestion des documents
   get hasDocuments(): boolean {
     if (!this.selectedImmatriculation) {
@@ -3446,6 +3534,19 @@ export class DashboardAgentComponent implements OnInit, OnDestroy {
         });
       }
     );
+  }
+
+  private downloadCategoryIconClass(icon: 'file' | 'book' | 'gavel' | 'copy'): string {
+    switch (icon) {
+      case 'book':
+        return 'fa-solid fa-book';
+      case 'gavel':
+        return 'fa-solid fa-scale-balanced';
+      case 'copy':
+        return 'fa-solid fa-clone';
+      default:
+        return 'fa-solid fa-file-lines';
+    }
   }
 }
 

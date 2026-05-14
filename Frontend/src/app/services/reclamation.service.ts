@@ -309,6 +309,41 @@ export class ReclamationService {
       );
   }
 
+  /** Statistiques dashboard agent (JWT AGENT/ADMIN requis). */
+  getAgentReclamationStats(statut: string = 'SOUMIS'): Observable<{
+    totalSoumises: number;
+    etatEnCours: number;
+    etatTraite: number;
+    prioriteHaute: number;
+  }> {
+    const params = new HttpParams().set('statut', statut);
+    return this.http
+      .get<{
+        totalSoumises: number;
+        etatEnCours: number;
+        etatTraite: number;
+        prioriteHaute: number;
+      }>(`${this.apiUrl}/agent-stats`, { ...this.optAuth(), params })
+      .pipe(catchError(this.handleError));
+  }
+
+  /** Liste paginée pour agent/admin (JWT requis). */
+  getAllReclamationsPaged(params: HttpParams): Observable<{
+    content: unknown[];
+    totalElements: number;
+    totalPages: number;
+    number: number;
+  }> {
+    return this.http
+      .get<{
+        content: unknown[];
+        totalElements: number;
+        totalPages: number;
+        number: number;
+      }>(`${this.apiUrl}/all`, { ...this.optAuth(), params })
+      .pipe(catchError(this.handleError));
+  }
+
   private normalizeReclamation(rec: any): Reclamation {
     const unread = rec?.unreadAgentMessageCount;
     return {

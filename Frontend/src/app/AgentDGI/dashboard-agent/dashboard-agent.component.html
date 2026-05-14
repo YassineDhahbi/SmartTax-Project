@@ -215,13 +215,15 @@
           <div>
             <div class="da__heroKicker">{{ greeting }}, {{ userName }}</div>
             <h1 class="da__heroTitle" *ngIf="currentView === 'publications'">Actualités & Publications Fiscales</h1>
+            <h1 class="da__heroTitle" *ngIf="currentView === 'documents'">Centre documentaire</h1>
             <h1 class="da__heroTitle" *ngIf="currentView === 'demande-information'">Demandes d'information</h1>
             <h1 class="da__heroTitle" *ngIf="currentView === 'reclamation'">Réclamations</h1>
-            <h1 class="da__heroTitle" *ngIf="currentView !== 'publications' && currentView !== 'demande-information' && currentView !== 'reclamation'">Tableau de bord Agent DGI</h1>
+            <h1 class="da__heroTitle" *ngIf="currentView !== 'publications' && currentView !== 'documents' && currentView !== 'demande-information' && currentView !== 'reclamation'">Tableau de bord Agent DGI</h1>
             <div class="da__heroDesc" *ngIf="currentView === 'publications'">Gérez les publications fiscales et les actualités du système — création, modification et validation des contenus.</div>
+            <div class="da__heroDesc" *ngIf="currentView === 'documents'">Catalogue téléchargeable : formulaires, guides, lois et modèles — les cartes ci-dessous reflètent le nombre de fichiers par rubrique.</div>
             <div class="da__heroDesc" *ngIf="currentView === 'demande-information'">Consultez et traitez les demandes d'information des contribuables.</div>
             <div class="da__heroDesc" *ngIf="currentView === 'reclamation'">Visualisez les réclamations déposées et accédez au détail de chaque dossier.</div>
-            <div class="da__heroDesc" *ngIf="currentView !== 'publications' && currentView !== 'demande-information' && currentView !== 'reclamation'">Suivi des dossiers, décisions et conformité — vue claire, actions rapides et priorités.</div>
+            <div class="da__heroDesc" *ngIf="currentView !== 'publications' && currentView !== 'documents' && currentView !== 'demande-information' && currentView !== 'reclamation'">Suivi des dossiers, décisions et conformité — vue claire, actions rapides et priorités.</div>
           </div>
 
           <div class="da__heroActions">
@@ -243,7 +245,12 @@
               <div class="da__kpiLabel">{{ kpi.label }}</div>
               <div class="da__kpiValue">{{ kpi.value }}</div>
               <div class="da__kpiMeta">
-                <span class="da__delta" [class.is-up]="kpi.deltaUp" [class.is-down]="!kpi.deltaUp">
+                <span
+                  class="da__delta"
+                  *ngIf="!kpi.hideDelta"
+                  [class.is-up]="kpi.deltaUp"
+                  [class.is-down]="!kpi.deltaUp"
+                >
                   <i class="fa-solid" [class.fa-arrow-trend-up]="kpi.deltaUp" [class.fa-arrow-trend-down]="!kpi.deltaUp"></i>
                   {{ kpi.delta }}
                 </span>
@@ -999,7 +1006,79 @@
     <section class="da__grid" *ngIf="currentView === 'publications'">
       <app-publications-fiscales [openPublicationIdFromNotification]="pendingPublicationIdToOpen"></app-publications-fiscales>
     </section>
+
+    <section class="da__grid" *ngIf="currentView === 'documents'">
+      <div class="da__documentsCatalogBar">
+        <button type="button" class="da__btn da__btn--primary" (click)="openDocumentsLibraryStats()">
+          <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+          Statistiques
+        </button>
+      </div>
+      <app-documents></app-documents>
+    </section>
   </main>
+
+  <!-- Modale statistiques téléchargements (catalogue documents) -->
+  <div class="da__modalOverlay" *ngIf="documentsLibraryStatsOpen" (click)="closeDocumentsLibraryStats()">
+    <div class="da__modal da__modal--catalogStats" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="da-doc-stats-title">
+      <div class="da__modalHeader">
+        <div class="da__modalTitle" id="da-doc-stats-title">
+          <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+          Statistiques de téléchargement
+        </div>
+        <button type="button" class="da__modalClose" (click)="closeDocumentsLibraryStats()" aria-label="Fermer">
+          <i class="fa-solid fa-times"></i>
+        </button>
+      </div>
+      <div class="da__modalBody">
+        <p *ngIf="documentsLibraryStatsLoading" style="margin: 0; color: var(--muted)">Chargement des données…</p>
+        <p *ngIf="documentsLibraryStatsError" style="margin: 0; color: var(--danger)">{{ documentsLibraryStatsError }}</p>
+
+        <ng-container *ngIf="!documentsLibraryStatsLoading && !documentsLibraryStatsError">
+          <h4 class="da__docCatalogStatsSubtitle">Documents les plus téléchargés</h4>
+          <p *ngIf="topDocumentsLibraryByDownloadCount().length === 0" style="margin: 0 0 12px; color: var(--muted); font-size: 0.92rem">
+            Aucun téléchargement enregistré pour l’instant. Les fichiers sur le serveur sont comptés à chaque accès au fichier ;
+            les liens externes sont comptés au clic sur « Télécharger ».
+          </p>
+          <ol class="da__docCatalogStatsToplist" *ngIf="topDocumentsLibraryByDownloadCount().length > 0">
+            <li *ngFor="let doc of topDocumentsLibraryByDownloadCount(); let i = index">
+              <span class="da__docCatalogStatsRank">{{ i + 1 }}</span>
+              <span class="da__docCatalogStatsTopMain">
+                <strong>{{ doc.title }}</strong>
+                <span class="da__docCatalogStatsMeta">{{ documentsLibraryCategoryLabel(doc.categoryId) }} · {{ documentsLibraryDisplayFileLabel(doc) }}</span>
+              </span>
+              <span class="da__docCatalogStatsCount">{{ doc.downloadCount ?? 0 }}</span>
+            </li>
+          </ol>
+
+          <h4 class="da__docCatalogStatsSubtitle">Détail par fichier</h4>
+          <div class="da__docCatalogStatsTableWrap">
+            <table class="da__docCatalogStatsTable">
+              <thead>
+                <tr>
+                  <th>Titre</th>
+                  <th>Rubrique</th>
+                  <th>Fichier / lien</th>
+                  <th class="da__docCatalogStatsThNum">Téléchargements</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let doc of documentsLibraryStatsRows">
+                  <td>{{ doc.title }}</td>
+                  <td>{{ documentsLibraryCategoryLabel(doc.categoryId) }}</td>
+                  <td>{{ documentsLibraryDisplayFileLabel(doc) }}</td>
+                  <td class="da__docCatalogStatsTdNum">{{ doc.downloadCount ?? 0 }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
+      </div>
+      <div class="da__modalFooter">
+        <button type="button" class="da__btn da__btn--secondary" (click)="closeDocumentsLibraryStats()">Fermer</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal Détails Immatriculation -->
   <div class="da__modalOverlay" *ngIf="showDetailsModal" (click)="closeModal()">

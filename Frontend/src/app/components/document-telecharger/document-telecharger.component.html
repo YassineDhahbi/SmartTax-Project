@@ -16,15 +16,20 @@
                         </div>
                         <div class="document-search">
                             <div class="search-box">
-                                <input type="text" class="search-input" placeholder="Rechercher un document...">
-                                <select class="category-filter">
-                                    <option value="">Toutes les catégories</option>
-                                    <option value="formulaires">Formulaires</option>
-                                    <option value="guides">Guides</option>
-                                    <option value="lois">Lois et Réglementations</option>
-                                    <option value="models">Modèles</option>
+                                <input
+                                    type="text"
+                                    class="search-input"
+                                    name="pubDocSearch"
+                                    [(ngModel)]="searchQuery"
+                                    placeholder="Rechercher un document..."
+                                />
+                                <select class="category-filter" name="pubDocFilter" [(ngModel)]="filterCategory">
+                                    <option [ngValue]="'all'">Toutes les catégories</option>
+                                    <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
                                 </select>
-                                <button class="search-btn"><i class="fas fa-search"></i></button>
+                                <button type="button" class="search-btn" (click)="loadDocuments()" title="Rafraîchir la liste">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -51,233 +56,84 @@
                 </div>
             </div>
             
-            <!-- Catégories de documents -->
-            <div class="row g-4 mb-5">
-                <div class="col-lg-3 col-md-6">
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-file-alt"></i>
+            <!-- Catégories (compteurs réels, clic pour filtrer) -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-3 col-md-6" *ngFor="let c of categories">
+                    <div class="category-card" (click)="setFilter(c.id)" role="button" tabindex="0">
+                        <div
+                            class="category-icon"
+                            [class.guides]="c.id === 'guides'"
+                            [class.lois]="c.id === 'lois'"
+                            [class.models]="c.id === 'modeles'"
+                        >
+                            <i class="fas fa-file-alt" *ngIf="c.icon === 'file'"></i>
+                            <i class="fas fa-book" *ngIf="c.icon === 'book'"></i>
+                            <i class="fas fa-gavel" *ngIf="c.icon === 'gavel'"></i>
+                            <i class="fas fa-copy" *ngIf="c.icon === 'copy'"></i>
                         </div>
-                        <h4>Formulaires</h4>
-                        <p>Déclarations et demandes</p>
-                        <span class="document-count">24 documents</span>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="category-card">
-                        <div class="category-icon guides">
-                            <i class="fas fa-book"></i>
-                        </div>
-                        <h4>Guides</h4>
-                        <p>Instructions et procédures</p>
-                        <span class="document-count">18 documents</span>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="category-card">
-                        <div class="category-icon lois">
-                            <i class="fas fa-gavel"></i>
-                        </div>
-                        <h4>Lois & Réglements</h4>
-                        <p>Textes juridiques fiscaux</p>
-                        <span class="document-count">32 documents</span>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="category-card">
-                        <div class="category-icon models">
-                            <i class="fas fa-copy"></i>
-                        </div>
-                        <h4>Modèles</h4>
-                        <p>Documents pré-remplis</p>
-                        <span class="document-count">15 documents</span>
+                        <h4>{{ c.name }}</h4>
+                        <p>{{ c.description }}</p>
+                        <span class="document-count">{{ countInCategory(c.id) }} document(s)</span>
                     </div>
                 </div>
             </div>
-            
-            <!-- Liste des documents -->
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="documents-list">
-                        <!-- Document 1 -->
-                        <div class="document-item">
-                            <div class="document-info">
-                                <div class="document-icon">
-                                    <i class="fas fa-file-pdf"></i>
-                                </div>
-                                <div class="document-details">
-                                    <h4 class="document-title">Déclaration d'Impôt sur le Revenu - Année 2026</h4>
-                                    <p class="document-description">Formulaire officiel pour la déclaration annuelle des revenus</p>
-                                    <div class="document-meta">
-                                        <span class="document-category formulaire">Formulaire</span>
-                                        <span class="document-size">2.4 MB</span>
-                                        <span class="document-date">Mis à jour: 15 Mars 2026</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="document-actions">
-                                <button class="btn-preview">
-                                    <i class="fas fa-eye"></i> Aperçu
-                                </button>
-                                <button class="btn-download">
-                                    <i class="fas fa-download"></i> Télécharger
-                                </button>
-                            </div>
+
+            <div class="row mb-3 pub-doc-reset-bar" *ngIf="filterCategory !== 'all'">
+                <div class="col-12 pub-doc-reset-bar__inner">
+                    <button type="button" class="pub-doc-btn-show-all" (click)="setFilter('all')">
+                        <i class="fas fa-th-large" aria-hidden="true"></i>
+                        <span>Afficher toutes les rubriques</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="pub-doc-loading" *ngIf="loading">Chargement des documents…</div>
+            <div class="pub-doc-error" *ngIf="!loading && loadError">{{ loadError }}</div>
+
+            <!-- Documents par rubrique (données API) -->
+            <ng-container *ngIf="!loading && !loadError">
+                <div class="row mb-5" *ngFor="let c of categoriesToShow()">
+                    <div class="col-12">
+                        <div class="pub-doc-category-head">
+                            <h3>{{ c.name }}</h3>
+                            <p>{{ c.description }}</p>
                         </div>
-                        
-                        <!-- Document 2 -->
-                        <div class="document-item">
-                            <div class="document-info">
-                                <div class="document-icon">
-                                    <i class="fas fa-file-word"></i>
-                                </div>
-                                <div class="document-details">
-                                    <h4 class="document-title">Guide Complet de la Déclaration en Ligne</h4>
-                                    <p class="document-description">Instructions détaillées pour utiliser la plateforme SmartTax</p>
-                                    <div class="document-meta">
-                                        <span class="document-category guide">Guide</span>
-                                        <span class="document-size">1.8 MB</span>
-                                        <span class="document-date">Mis à jour: 10 Mars 2026</span>
+                        <div class="documents-list">
+                            <ng-container *ngFor="let doc of documentsForCategory(c.id)">
+                                <div class="document-item">
+                                    <div class="document-info">
+                                        <div class="document-icon" [ngClass]="iconKind(doc)">
+                                            <i [ngClass]="['fas', iconKind(doc)]"></i>
+                                        </div>
+                                        <div class="document-details">
+                                            <h4 class="document-title">{{ doc.title }}</h4>
+                                            <p class="document-description" *ngIf="doc.description">{{ doc.description }}</p>
+                                            <div class="document-meta">
+                                                <span class="document-category" [ngClass]="categoryBadgeClass(doc.categoryId)">
+                                                    {{ categoryLabel(doc.categoryId) }}
+                                                </span>
+                                                <span class="document-size">{{ formatSize(doc.sizeBytes) }}</span>
+                                                <span class="document-date">Mis à jour : {{ formatUpdated(doc.updatedAt) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="document-actions pub-doc-actions">
+                                        <button type="button" class="btn-preview" (click)="preview(doc)" [disabled]="!canOpen(doc)">
+                                            <i class="fas fa-eye"></i> Ouvrir
+                                        </button>
+                                        <button type="button" class="btn-download" (click)="download(doc)" [disabled]="!canOpen(doc)">
+                                            <i class="fas fa-download"></i> Télécharger
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="document-actions">
-                                <button class="btn-preview">
-                                    <i class="fas fa-eye"></i> Aperçu
-                                </button>
-                                <button class="btn-download">
-                                    <i class="fas fa-download"></i> Télécharger
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Document 3 -->
-                        <div class="document-item">
-                            <div class="document-info">
-                                <div class="document-icon">
-                                    <i class="fas fa-file-excel"></i>
-                                </div>
-                                <div class="document-details">
-                                    <h4 class="document-title">Calculateur d'Impôt - Version Excel</h4>
-                                    <p class="document-description">Feuille de calcul pour estimer vos impôts</p>
-                                    <div class="document-meta">
-                                        <span class="document-category modele">Modèle</span>
-                                        <span class="document-size">856 KB</span>
-                                        <span class="document-date">Mis à jour: 05 Mars 2026</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="document-actions">
-                                <button class="btn-preview">
-                                    <i class="fas fa-eye"></i> Aperçu
-                                </button>
-                                <button class="btn-download">
-                                    <i class="fas fa-download"></i> Télécharger
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Document 4 -->
-                        <div class="document-item">
-                            <div class="document-info">
-                                <div class="document-icon">
-                                    <i class="fas fa-file-pdf"></i>
-                                </div>
-                                <div class="document-details">
-                                    <h4 class="document-title">Code des Impôts - Version Consolidée 2026</h4>
-                                    <p class="document-description">Texte intégral de la législation fiscale tunisienne</p>
-                                    <div class="document-meta">
-                                        <span class="document-category loi">Loi</span>
-                                        <span class="document-size">15.2 MB</span>
-                                        <span class="document-date">Mis à jour: 01 Mars 2026</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="document-actions">
-                                <button class="btn-preview">
-                                    <i class="fas fa-eye"></i> Aperçu
-                                </button>
-                                <button class="btn-download">
-                                    <i class="fas fa-download"></i> Télécharger
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Document 5 -->
-                        <div class="document-item">
-                            <div class="document-info">
-                                <div class="document-icon">
-                                    <i class="fas fa-file-pdf"></i>
-                                </div>
-                                <div class="document-details">
-                                    <h4 class="document-title">Formulaire de Demande de Remboursement</h4>
-                                    <p class="document-description">Demande officielle de remboursement de crédit d'impôt</p>
-                                    <div class="document-meta">
-                                        <span class="document-category formulaire">Formulaire</span>
-                                        <span class="document-size">425 KB</span>
-                                        <span class="document-date">Mis à jour: 28 Février 2026</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="document-actions">
-                                <button class="btn-preview">
-                                    <i class="fas fa-eye"></i> Aperçu
-                                </button>
-                                <button class="btn-download">
-                                    <i class="fas fa-download"></i> Télécharger
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Document 6 -->
-                        <div class="document-item">
-                            <div class="document-info">
-                                <div class="document-icon">
-                                    <i class="fas fa-file-powerpoint"></i>
-                                </div>
-                                <div class="document-details">
-                                    <h4 class="document-title">Présentation : Nouveautés Fiscales 2026</h4>
-                                    <p class="document-description">Diaporama des nouvelles mesures fiscales</p>
-                                    <div class="document-meta">
-                                        <span class="document-category guide">Guide</span>
-                                        <span class="document-size">3.1 MB</span>
-                                        <span class="document-date">Mis à jour: 20 Février 2026</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="document-actions">
-                                <button class="btn-preview">
-                                    <i class="fas fa-eye"></i> Aperçu
-                                </button>
-                                <button class="btn-download">
-                                    <i class="fas fa-download"></i> Télécharger
-                                </button>
-                            </div>
+                            </ng-container>
+                            <p class="pub-doc-empty" *ngIf="documentsForCategory(c.id).length === 0">
+                                Aucun document dans cette rubrique pour le moment.
+                            </p>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Pagination -->
-            <div class="row mt-5">
-                <div class="col-lg-12">
-                    <div class="pagination-wrapper">
-                        <nav aria-label="Pagination des documents">
-                            <ul class="pagination">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1"><i class="fas fa-chevron-left"></i></a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#"><i class="fas fa-chevron-right"></i></a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            </div>
+            </ng-container>
         </div>
     </div>
 </section>
@@ -332,5 +188,28 @@
     </div>
 </section>
 <!-- help section end -->
+
+<!-- Modale aperçu PDF (bouton « Ouvrir ») -->
+<ng-container *ngIf="previewModalOpen">
+  <div class="pub-doc-modal-backdrop" (click)="closePreview()"></div>
+  <div class="pub-doc-modal" role="dialog" aria-modal="true" aria-labelledby="pub-doc-preview-title">
+    <div class="pub-doc-modal__header">
+      <h3 id="pub-doc-preview-title">{{ previewTitle }}</h3>
+      <button type="button" class="pub-doc-modal__close" (click)="closePreview()" aria-label="Fermer la fenêtre">
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="pub-doc-modal__body">
+      <div *ngIf="previewLoading" class="pub-doc-modal__state">Chargement de l'aperçu…</div>
+      <p *ngIf="previewError" class="pub-doc-modal__state pub-doc-modal__state--error">{{ previewError }}</p>
+      <iframe
+        *ngIf="previewSafeUrl && !previewLoading && !previewError"
+        [src]="previewSafeUrl"
+        class="pub-doc-modal__frame"
+        title="Aperçu du document PDF"
+      ></iframe>
+    </div>
+  </div>
+</ng-container>
 
 <app-footer></app-footer>
