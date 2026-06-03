@@ -17,11 +17,9 @@
 
 A chaque **push** ou **pull request** sur `main`, `master` ou `develop` :
 
-1. **Backend** — `mvn package` (compilation, sans tests DB)
-2. **Frontend** — `npm ci` + `ng build` (configuration `docker`)
-3. **Docker** — construction des images backend et frontend (sans push)
+- **Frontend uniquement** — `npm ci` + `ng build` (configuration `docker`)
 
-Les services ML (OCR, face, sentiment) ne sont pas dans la CI : builds lents et lourds en RAM. Ils restent valides via Docker Compose en local.
+Le **backend**, les **images Docker** et les services **ML** ne sont pas verifies en CI (build Maven lourd, DB locale, RAM). Validation backend / stack complete : Docker Compose en local — voir [DOCKER-ETAPES.md](./DOCKER-ETAPES.md).
 
 ---
 
@@ -32,7 +30,7 @@ Les services ML (OCR, face, sentiment) ne sont pas dans la CI : builds lents et 
 ```powershell
 cd "c:\Users\yassi\Desktop\Stage PFE 2026\Application\SmartTax-Project"
 git add .github/workflows/ci.yml docs/DEVOPS.md
-git commit -m "ci: add GitHub Actions pipeline for backend, frontend and Docker"
+git commit -m "ci: frontend-only GitHub Actions pipeline"
 git push origin main
 ```
 
@@ -44,7 +42,7 @@ git push origin main
 2. Onglet **Actions**
 3. Si demande : **I understand my workflows, go ahead and enable them**
 4. Cliquez sur le workflow **CI** — run en cours ou termine
-5. Coche verte = succes ; rouge = ouvrir les logs du job en echec
+5. Coche verte = succes ; rouge = ouvrir les logs du job **Frontend (Angular)**
 
 ### 3. Badge dans le README (optionnel)
 
@@ -60,29 +58,14 @@ Remplacez `VOTRE_USER` et `VOTRE_REPO`.
 
 ```
 .github/workflows/ci.yml
-├── job backend     → Java 17 + Maven
-├── job frontend    → Node 20 + npm
-└── job docker-images (apres 1 et 2) → buildx, pas de push
+└── job frontend  → Node 20 + npm ci + ng build (docker)
 ```
-
----
-
-## Pourquoi les tests Maven sont desactives en CI
-
-Le test `ArabSoftBackApplicationTests.contextLoads()` demarre tout le contexte Spring avec la base definie dans `application.properties` (PostgreSQL sur `192.168.144.141`). Cette machine n existe pas sur les runners GitHub.
-
-Pour activer les tests plus tard :
-
-- ajouter `src/test/resources/application.properties` (profil test + PostgreSQL de service CI), ou
-- utiliser Testcontainers / H2.
-
-En attendant, la CI garantit que le **code compile** et que le **front se build**.
 
 ---
 
 ## Etape suivante : Registry (images)
 
-Quand la CI est verte, ajouter un job qui pousse les images vers **GitHub Container Registry** :
+Quand la CI est verte, vous pouvez ajouter plus tard un job qui pousse l image frontend vers **GitHub Container Registry** :
 
 ```yaml
 # Exemple (a ajouter plus tard, avec secrets)
@@ -93,8 +76,9 @@ Quand la CI est verte, ajouter un job qui pousse les images vers **GitHub Contai
     password: ${{ secrets.GITHUB_TOKEN }}
 - uses: docker/build-push-action@v6
   with:
+    context: ./Frontend
     push: true
-    tags: ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+    tags: ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
 ```
 
 Puis deploiement sur une VM : `docker pull` + `docker compose up -d`.
@@ -107,22 +91,23 @@ Puis deploiement sur une VM : `docker pull` + `docker compose up -d`.
 |----------|--------|
 | Workflow absent dans Actions | Fichier pas pousse ou mauvaise branche |
 | Echec `npm ci` | Commiter `Frontend/package-lock.json` |
-| Echec Maven | Verifier Java 17 dans `pom.xml` |
-| Timeout job Docker | Normal la 1re fois (telechargement Maven/DJL) ; relancer le run |
-| Secrets / .env | Ne jamais commiter `.env` ; la CI n en a pas besoin pour compiler |
+| Echec build Angular | Lire les logs ; souvent erreur TypeScript ou budget CSS |
+| Backend / Docker | Non couverts par cette CI — tester en local |
 
 ---
 
-## Commandes locales (meme verifications que la CI)
+## Commandes locales (meme verification que la CI)
+
+```powershell
+cd Frontend
+npm ci
+npm run build -- --configuration docker
+```
+
+Backend en local (hors CI) :
 
 ```powershell
 cd ArabSoftBack
 mvn -B -DskipTests package
-
-cd ..\Frontend
-npm ci
-npm run build -- --configuration docker
-
-cd ..
-docker compose build backend frontend
+docker compose build backend
 ```
