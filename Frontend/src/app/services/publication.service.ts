@@ -22,10 +22,11 @@ export class PublicationService {
   // Méthode pour obtenir les headers avec le token JWT
   private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json'
-    });
+    let headers = new HttpHeaders({ Accept: 'application/json' });
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    return headers;
   }
 
   // ==================== GET OPERATIONS ====================

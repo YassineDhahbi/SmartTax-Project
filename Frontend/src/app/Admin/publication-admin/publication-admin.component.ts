@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Publication, PublicationResponse } from '../../models/publication.model';
 import { PublicationService } from '../../services/publication.service';
+import { MediaUrlService } from '../../services/media-url.service';
 
 @Component({
   selector: 'app-publication-admin',
@@ -68,7 +69,8 @@ export class PublicationAdminComponent implements OnInit {
   constructor(
     private publicationService: PublicationService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private mediaUrl: MediaUrlService
   ) {}
 
   ngOnInit(): void {
@@ -230,24 +232,7 @@ export class PublicationAdminComponent implements OnInit {
     if (!url) {
       return '';
     }
-
-    if (url.startsWith('http')) {
-      return url;
-    }
-
-    if (url.startsWith('uploads/publications/')) {
-      return `http://localhost:8080/${url}`;
-    }
-
-    if (url.startsWith('/assets/')) {
-      return `http://localhost:8080${url}`;
-    }
-
-    if (url.startsWith('assets/')) {
-      return `http://localhost:8080/${url}`;
-    }
-
-    return url;
+    return this.mediaUrl.resolve(url);
   }
 
   onImageError(event: Event): void {
@@ -789,8 +774,14 @@ export class PublicationAdminComponent implements OnInit {
         this.reportTotalsByPublicationId[publicationId] = Number.isNaN(totalReports) ? this.publicationReports.length : totalReports;
         this.isLoadingPublicationReports = false;
       },
-      error: () => {
-        this.publicationReportsError = 'Impossible de charger les signalements.';
+      error: (err) => {
+        const status = err?.status;
+        if (status === 401 || status === 403) {
+          this.publicationReportsError =
+            'Accès refusé. Reconnectez-vous en tant qu’administrateur.';
+        } else {
+          this.publicationReportsError = 'Impossible de charger les signalements.';
+        }
         this.isLoadingPublicationReports = false;
       }
     });

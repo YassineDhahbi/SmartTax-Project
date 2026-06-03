@@ -5,6 +5,7 @@ import { ImmatriculationService } from '../../services/immatriculation.service';
 import { TrashService } from '../../services/trash.service';
 import { EmailService } from '../../services/email/email.service';
 import { PublicationService } from '../../services/publication.service';
+import { MediaUrlService } from '../../services/media-url.service';
 import { Immatriculation } from '../../models/immatriculation.model';
 import jsPDF from 'jspdf';
 import * as QRCode from 'qrcode';
@@ -228,7 +229,8 @@ export class PublicationsFiscalesComponent implements OnInit, OnChanges {
       private immatriculationService: ImmatriculationService,
       private trashService: TrashService,
       private emailService: EmailService,
-      private publicationService: PublicationService
+      private publicationService: PublicationService,
+      private mediaUrl: MediaUrlService
     ) {
       Chart.register(...registerables);
     }
@@ -356,29 +358,7 @@ export class PublicationsFiscalesComponent implements OnInit, OnChanges {
     // Méthode pour corriger les URLs des images
     getImageUrl(url: string): string {
       if (!url) return '';
-      
-      // Si l'URL est déjà complète (commence par http), la retourner telle quelle
-      if (url.startsWith('http')) {
-        return url;
-      }
-      
-      // Si l'URL commence par 'uploads/publications/', ajouter l'URL du serveur
-      if (url.startsWith('uploads/publications/')) {
-        return `http://localhost:8080/${url}`;
-      }
-      
-      // Si l'URL commence par '/assets/', ajouter l'URL du serveur
-      if (url.startsWith('/assets/')) {
-        return `http://localhost:8080${url}`;
-      }
-      
-      // Si l'URL commence par 'assets/', ajouter l'URL du serveur avec /
-      if (url.startsWith('assets/')) {
-        return `http://localhost:8080/${url}`;
-      }
-      
-      // Sinon, retourner l'URL telle quelle
-      return url;
+      return this.mediaUrl.resolve(url);
     }
 
     // Méthode pour gérer les erreurs de chargement d'images

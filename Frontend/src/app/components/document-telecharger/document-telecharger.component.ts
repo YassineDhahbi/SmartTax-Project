@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, HostListener, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { AuthService } from '../../services/auth/auth.service';
 import {
   AgentDownloadDocument,
   DOCUMENT_LIBRARY_CATEGORIES,
@@ -35,8 +37,26 @@ export class DocumentTelechargerComponent implements OnInit {
   constructor(
     private readonly catalog: DownloadDocumentCatalogService,
     private readonly http: HttpClient,
-    private readonly sanitizer: DomSanitizer
+    private readonly sanitizer: DomSanitizer,
+    private readonly authService: AuthService,
+    private readonly router: Router
   ) {}
+
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  goToImmatriculation(): void {
+    this.router.navigate(['/Immatriculation']);
+  }
+
+  goToRegister(): void {
+    this.router.navigate(['/register']);
+  }
+
+  goToLogin(): void {
+    this.router.navigate(['/login']);
+  }
 
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(ev: KeyboardEvent): void {
@@ -46,7 +66,13 @@ export class DocumentTelechargerComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadDocuments();
+    if (this.isLoggedIn()) {
+      this.loadDocuments();
+    } else {
+      this.loading = false;
+      this.loadError = null;
+      this.documents = [];
+    }
   }
 
   loadDocuments(): void {

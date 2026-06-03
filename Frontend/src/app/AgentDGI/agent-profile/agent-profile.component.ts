@@ -9,6 +9,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PublicationService } from '../../services/publication.service';
 import { ImmatriculationService } from '../../services/immatriculation.service';
+import { MediaUrlService } from '../../services/media-url.service';
 
 @Component({
   selector: 'app-agent-profile',
@@ -82,7 +83,8 @@ export class AgentProfileComponent implements OnInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private publicationService: PublicationService,
-    private immatriculationService: ImmatriculationService
+    private immatriculationService: ImmatriculationService,
+    private mediaUrl: MediaUrlService
   ) {
     this.editForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -334,17 +336,11 @@ export class AgentProfileComponent implements OnInit {
     if (this.photoPreview) {
       return this.photoPreview;
     }
-    
+
     if (this.agentInfo?.photo) {
-      // Si la photo est une URL complète
-      if (this.agentInfo.photo.startsWith('http')) {
-        return this.agentInfo.photo;
-      }
-      // Si la photo est un chemin relatif
-      return `http://localhost:8080${this.agentInfo.photo}`;
+      return this.mediaUrl.resolve(this.agentInfo.photo) || '/assets/img/team/icondefaut.webp';
     }
-    
-    // Image par défaut si aucune photo
+
     return '/assets/img/team/icondefaut.webp';
   }
 

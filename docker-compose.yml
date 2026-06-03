@@ -1,0 +1,155 @@
+# SmartTax - Step 1: postgres + kafka + backend
+# Step 2: docker compose --profile ui up -d
+# Step 3-4: docker compose --profile ml up -d
+
+name: smarttax
+
+networks:
+  smarttax-net:
+    name: smarttax-net
+
+services:
+  # Postgres local Docker (optionnel). Par defaut le backend utilise la DB du .env (ex. 192.168.x)
+  postgres:
+    profiles: ["local-db"]
+    image: postgres:16-alpine
+    container_name: smarttax-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-arabsoft_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-arabsoft_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - smarttax-net
+
+  # Optionnel : uniquement si vous n'avez pas deja smarttax-kafka (start-kafka.ps1)
+  # Demarrage : docker compose --profile with-kafka up -d kafka
+  kafka:
+    profiles: ["with-kafka"]
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: smarttax-kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://smarttax-kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@smarttax-kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    networks:
+      - smarttax-net
+
+  backend:
+    build:
+      context: ./ArabSoftBack
+      dockerfile: Dockerfile
+    container_name: smarttax-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      KAFKA_BOOTSTRAP_SERVERS: smarttax-kafka:29092
+      AI_MODEL_PATH: /app/models/swin_cin_classifier.pt
+    ports:
+      - "8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+      - ./ArabSoftBack/src/main/resources/models:/app/models:ro
+    networks:
+      - smarttax-net
+
+  frontend:
+    profiles: ["ui"]
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: smarttax-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - smarttax-net
+
+  ocr:
+    profiles: ["ml"]
+    build:
+      context: ./ArabSoftBack/ocr-service
+      dockerfile: Dockerfile
+    container_name: smarttax-ocr
+    restart: unless-stopped
+    ports:
+      - "8004:8004"
+    networks:
+      - smarttax-net
+
+  face-verification:
+    profiles: ["ml"]
+    build:
+      context: ./ArabSoftBack/face-verification-service
+      dockerfile: Dockerfile
+    container_name: smarttax-face
+    restart: unless-stopped
+    environment:
+      TF_CPP_MIN_LOG_LEVEL: "2"
+      CUDA_VISIBLE_DEVICES: ""
+      PRELOAD_DEEPFACE: "true"
+    ports:
+      - "8005:8005"
+    volumes:
+      - face_deepface_cache:/root/.deepface
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8005/ready')"]
+      interval: 15s
+      timeout: 5s
+      retries: 40
+      start_period: 300s
+    networks:
+      - smarttax-net
+
+  sentiment:
+    profiles: ["ml"]
+    build:
+      context: ./ArabSoftBack/sentiment-service
+      dockerfile: Dockerfile
+    container_name: smarttax-sentiment
+    restart: unless-stopped
+    ports:
+      - "8010:8010"
+    networks:
+      - smarttax-net
+
+volumes:
+  postgres_data:
+  backend_uploads:
+  backend_logs:
+  face_deepface_cache:

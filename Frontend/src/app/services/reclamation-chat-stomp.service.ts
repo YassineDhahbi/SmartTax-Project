@@ -5,15 +5,15 @@ import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import { environment } from 'src/environments/environment';
 import { Message } from './reclamation.service';
 
-/** ùvùnement inbox contribuable : nouveau message agent (hors fil ouvert). */
+/** ¬ùv¬ùnement inbox contribuable : nouveau message agent (hors fil ouvert). */
 export interface ReclamationInboxEvent {
   reclamationId: number;
   type: string;
 }
 
 /**
- * Temps rùel messagerie rùclamation (STOMP + SockJS).
- * Deux abonnements possibles en parallùle : chat d'une rùclamation + inbox utilisateur.
+ * Temps r¬ùel messagerie r¬ùclamation (STOMP + SockJS).
+ * Deux abonnements possibles en parall¬ùle : chat d'une r¬ùclamation + inbox utilisateur.
  */
 @Injectable({ providedIn: 'root' })
 export class ReclamationChatStompService implements OnDestroy {
@@ -30,7 +30,7 @@ export class ReclamationChatStompService implements OnDestroy {
     this.stop();
   }
 
-  /** Mùme encodage que {@code ReclamationService.reclamationInboxTopicSuffix} cùtù Java. */
+  /** M¬ùme encodage que {@code ReclamationService.reclamationInboxTopicSuffix} c¬ùt¬ù Java. */
   static inboxTopicSuffixFromEmail(email: string): string {
     const normalized = email.trim().toLowerCase();
     const bytes = new TextEncoder().encode(normalized);
@@ -40,7 +40,7 @@ export class ReclamationChatStompService implements OnDestroy {
     return b64;
   }
 
-  /** S'abonne au fil d'une rùclamation (messagerie ouverte). */
+  /** S'abonne au fil d'une r¬ùclamation (messagerie ouverte). */
   watch(reclamationId: number): Observable<Message> {
     this.pendingReclamationId = reclamationId;
     this.activeReclamationId = reclamationId;
@@ -57,8 +57,8 @@ export class ReclamationChatStompService implements OnDestroy {
   }
 
   /**
-   * Notifications ù nouveau message agent ù pour le contribuable (liste des rùclamations).
-   * Reste actif pendant lùouverture du chat dùune autre rùclamation.
+   * Notifications ¬ù nouveau message agent ¬ù pour le contribuable (liste des r¬ùclamations).
+   * Reste actif pendant l¬ùouverture du chat d¬ùune autre r¬ùclamation.
    */
   watchContribuableInbox(userEmail: string): Observable<ReclamationInboxEvent> {
     const suffix = ReclamationChatStompService.inboxTopicSuffixFromEmail(userEmail);
@@ -75,7 +75,7 @@ export class ReclamationChatStompService implements OnDestroy {
     return this.inboxIncoming.asObservable();
   }
 
-  /** Arrùte uniquement lùabonnement au fil de messagerie (garde lùinbox si prùsent). */
+  /** Arr¬ùte uniquement l¬ùabonnement au fil de messagerie (garde l¬ùinbox si pr¬ùsent). */
   stopChat(): void {
     this.activeReclamationId = null;
     this.pendingReclamationId = null;
@@ -83,7 +83,7 @@ export class ReclamationChatStompService implements OnDestroy {
     this.chatSub = null;
   }
 
-  /** Arrùte inbox + chat et ferme la connexion WebSocket. */
+  /** Arr¬ùte inbox + chat et ferme la connexion WebSocket. */
   stop(): void {
     this.stopChat();
     this.pendingInboxSuffix = null;
@@ -160,6 +160,10 @@ export class ReclamationChatStompService implements OnDestroy {
   }
 
   private sockJsUrl(): string {
+    const explicit = (environment as { wsUrl?: string }).wsUrl;
+    if (explicit) {
+      return explicit.replace(/\/$/, '');
+    }
     const base = environment.apiUrl.replace(/\/?api\/?$/, '').replace(/\/$/, '');
     return `${base}/ws`;
   }

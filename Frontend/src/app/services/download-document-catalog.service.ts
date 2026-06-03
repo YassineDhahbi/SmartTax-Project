@@ -111,7 +111,7 @@ export class DownloadDocumentCatalogService {
           status != null
             ? ` (HTTP ${status}${err?.statusText ? ' ' + err.statusText : ''})`
             : err?.message?.includes('Http failure')
-              ? ' (rseau ou CORS  vrifiez que le backend tourne sur le port attendu.)'
+              ? ' (rï¿½seau ou CORS ï¿½ vï¿½rifiez que le backend tourne sur le port attendu.)'
               : '';
         return throwError(
           () => new Error(`Impossible de charger les documents depuis le serveur.${suffix}`)

@@ -14,7 +14,7 @@
                 </div>
                 
                 <!-- Progress Bar -->
-                <div class="progress-container">
+                <div class="progress-container" *ngIf="!existingImmatriculationBlock && !checkingExistingImmatriculation">
                     <div class="progress-steps">
                         <div class="step" 
                              [class.active]="currentStep === 1" 
@@ -86,8 +86,45 @@
     </div>
 </section>
 
+<!-- Déjà immatriculé (contribuable connecté) -->
+<section class="immatriculation-form-section" *ngIf="checkingExistingImmatriculation">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center immat-existing-loading">
+                <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                <p>Vérification de votre dossier…</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="immatriculation-form-section" *ngIf="existingImmatriculationBlock && !checkingExistingImmatriculation">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="immat-existing-card" role="alert">
+                    <div class="immat-existing-icon" aria-hidden="true">
+                        <i class="fas fa-circle-check"></i>
+                    </div>
+                    <h2>Vous avez déjà effectué une immatriculation</h2>
+                    <p>
+                        Un dossier d'immatriculation est déjà associé à votre compte. Vous ne pouvez pas soumettre une nouvelle demande depuis cette page.
+                    </p>
+                    <p class="immat-existing-hint">
+                        Consultez l'état de votre dossier, vos documents et le suivi depuis votre espace personnel.
+                    </p>
+                    <button type="button" class="immat-existing-btn" (click)="goToDossier()">
+                        <i class="fas fa-folder-open" aria-hidden="true"></i>
+                        Voir mon dossier
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Main Form Section -->
-<section class="immatriculation-form-section">
+<section class="immatriculation-form-section" *ngIf="!existingImmatriculationBlock && !checkingExistingImmatriculation">
     <div class="container">
         <div class="row">
             <div class="col-lg-10 mx-auto">

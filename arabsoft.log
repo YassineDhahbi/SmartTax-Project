@@ -1,22 +1,21 @@
-2026-04-27T20:58:35.783+01:00  INFO 10676 --- [ArabSoftBack] [main] t.e.a.ArabSoftBackApplication            : Starting ArabSoftBackApplication using Java 17.0.12 with PID 10676 (C:\Users\yassi\Desktop\Stage ArabSoft\ArabSoftBack\target\classes started by yassi in C:\Users\yassi\Desktop\Stage PFE 2026\Application\SmartTax-Project)
-2026-04-27T20:58:35.793+01:00 DEBUG 10676 --- [ArabSoftBack] [main] t.e.a.ArabSoftBackApplication            : Running with Spring Boot v3.5.3, Spring v6.2.8
-2026-04-27T20:58:35.795+01:00  INFO 10676 --- [ArabSoftBack] [main] t.e.a.ArabSoftBackApplication            : No active profile set, falling back to 1 default profile: "default"
-2026-04-27T20:58:37.396+01:00  INFO 10676 --- [ArabSoftBack] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-04-27T20:58:37.577+01:00  INFO 10676 --- [ArabSoftBack] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 163 ms. Found 12 JPA repository interfaces.
-2026-04-27T20:58:38.612+01:00  INFO 10676 --- [ArabSoftBack] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
-2026-04-27T20:58:38.635+01:00  INFO 10676 --- [ArabSoftBack] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-04-27T20:58:38.636+01:00  INFO 10676 --- [ArabSoftBack] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.42]
-2026-04-27T20:58:38.751+01:00  INFO 10676 --- [ArabSoftBack] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-04-27T20:58:38.753+01:00  INFO 10676 --- [ArabSoftBack] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2881 ms
-2026-04-27T20:58:38.857+01:00 DEBUG 10676 --- [ArabSoftBack] [main] t.e.a.config.JwtAuthenticationFilter     : Filter 'jwtAuthenticationFilter' configured for use
-2026-04-27T20:58:39.205+01:00  INFO 10676 --- [ArabSoftBack] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-04-27T20:58:39.391+01:00  INFO 10676 --- [ArabSoftBack] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.18.Final
-2026-04-27T20:58:39.505+01:00  INFO 10676 --- [ArabSoftBack] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-04-27T20:58:40.433+01:00  INFO 10676 --- [ArabSoftBack] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-04-27T20:58:40.504+01:00  INFO 10676 --- [ArabSoftBack] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-04-27T20:58:40.773+01:00  INFO 10676 --- [ArabSoftBack] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@62ab5e63
-2026-04-27T20:58:40.776+01:00  INFO 10676 --- [ArabSoftBack] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-04-27T20:58:40.868+01:00  INFO 10676 --- [ArabSoftBack] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+2026-05-29T18:27:09.915+01:00  INFO 28588 --- [ArabSoftBack] [main] t.e.a.ArabSoftBackApplication            : Starting ArabSoftBackApplication using Java 17.0.12 with PID 28588 (C:\Users\yassi\Desktop\Stage ArabSoft\ArabSoftBack\target\classes started by yassi in C:\Users\yassi\Desktop\Stage PFE 2026\Application\SmartTax-Project)
+2026-05-29T18:27:09.928+01:00 DEBUG 28588 --- [ArabSoftBack] [main] t.e.a.ArabSoftBackApplication            : Running with Spring Boot v3.5.3, Spring v6.2.8
+2026-05-29T18:27:09.930+01:00  INFO 28588 --- [ArabSoftBack] [main] t.e.a.ArabSoftBackApplication            : No active profile set, falling back to 1 default profile: "default"
+2026-05-29T18:27:11.793+01:00  INFO 28588 --- [ArabSoftBack] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-29T18:27:12.061+01:00  INFO 28588 --- [ArabSoftBack] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 248 ms. Found 14 JPA repository interfaces.
+2026-05-29T18:27:13.722+01:00  INFO 28588 --- [ArabSoftBack] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-05-29T18:27:13.765+01:00  INFO 28588 --- [ArabSoftBack] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-29T18:27:13.766+01:00  INFO 28588 --- [ArabSoftBack] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.42]
+2026-05-29T18:27:13.994+01:00  INFO 28588 --- [ArabSoftBack] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-29T18:27:13.995+01:00  INFO 28588 --- [ArabSoftBack] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3974 ms
+2026-05-29T18:27:14.471+01:00  INFO 28588 --- [ArabSoftBack] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-29T18:27:14.643+01:00  INFO 28588 --- [ArabSoftBack] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.18.Final
+2026-05-29T18:27:14.701+01:00  INFO 28588 --- [ArabSoftBack] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-29T18:27:15.516+01:00  INFO 28588 --- [ArabSoftBack] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-29T18:27:15.590+01:00  INFO 28588 --- [ArabSoftBack] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-29T18:27:15.798+01:00  INFO 28588 --- [ArabSoftBack] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@420b55ed
+2026-05-29T18:27:15.800+01:00  INFO 28588 --- [ArabSoftBack] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-29T18:27:15.914+01:00  INFO 28588 --- [ArabSoftBack] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
 	Database version: 16.9
@@ -24,90 +23,455 @@
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-04-27T20:58:42.578+01:00  INFO 10676 --- [ArabSoftBack] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-04-27T20:58:43.433+01:00  INFO 10676 --- [ArabSoftBack] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-04-27T20:58:43.466+01:00  INFO 10676 --- [ArabSoftBack] [main] t.e.a.config.PublicationSchemaFixConfig  : ? Contrainte publication_status_check mise ? jour avec le statut SCHEDULED
-2026-04-27T20:58:44.009+01:00  INFO 10676 --- [ArabSoftBack] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-04-27T20:58:46.513+01:00  WARN 10676 --- [ArabSoftBack] [main] ai.djl.repository.SimpleRepository       : Simple repository pointing to a non-archive file.
-2026-04-27T20:58:46.673+01:00  INFO 10676 --- [ArabSoftBack] [main] ai.djl.util.Platform                     : Found placeholder platform from: cu065-win-x86_64:2.1.1
-2026-04-27T20:58:46.682+01:00  WARN 10676 --- [ArabSoftBack] [main] ai.djl.pytorch.jni.LibUtils              : No matching cuda flavor for win-x86_64 found: cu065.
-2026-04-27T20:58:47.029+01:00  INFO 10676 --- [ArabSoftBack] [main] ai.djl.pytorch.engine.PtEngine           : PyTorch graph executor optimizer is enabled, this may impact your inference latency and throughput. See: https://docs.djl.ai/docs/development/inference_performance_optimization.html#graph-executor-optimization
-2026-04-27T20:58:47.033+01:00  INFO 10676 --- [ArabSoftBack] [main] ai.djl.pytorch.engine.PtEngine           : Number of inter-op threads is 8
-2026-04-27T20:58:47.033+01:00  INFO 10676 --- [ArabSoftBack] [main] ai.djl.pytorch.engine.PtEngine           : Number of intra-op threads is 8
-2026-04-27T20:58:47.308+01:00  INFO 10676 --- [ArabSoftBack] [main] t.e.a.controller.PredictionController    : Modèle chargé avec succès : swin_cin_classifier.pt
-2026-04-27T20:58:47.625+01:00  WARN 10676 --- [ArabSoftBack] [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'publicationController' defined in file [C:\Users\yassi\Desktop\Stage ArabSoft\ArabSoftBack\target\classes\tn\esprit\arabsoftback\controller\PublicationController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'publicationService' defined in file [C:\Users\yassi\Desktop\Stage ArabSoft\ArabSoftBack\target\classes\tn\esprit\arabsoftback\service\PublicationService.class]: Unsatisfied dependency expressed through constructor parameter 7: Error creating bean with name 'notificationProducerService': Resolution of declared constructors on bean Class [tn.esprit.arabsoftback.service.NotificationProducerService] from ClassLoader [jdk.internal.loader.ClassLoaders$AppClassLoader@2a139a55] failed
-2026-04-27T20:58:47.625+01:00  INFO 10676 --- [ArabSoftBack] [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2026-04-27T20:58:47.632+01:00  INFO 10676 --- [ArabSoftBack] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
-2026-04-27T20:58:47.638+01:00  INFO 10676 --- [ArabSoftBack] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
-2026-04-27T20:58:47.643+01:00  INFO 10676 --- [ArabSoftBack] [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
-2026-04-27T20:58:47.663+01:00  INFO 10676 --- [ArabSoftBack] [main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-05-29T18:27:17.790+01:00  INFO 28588 --- [ArabSoftBack] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-29T18:27:18.961+01:00  INFO 28588 --- [ArabSoftBack] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-29T18:27:20.074+01:00 DEBUG 28588 --- [ArabSoftBack] [main] t.e.a.config.JwtAuthenticationFilter     : Filter 'jwtAuthenticationFilter' configured for use
+2026-05-29T18:27:20.819+01:00  WARN 28588 --- [ArabSoftBack] [main] t.e.a.config.KafkaAutoStartConfig        : Kafka autostart command failed with exit code 1
+2026-05-29T18:27:20.847+01:00  INFO 28588 --- [ArabSoftBack] [main] t.e.a.config.PublicationSchemaFixConfig  : ? Contrainte publication_status_check mise ? jour avec le statut SCHEDULED
+2026-05-29T18:27:20.922+01:00  INFO 28588 --- [ArabSoftBack] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-29T18:27:23.714+01:00  WARN 28588 --- [ArabSoftBack] [main] ai.djl.repository.SimpleRepository       : Simple repository pointing to a non-archive file.
+2026-05-29T18:27:23.873+01:00  INFO 28588 --- [ArabSoftBack] [main] ai.djl.util.Platform                     : Found placeholder platform from: cu065-win-x86_64:2.1.1
+2026-05-29T18:27:23.883+01:00  WARN 28588 --- [ArabSoftBack] [main] ai.djl.pytorch.jni.LibUtils              : No matching cuda flavor for win-x86_64 found: cu065.
+2026-05-29T18:27:24.293+01:00  INFO 28588 --- [ArabSoftBack] [main] ai.djl.pytorch.engine.PtEngine           : PyTorch graph executor optimizer is enabled, this may impact your inference latency and throughput. See: https://docs.djl.ai/docs/development/inference_performance_optimization.html#graph-executor-optimization
+2026-05-29T18:27:24.300+01:00  INFO 28588 --- [ArabSoftBack] [main] ai.djl.pytorch.engine.PtEngine           : Number of inter-op threads is 8
+2026-05-29T18:27:24.300+01:00  INFO 28588 --- [ArabSoftBack] [main] ai.djl.pytorch.engine.PtEngine           : Number of intra-op threads is 8
+2026-05-29T18:27:24.599+01:00  INFO 28588 --- [ArabSoftBack] [main] t.e.a.controller.PredictionController    : Modele SWIN charge avec succes depuis classpath:models/swin_cin_classifier.pt
+2026-05-29T18:27:26.115+01:00  WARN 28588 --- [ArabSoftBack] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-29T18:27:27.783+01:00  INFO 28588 --- [ArabSoftBack] [main] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-05-29T18:27:27.785+01:00  INFO 28588 --- [ArabSoftBack] [main] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@275c1aed]]
+2026-05-29T18:27:27.786+01:00  INFO 28588 --- [ArabSoftBack] [main] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-05-29T18:27:27.791+01:00  INFO 28588 --- [ArabSoftBack] [main] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-05-29T18:27:27.791+01:00  INFO 28588 --- [ArabSoftBack] [main] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@275c1aed]]
+2026-05-29T18:27:27.791+01:00  INFO 28588 --- [ArabSoftBack] [main] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-05-29T18:27:27.793+01:00  WARN 28588 --- [ArabSoftBack] [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-05-29T18:27:27.797+01:00  INFO 28588 --- [ArabSoftBack] [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-05-29T18:27:27.802+01:00  INFO 28588 --- [ArabSoftBack] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-05-29T18:27:27.806+01:00  INFO 28588 --- [ArabSoftBack] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-05-29T18:27:27.829+01:00  INFO 28588 --- [ArabSoftBack] [main] .s.b.a.l.ConditionEvaluationReportLogger : 
 
 Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
-2026-04-27T20:58:47.707+01:00 ERROR 10676 --- [ArabSoftBack] [main] o.s.boot.SpringApplication               : Application run failed
+2026-05-29T18:27:27.851+01:00 ERROR 28588 --- [ArabSoftBack] [main] o.s.b.d.LoggingFailureAnalysisReporter   : 
 
-org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'publicationController' defined in file [C:\Users\yassi\Desktop\Stage ArabSoft\ArabSoftBack\target\classes\tn\esprit\arabsoftback\controller\PublicationController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'publicationService' defined in file [C:\Users\yassi\Desktop\Stage ArabSoft\ArabSoftBack\target\classes\tn\esprit\arabsoftback\service\PublicationService.class]: Unsatisfied dependency expressed through constructor parameter 7: Error creating bean with name 'notificationProducerService': Resolution of declared constructors on bean Class [tn.esprit.arabsoftback.service.NotificationProducerService] from ClassLoader [jdk.internal.loader.ClassLoaders$AppClassLoader@2a139a55] failed
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1395) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1232) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1222) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1188) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1123) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:987) ~[spring-context-6.2.8.jar:6.2.8]
-	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:627) ~[spring-context-6.2.8.jar:6.2.8]
-	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.5.3.jar:3.5.3]
-	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752) ~[spring-boot-3.5.3.jar:3.5.3]
-	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439) ~[spring-boot-3.5.3.jar:3.5.3]
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318) ~[spring-boot-3.5.3.jar:3.5.3]
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361) ~[spring-boot-3.5.3.jar:3.5.3]
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350) ~[spring-boot-3.5.3.jar:3.5.3]
-	at tn.esprit.arabsoftback.ArabSoftBackApplication.main(ArabSoftBackApplication.java:12) ~[classes/:na]
-Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'publicationService' defined in file [C:\Users\yassi\Desktop\Stage ArabSoft\ArabSoftBack\target\classes\tn\esprit\arabsoftback\service\PublicationService.class]: Unsatisfied dependency expressed through constructor parameter 7: Error creating bean with name 'notificationProducerService': Resolution of declared constructors on bean Class [tn.esprit.arabsoftback.service.NotificationProducerService] from ClassLoader [jdk.internal.loader.ClassLoaders$AppClassLoader@2a139a55] failed
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1395) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1232) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1683) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1628) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-6.2.8.jar:6.2.8]
-	... 21 common frames omitted
-Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'notificationProducerService': Resolution of declared constructors on bean Class [tn.esprit.arabsoftback.service.NotificationProducerService] from ClassLoader [jdk.internal.loader.ClassLoaders$AppClassLoader@2a139a55] failed
-	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.determineCandidateConstructors(AutowiredAnnotationBeanPostProcessor.java:384) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.determineConstructorsFromBeanPostProcessors(AbstractAutowireCapableBeanFactory.java:1334) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1229) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1683) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1628) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-6.2.8.jar:6.2.8]
-	... 34 common frames omitted
-Caused by: java.lang.NoClassDefFoundError: org/springframework/kafka/core/KafkaTemplate
-	at java.base/java.lang.Class.getDeclaredConstructors0(Native Method) ~[na:na]
-	at java.base/java.lang.Class.privateGetDeclaredConstructors(Class.java:3373) ~[na:na]
-	at java.base/java.lang.Class.getDeclaredConstructors(Class.java:2555) ~[na:na]
-	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.determineCandidateConstructors(AutowiredAnnotationBeanPostProcessor.java:379) ~[spring-beans-6.2.8.jar:6.2.8]
-	... 46 common frames omitted
-Caused by: java.lang.ClassNotFoundException: org.springframework.kafka.core.KafkaTemplate
-	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641) ~[na:na]
-	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188) ~[na:na]
-	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525) ~[na:na]
-	... 50 common frames omitted
+***************************
+APPLICATION FAILED TO START
+***************************
 
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+2026-05-29T18:27:38.568+01:00  INFO 10984 --- [ArabSoftBack] [main] t.e.a.ArabSoftBackApplication            : Starting ArabSoftBackApplication using Java 17.0.12 with PID 10984 (C:\Users\yassi\Desktop\Stage ArabSoft\ArabSoftBack\target\classes started by yassi in C:\Users\yassi\Desktop\Stage PFE 2026\Application\SmartTax-Project)
+2026-05-29T18:27:38.570+01:00 DEBUG 10984 --- [ArabSoftBack] [main] t.e.a.ArabSoftBackApplication            : Running with Spring Boot v3.5.3, Spring v6.2.8
+2026-05-29T18:27:38.571+01:00  INFO 10984 --- [ArabSoftBack] [main] t.e.a.ArabSoftBackApplication            : No active profile set, falling back to 1 default profile: "default"
+2026-05-29T18:27:40.230+01:00  INFO 10984 --- [ArabSoftBack] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-29T18:27:40.518+01:00  INFO 10984 --- [ArabSoftBack] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 267 ms. Found 14 JPA repository interfaces.
+2026-05-29T18:27:42.053+01:00  INFO 10984 --- [ArabSoftBack] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-05-29T18:27:42.083+01:00  INFO 10984 --- [ArabSoftBack] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-29T18:27:42.084+01:00  INFO 10984 --- [ArabSoftBack] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.42]
+2026-05-29T18:27:42.239+01:00  INFO 10984 --- [ArabSoftBack] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-29T18:27:42.240+01:00  INFO 10984 --- [ArabSoftBack] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3593 ms
+2026-05-29T18:27:42.699+01:00  INFO 10984 --- [ArabSoftBack] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-29T18:27:42.925+01:00  INFO 10984 --- [ArabSoftBack] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.18.Final
+2026-05-29T18:27:42.993+01:00  INFO 10984 --- [ArabSoftBack] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-29T18:27:43.552+01:00  INFO 10984 --- [ArabSoftBack] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-29T18:27:43.618+01:00  INFO 10984 --- [ArabSoftBack] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-29T18:27:43.816+01:00  INFO 10984 --- [ArabSoftBack] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@7976e536
+2026-05-29T18:27:43.818+01:00  INFO 10984 --- [ArabSoftBack] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-29T18:27:43.900+01:00  INFO 10984 --- [ArabSoftBack] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 16.9
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-05-29T18:27:45.523+01:00  INFO 10984 --- [ArabSoftBack] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-29T18:27:46.456+01:00  INFO 10984 --- [ArabSoftBack] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-29T18:27:47.077+01:00 DEBUG 10984 --- [ArabSoftBack] [main] t.e.a.config.JwtAuthenticationFilter     : Filter 'jwtAuthenticationFilter' configured for use
+2026-05-29T18:27:47.564+01:00  WARN 10984 --- [ArabSoftBack] [main] t.e.a.config.KafkaAutoStartConfig        : Kafka autostart command failed with exit code 1
+2026-05-29T18:27:47.587+01:00  INFO 10984 --- [ArabSoftBack] [main] t.e.a.config.PublicationSchemaFixConfig  : ? Contrainte publication_status_check mise ? jour avec le statut SCHEDULED
+2026-05-29T18:27:47.682+01:00  INFO 10984 --- [ArabSoftBack] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-29T18:27:50.314+01:00  WARN 10984 --- [ArabSoftBack] [main] ai.djl.repository.SimpleRepository       : Simple repository pointing to a non-archive file.
+2026-05-29T18:27:50.476+01:00  INFO 10984 --- [ArabSoftBack] [main] ai.djl.util.Platform                     : Found placeholder platform from: cu065-win-x86_64:2.1.1
+2026-05-29T18:27:50.486+01:00  WARN 10984 --- [ArabSoftBack] [main] ai.djl.pytorch.jni.LibUtils              : No matching cuda flavor for win-x86_64 found: cu065.
+2026-05-29T18:27:50.913+01:00  INFO 10984 --- [ArabSoftBack] [main] ai.djl.pytorch.engine.PtEngine           : PyTorch graph executor optimizer is enabled, this may impact your inference latency and throughput. See: https://docs.djl.ai/docs/development/inference_performance_optimization.html#graph-executor-optimization
+2026-05-29T18:27:50.917+01:00  INFO 10984 --- [ArabSoftBack] [main] ai.djl.pytorch.engine.PtEngine           : Number of inter-op threads is 8
+2026-05-29T18:27:50.917+01:00  INFO 10984 --- [ArabSoftBack] [main] ai.djl.pytorch.engine.PtEngine           : Number of intra-op threads is 8
+2026-05-29T18:27:51.202+01:00  INFO 10984 --- [ArabSoftBack] [main] t.e.a.controller.PredictionController    : Modele SWIN charge avec succes depuis classpath:models/swin_cin_classifier.pt
+2026-05-29T18:27:52.420+01:00  WARN 10984 --- [ArabSoftBack] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-29T18:27:53.741+01:00  INFO 10984 --- [ArabSoftBack] [main] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-05-29T18:27:53.742+01:00  INFO 10984 --- [ArabSoftBack] [main] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@704a50aa]]
+2026-05-29T18:27:53.742+01:00  INFO 10984 --- [ArabSoftBack] [main] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-05-29T18:27:53.754+01:00  INFO 10984 --- [ArabSoftBack] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-05-29T18:27:53.816+01:00  INFO 10984 --- [ArabSoftBack] [main] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-smarttax-notifications-group-1
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = smarttax-notifications-group
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metadata.recovery.strategy = none
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class org.springframework.kafka.support.serializer.JsonDeserializer
+
+2026-05-29T18:27:53.888+01:00  INFO 10984 --- [ArabSoftBack] [main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-05-29T18:27:54.080+01:00  INFO 10984 --- [ArabSoftBack] [main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.9.1
+2026-05-29T18:27:54.081+01:00  INFO 10984 --- [ArabSoftBack] [main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: f745dfdcee2b9851
+2026-05-29T18:27:54.081+01:00  INFO 10984 --- [ArabSoftBack] [main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1780075674079
+2026-05-29T18:27:54.084+01:00  INFO 10984 --- [ArabSoftBack] [main] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Subscribed to topic(s): smarttax.notifications
+2026-05-29T18:27:54.109+01:00  INFO 10984 --- [ArabSoftBack] [main] t.e.a.ArabSoftBackApplication            : Started ArabSoftBackApplication in 16.248 seconds (process running for 16.657)
+2026-05-29T18:27:54.127+01:00 DEBUG 10984 --- [ArabSoftBack] [main] DownloadLibraryDownloadCountStartupPatch : Schema download_library_document.download_count verifiee / appliquee.
+2026-05-29T18:27:54.305+01:00  INFO 10984 --- [ArabSoftBack] [main] .s.FaceVerificationServiceProcessManager : Face verification service already running at http://localhost:8005
+2026-05-29T18:27:54.333+01:00  INFO 10984 --- [ArabSoftBack] [main] t.e.a.service.OcrServiceProcessManager   : OCR service already running at http://localhost:8004
+2026-05-29T18:27:54.363+01:00  INFO 10984 --- [ArabSoftBack] [main] t.e.a.s.SentimentServiceProcessManager   : Sentiment service already running at http://localhost:8010
+2026-05-29T18:27:54.938+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-29T18:27:54.939+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-29T18:27:54.941+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-05-29T18:27:55.009+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:27:55.010+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:27:55.010+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:27:55.021+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-05-29T18:27:55.023+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-05-29T18:27:55.029+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] (Re-)joining group
+2026-05-29T18:27:55.059+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Request joining group due to: need to re-join with the given member-id: consumer-smarttax-notifications-group-1-02089a11-592e-4ff1-abe0-b3b595dd3b03
+2026-05-29T18:27:55.060+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] (Re-)joining group
+2026-05-29T18:27:55.069+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Successfully joined group with generation Generation{generationId=89, memberId='consumer-smarttax-notifications-group-1-02089a11-592e-4ff1-abe0-b3b595dd3b03', protocol='range'}
+2026-05-29T18:27:55.087+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Finished assignment for group at generation 89: {consumer-smarttax-notifications-group-1-02089a11-592e-4ff1-abe0-b3b595dd3b03=Assignment(partitions=[smarttax.notifications-0])}
+2026-05-29T18:27:55.100+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Successfully synced group in generation Generation{generationId=89, memberId='consumer-smarttax-notifications-group-1-02089a11-592e-4ff1-abe0-b3b595dd3b03', protocol='range'}
+2026-05-29T18:27:55.102+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Notifying assignor about the new Assignment(partitions=[smarttax.notifications-0])
+2026-05-29T18:27:55.108+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Adding newly assigned partitions: smarttax.notifications-0
+2026-05-29T18:27:55.123+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition smarttax.notifications-0 to the committed offset FetchPosition{offset=66, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null)], epoch=2}}
+2026-05-29T18:27:55.127+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : smarttax-notifications-group: partitions assigned: [smarttax.notifications-0]
+2026-05-29T18:27:55.211+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:27:55.216+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:00.443+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:00.443+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:00.443+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:28:00.445+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:28:00.446+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:00.456+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:28:00.456+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:28:00.457+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:28:00.458+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:28:00.458+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:28:00.459+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.controller.UtilisateurController   : Fetching details for user with email: yassinedhahbi65@gmail.com
+2026-05-29T18:28:01.867+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:01.867+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:01.867+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:28:01.868+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:28:01.869+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:05.913+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/upload-photo
+2026-05-29T18:28:05.914+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/upload-photo
+2026-05-29T18:28:05.914+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/upload-photo, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:28:05.916+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:28:05.916+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/upload-photo
+2026-05-29T18:28:06.041+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.controller.UtilisateurController   : Uploading photo for user with email: yassinedhahbi65@gmail.com
+2026-05-29T18:28:06.276+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:28:06.276+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:28:06.277+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:28:06.278+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:28:06.279+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:28:06.281+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.controller.UtilisateurController   : Fetching details for user with email: yassinedhahbi65@gmail.com
+2026-05-29T18:28:15.581+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:15.581+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:15.582+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:28:15.584+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:28:15.585+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:15.586+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:28:15.586+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:28:15.587+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:28:15.588+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:28:15.590+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:28:15.591+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.controller.UtilisateurController   : Fetching details for user with email: yassinedhahbi65@gmail.com
+2026-05-29T18:28:19.337+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/publications
+2026-05-29T18:28:19.337+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : URI /api/publications is excluded from JWT filtering
+2026-05-29T18:28:19.338+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/publications
+2026-05-29T18:28:19.338+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : URI /api/publications is excluded from JWT filtering
+2026-05-29T18:28:25.601+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/immatriculation/check-duplicates
+2026-05-29T18:28:25.602+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : URI /api/immatriculation/check-duplicates is excluded from JWT filtering
+2026-05-29T18:28:25.602+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/immatriculation/check-duplicates
+2026-05-29T18:28:25.603+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : URI /api/immatriculation/check-duplicates is excluded from JWT filtering
+2026-05-29T18:28:35.869+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:28:35.869+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:28:35.869+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:28:35.869+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:28:35.869+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:28:35.870+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me/unread-count, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:28:35.871+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:28:35.871+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:28:35.871+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:28:35.871+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-3] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:28:46.888+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:46.888+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:46.890+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:28:46.894+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:28:46.897+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:28:53.710+01:00  INFO 10984 --- [ArabSoftBack] [MessageBroker-2] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 3, active threads = 1, queued tasks = 1, completed tasks = 1]
+2026-05-29T18:29:00.583+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:29:00.584+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:29:00.584+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:29:00.586+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:29:00.586+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:29:31.871+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-9] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:29:31.871+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-9] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:29:31.871+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-9] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:29:31.872+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-9] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:29:31.873+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-9] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:29:35.866+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:29:35.866+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:29:35.866+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:29:35.866+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:29:35.867+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me/unread-count, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:29:35.867+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:29:35.868+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:29:35.868+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:29:35.869+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:29:35.869+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:29:45.867+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:29:45.867+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:29:45.867+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:29:45.869+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:29:45.869+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:30:30.867+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:30:30.868+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:30:30.868+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:30:30.869+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:30:30.869+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:30:35.880+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:30:35.880+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:30:35.880+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:30:35.881+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:30:35.881+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:30:35.881+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:30:35.882+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:30:35.882+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:30:35.882+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:30:35.882+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:30:35.882+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me/unread-count, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:30:35.884+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:30:35.883+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:30:35.884+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:30:35.884+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-4] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:31:15.865+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:31:15.865+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:31:15.865+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:31:15.866+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:31:15.866+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:31:35.882+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:31:35.882+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:31:35.882+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:31:35.882+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:31:35.882+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:31:35.882+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me/unread-count, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:31:35.884+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:31:35.884+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:31:35.884+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:31:35.884+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:31:35.884+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:31:35.884+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:31:35.884+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:31:35.888+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:31:35.889+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:32:00.884+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:32:00.885+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:32:00.885+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:32:00.888+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:32:00.889+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:32:35.873+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:32:35.874+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:32:35.874+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:32:35.875+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:32:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:32:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:32:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:32:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:32:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:32:35.876+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me/unread-count, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:32:35.876+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:32:35.876+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:32:35.876+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:32:35.878+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:32:35.878+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:32:45.864+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:32:45.864+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:32:45.864+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:32:45.864+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:32:45.864+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:33:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:33:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:33:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:33:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:33:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:33:35.875+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:33:35.875+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:33:35.875+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me/unread-count, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:33:35.875+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:33:35.877+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:33:35.877+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:33:35.878+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:33:35.878+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:33:35.878+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-1] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:33:35.878+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-5] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:33:35.878+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-7] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:33:35.878+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:33:35.878+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:33:35.880+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:33:35.880+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:33:48.230+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:33:48.230+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:33:48.230+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:33:48.232+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:33:48.232+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:33:48.232+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.controller.UtilisateurController   : Fetching details for user with email: yassinedhahbi65@gmail.com
+2026-05-29T18:33:54.232+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/upload-photo
+2026-05-29T18:33:54.233+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/upload-photo
+2026-05-29T18:33:54.234+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/upload-photo, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:33:54.235+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:33:54.235+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/upload-photo
+2026-05-29T18:33:54.313+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.controller.UtilisateurController   : Uploading photo for user with email: yassinedhahbi65@gmail.com
+2026-05-29T18:33:54.418+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:33:54.418+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:33:54.418+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:33:54.421+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:33:54.422+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/me
+2026-05-29T18:33:54.423+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.controller.UtilisateurController   : Fetching details for user with email: yassinedhahbi65@gmail.com
+2026-05-29T18:34:15.578+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:34:15.578+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:34:15.579+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:34:15.580+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:34:15.580+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-6] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:34:35.876+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:34:35.877+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:34:35.877+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-9] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:34:35.877+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:34:35.877+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-9] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:34:35.877+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:34:35.877+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:34:35.877+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-9] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:34:35.877+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/notifications/me/unread-count, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpMDFAZ21haWwuY29tIiwicm9sZSI6IkFHRU5UIiwidXNlcklkIjo1NywiaWF0IjoxNzgwMDc0MjY4LCJleHAiOjE3ODA5MzgyNjh9.NhLabG6HWwFtZJOuVh00HxgUAN76ixfHpB6oERvFJUWLS1_xgfFznD493Ho2spyI-URdDTyZmYvPtNF1TR-GOg
+2026-05-29T18:34:35.878+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:34:35.878+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-9] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:34:35.878+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi01@gmail.com with role: AGENT
+2026-05-29T18:34:35.879+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-8] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me
+2026-05-29T18:34:35.879+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-9] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:34:35.879+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-10] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/notifications/me/unread-count
+2026-05-29T18:35:00.869+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:35:00.870+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:35:00.870+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Received request for URI: /api/users/presence/heartbeat, Authorization header: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5YXNzaW5lZGhhaGJpNjVAZ21haWwuY29tIiwicm9sZSI6IkNPTlRSSUJVQUJMRSIsInVzZXJJZCI6NzgsImlhdCI6MTc4MDA3NDUyNywiZXhwIjoxNzgwOTM4NTI3fQ.9szRgfemZbYRbeeFfVHyKoBsjxdlTLGGp28el_AEREe03LnvtDIaayfblR552D713XrNwx-LxgrTZb0Wha6fQQ
+2026-05-29T18:35:00.871+01:00  INFO 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Successfully authenticated user: yassinedhahbi65@gmail.com with role: CONTRIBUABLE
+2026-05-29T18:35:00.871+01:00 DEBUG 10984 --- [ArabSoftBack] [http-nio-8080-exec-2] t.e.a.config.JwtAuthenticationFilter     : Checking if URI should be filtered: /api/users/presence/heartbeat
+2026-05-29T18:35:05.028+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Revoke previously assigned partitions smarttax.notifications-0
+2026-05-29T18:35:05.029+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : smarttax-notifications-group: partitions revoked: [smarttax.notifications-0]
+2026-05-29T18:35:05.029+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Member consumer-smarttax-notifications-group-1-02089a11-592e-4ff1-abe0-b3b595dd3b03 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null) due to the consumer unsubscribed from all topics
+2026-05-29T18:35:05.030+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-05-29T18:35:05.030+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Request joining group due to: consumer pro-actively leaving the group
+2026-05-29T18:35:05.031+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Unsubscribed all topics or patterns and assigned partitions
+2026-05-29T18:35:05.032+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-05-29T18:35:05.033+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-smarttax-notifications-group-1, groupId=smarttax-notifications-group] Request joining group due to: consumer pro-actively leaving the group
+2026-05-29T18:35:05.052+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-05-29T18:35:05.052+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-05-29T18:35:05.053+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-05-29T18:35:05.053+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-05-29T18:35:05.060+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-smarttax-notifications-group-1 unregistered
+2026-05-29T18:35:05.061+01:00  INFO 10984 --- [ArabSoftBack] [org.springframework.kafka.KafkaListenerEndpointContainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : smarttax-notifications-group: Consumer stopped
+2026-05-29T18:35:05.064+01:00  INFO 10984 --- [ArabSoftBack] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-05-29T18:35:05.116+01:00  INFO 10984 --- [ArabSoftBack] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-05-29T18:35:05.118+01:00  INFO 10984 --- [ArabSoftBack] [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-05-29T18:35:05.119+01:00  INFO 10984 --- [ArabSoftBack] [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@704a50aa]]
+2026-05-29T18:35:05.119+01:00  INFO 10984 --- [ArabSoftBack] [SpringApplicationShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-05-29T18:35:05.124+01:00  INFO 10984 --- [ArabSoftBack] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-05-29T18:35:05.128+01:00  INFO 10984 --- [ArabSoftBack] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-05-29T18:35:05.130+01:00  INFO 10984 --- [ArabSoftBack] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

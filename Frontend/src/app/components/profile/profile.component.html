@@ -9,7 +9,7 @@
   <div *ngIf="user" class="card shadow-sm p-4 animate__animated animate__fadeIn">
     <div class="row g-0">
       <div class="col-md-4 text-center">
-        <img [src]="user.photo ? (user.photo + '?t=' + timestamp) : '/assets/img/team/icondefaut.webp'" alt="Photo de profil" class="profile-photo">
+        <img [src]="getPhotoUrl() + '?t=' + timestamp" alt="Photo de profil" class="profile-photo">
       </div>
       <div class="col-md-8">
         <h2 class="mb-4 text-black">{{ user.firstName }} {{ user.lastName }}</h2>

@@ -258,3 +258,164 @@
     top: 0;
   }
 }
+
+/* Badge hero + encart accès (visiteurs non connectés) */
+.pub-doc-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(245, 158, 11, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.pub-doc-access-gate {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+.pub-doc-gate-card {
+  text-align: center;
+  padding: 2rem 1.75rem;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid rgba(11, 94, 168, 0.16);
+  box-shadow: 0 14px 36px rgba(11, 94, 168, 0.1);
+}
+
+.pub-doc-gate-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.9rem;
+  margin-bottom: 1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #0b5ea8;
+  background: rgba(11, 94, 168, 0.1);
+  border: 1px solid rgba(11, 94, 168, 0.22);
+}
+
+.pub-doc-gate-card h2 {
+  margin: 0 0 0.65rem;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1a365d;
+}
+
+.pub-doc-gate-lead {
+  margin: 0 0 1.25rem;
+  color: #475569;
+  line-height: 1.55;
+  font-size: 1rem;
+}
+
+.pub-doc-gate-steps {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pub-doc-gate-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
+  border: 1px solid rgba(11, 94, 168, 0.1);
+}
+
+.pub-doc-gate-step-num {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #fff;
+  background: linear-gradient(135deg, #0b5ea8, #39b54a);
+}
+
+.pub-doc-gate-steps strong {
+  display: block;
+  color: #1a365d;
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.pub-doc-gate-steps p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.pub-doc-gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
+.pub-doc-gate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 1.15rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pub-doc-gate-btn:hover {
+  transform: translateY(-1px);
+}
+
+.pub-doc-gate-btn--primary {
+  color: #fff;
+  background: linear-gradient(135deg, #0b5ea8, #1a365d);
+  box-shadow: 0 6px 18px rgba(11, 94, 168, 0.28);
+}
+
+.pub-doc-gate-btn--secondary {
+  color: #fff;
+  background: linear-gradient(135deg, #39b54a, #2d8a3e);
+  box-shadow: 0 6px 18px rgba(57, 181, 74, 0.25);
+}
+
+.pub-doc-gate-btn--outline {
+  color: #0b5ea8;
+  background: #fff;
+  border: 2px solid rgba(11, 94, 168, 0.35);
+}
+
+@media (max-width: 576px) {
+  .pub-doc-gate-actions {
+    flex-direction: column;
+  }
+
+  .pub-doc-gate-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

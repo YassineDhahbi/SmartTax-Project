@@ -3,6 +3,7 @@ import { AuthService } from '../../services/auth/auth.service';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ImmatriculationService } from '../../services/immatriculation.service';
+import { UserService } from '../../services/user/user.service';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -34,7 +35,8 @@ export class DossierComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private http: HttpClient,
-    private immatriculationService: ImmatriculationService
+    private immatriculationService: ImmatriculationService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -46,33 +48,15 @@ export class DossierComponent implements OnInit {
 
   checkUserStatus(): void {
     this.isLoggedIn = this.authService.isLoggedIn();
-    
+
     if (this.isLoggedIn) {
       this.userRole = this.authService.getRole() || '';
-      const userId = localStorage.getItem('userId');
-      
-      // Récupérer l'email depuis plusieurs sources possibles
-      let userEmail = localStorage.getItem('userEmail');
-      if (!userEmail) {
-        // Essayer de récupérer depuis les infos utilisateur stockées
-        const userInfo = localStorage.getItem('userInfo');
-        if (userInfo) {
-          try {
-            const parsedUserInfo = JSON.parse(userInfo);
-            userEmail = parsedUserInfo.email;
-          } catch (e) {
-            console.error('Erreur parsing userInfo:', e);
-          }
-        }
-      }
-      
+      const userEmail = this.authService.getUserEmail();
       this.currentUser = {
-        id: userId,
+        id: localStorage.getItem('userId'),
         email: userEmail,
         role: this.userRole
       };
-      
-      console.log('Utilisateur connecté:', this.currentUser);
     }
   }
 
@@ -94,87 +78,72 @@ export class DossierComponent implements OnInit {
 
   loadUserImmatriculation(): void {
     this.isLoadingImmatriculation = true;
-    const userId = localStorage.getItem('userId');
-    
-    if (userId) {
-      // Récupérer toutes les immatriculations et filtrer par utilisateur
-      this.immatriculationService.getAllImmatriculations().subscribe({
-        next: (data: any[]) => {
-          console.log('Toutes les immatriculations:', data);
-          
-          if (data && data.length > 0) {
-            // Filtrer les immatriculations de l'utilisateur connecté
-            // Essayer plusieurs critères de correspondance
-            const userImmatriculations = data.filter((imm: any) => {
-              // Vérifier par userId si disponible
-              if (imm.userId && imm.userId === userId) {
-                console.log('Trouvé par userId:', imm);
-                return true;
-              }
-              
-              // Vérifier par email de l'utilisateur
-              const userEmail = localStorage.getItem('userEmail') || this.currentUser?.email;
-              if (userEmail && imm.email && imm.email.toLowerCase() === userEmail.toLowerCase()) {
-                console.log('Trouvé par email:', imm);
-                return true;
-              }
-              
-              // Vérifier par email connu (yassinedhahbi65@gmail.com)
-              if (imm.email && imm.email.toLowerCase() === 'yassinedhahbi65@gmail.com'.toLowerCase()) {
-                console.log('Trouvé par email connu:', imm);
-                return true;
-              }
-              
-              // Vérifier par nom/prénom
-              if (imm.nom && imm.prenom && 
-                  (imm.nom.toLowerCase() === 'dhahbi'.toLowerCase() || 
-                   imm.prenom.toLowerCase() === 'yassine'.toLowerCase())) {
-                console.log('Trouvé par nom/prénom:', imm);
-                return true;
-              }
-              
-              // Vérifier par CIN
-              if (imm.cin && imm.cin === '78787878') {
-                console.log('Trouvé par CIN:', imm);
-                return true;
-              }
-              
-              // Vérifier par ID si correspond
-              if (imm.id && imm.id === userId) {
-                console.log('Trouvé par ID:', imm);
-                return true;
-              }
-              
-              return false;
-            });
-            
-            console.log('Immatriculations filtrées pour utilisateur:', userImmatriculations);
-            
-            if (userImmatriculations.length > 0) {
-              // Prendre la première immatriculation validée, sinon la première
-              this.immatriculation = userImmatriculations.find((imm: any) => imm.status === 'VALIDE') || userImmatriculations[0];
-              this.hasImmatriculation = true;
-              console.log('Immatriculation sélectionnée:', this.immatriculation);
-            } else {
-              this.hasImmatriculation = false;
-              console.log('Aucune immatriculation trouvée pour cet utilisateur');
-            }
+    const userEmail = this.authService.getUserEmail();
+    let userTin = this.authService.getUserMatricule();
+
+    const loadDossier = (email: string, tin: string) => {
+      if (!email && !tin) {
+        this.hasImmatriculation = false;
+        this.isLoadingImmatriculation = false;
+        return;
+      }
+
+      this.immatriculationService.getMyDossier(email, tin).subscribe({
+        next: (data) => {
+          const dossiers = data || [];
+          if (dossiers.length > 0) {
+            this.immatriculation = this.pickBestDossier(dossiers);
+            this.hasImmatriculation = true;
           } else {
             this.hasImmatriculation = false;
-            console.log('Aucune immatriculation trouvée dans la base');
           }
           this.isLoadingImmatriculation = false;
         },
-        error: (error: any) => {
-          console.error('Erreur lors du chargement de l\'immatriculation:', error);
+        error: () => {
           this.hasImmatriculation = false;
           this.isLoadingImmatriculation = false;
         }
       });
-    } else {
-      this.isLoadingImmatriculation = false;
-      console.log('Pas de userId trouvé');
+    };
+
+    if (userTin || !this.authService.isLoggedIn()) {
+      loadDossier(userEmail, userTin);
+      return;
     }
+
+    this.userService.getUserDetails().subscribe({
+      next: (user) => {
+        userTin = (user.matricule || '').trim();
+        if (userTin) {
+          localStorage.setItem('matricule', userTin);
+          localStorage.setItem('tin', userTin);
+        }
+        const email = userEmail || (user.email || '').trim();
+        loadDossier(email, userTin);
+      },
+      error: () => loadDossier(userEmail, userTin)
+    });
+  }
+
+  private pickBestDossier(dossiers: any[]): any {
+    const statusPriority: Record<string, number> = {
+      VALIDE: 0,
+      EN_COURS_VERIFICATION: 1,
+      SOUMIS: 2,
+      REJETE: 3,
+      BROUILLON: 4
+    };
+
+    return [...dossiers].sort((a, b) => {
+      const statusDiff =
+        (statusPriority[a.status] ?? 99) - (statusPriority[b.status] ?? 99);
+      if (statusDiff !== 0) {
+        return statusDiff;
+      }
+      const dateA = new Date(a.dateCreation || 0).getTime();
+      const dateB = new Date(b.dateCreation || 0).getTime();
+      return dateB - dateA;
+    })[0];
   }
 
   formatDate(dateString: string): string {
@@ -553,20 +522,4 @@ export class DossierComponent implements OnInit {
     this.imageError = true;
   }
 
-  setEmailManually(email: string): void {
-    if (email && email.trim()) {
-      // Stocker l'email dans localStorage
-      localStorage.setItem('userEmail', email.trim());
-      
-      // Mettre à jour l'objet currentUser
-      if (this.currentUser) {
-        this.currentUser.email = email.trim();
-      }
-      
-      console.log('Email défini manuellement:', email.trim());
-      
-      // Recharger les immatriculations avec le nouvel email
-      this.loadUserImmatriculation();
-    }
-  }
 }

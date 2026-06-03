@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { UserService } from '../../services/user/user.service';
+import { MediaUrlService } from '../../services/media-url.service';
 
 @Component({
   selector: 'app-profile-admin',
@@ -25,7 +26,8 @@ export class ProfileAdminComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
-    private router: Router
+    private router: Router,
+    private mediaUrl: MediaUrlService
   ) {
     this.profileForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -66,7 +68,7 @@ export class ProfileAdminComponent implements OnInit {
         });
         
         if (user.photo) {
-          this.imagePreview = user.photo;
+          this.imagePreview = this.mediaUrl.resolve(user.photo);
         }
         
         this.loading = false;
@@ -122,6 +124,10 @@ export class ProfileAdminComponent implements OnInit {
     }
   }
 
+  resolvePhoto(url?: string | null): string {
+    return this.mediaUrl.resolve(url || '');
+  }
+
   uploadPhoto(): void {
     if (!this.selectedFile) {
       this.errorMessage = 'Veuillez sélectionner une photo';
@@ -133,6 +139,7 @@ export class ProfileAdminComponent implements OnInit {
       next: (response) => {
         if (this.currentUser) {
           this.currentUser.photo = response.photoPath;
+          this.imagePreview = this.mediaUrl.resolve(response.photoPath);
         }
         this.successMessage = 'Photo mise à jour avec succès!';
         this.loading = false;

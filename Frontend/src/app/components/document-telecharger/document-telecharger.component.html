@@ -13,8 +13,12 @@
                             <p class="section-subtitle">
                                 Accédez à tous les formulaires, guides et documents fiscaux nécessaires pour vos démarches
                             </p>
+                            <span class="pub-doc-hero-badge" *ngIf="!isLoggedIn()">
+                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                                Immatriculation et compte requis pour accéder aux téléchargements
+                            </span>
                         </div>
-                        <div class="document-search">
+                        <div class="document-search" *ngIf="isLoggedIn()">
                             <div class="search-box">
                                 <input
                                     type="text"
@@ -40,8 +44,64 @@
 </section>
 <!-- hero area document telecharger end -->
 
+<!-- Accès réservé aux utilisateurs connectés -->
+<section class="documents-grid-area pub-doc-access-gate" id="documents" *ngIf="!isLoggedIn()">
+    <div class="documents-grid-wrap">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="pub-doc-gate-card" role="alert">
+                        <span class="pub-doc-gate-badge">
+                            <i class="fas fa-lock" aria-hidden="true"></i>
+                            Accès réservé
+                        </span>
+                        <h2>Connectez-vous pour télécharger les documents</h2>
+                        <p class="pub-doc-gate-lead">
+                            Ce service est réservé aux contribuables inscrits. Pour en bénéficier, suivez les étapes ci-dessous.
+                        </p>
+                        <ol class="pub-doc-gate-steps">
+                            <li>
+                                <span class="pub-doc-gate-step-num">1</span>
+                                <div>
+                                    <strong>Effectuer votre immatriculation fiscale</strong>
+                                    <p>Créez votre dossier d'immatriculation en ligne sur SmartTax.</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="pub-doc-gate-step-num">2</span>
+                                <div>
+                                    <strong>Créer votre compte contribuable</strong>
+                                    <p>Après validation, utilisez le code reçu par e-mail pour ouvrir votre compte.</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="pub-doc-gate-step-num">3</span>
+                                <div>
+                                    <strong>Accéder au centre de téléchargement</strong>
+                                    <p>Connectez-vous et consultez ou téléchargez formulaires, guides et documents fiscaux.</p>
+                                </div>
+                            </li>
+                        </ol>
+                        <div class="pub-doc-gate-actions">
+                            <button type="button" class="pub-doc-gate-btn pub-doc-gate-btn--primary" (click)="goToImmatriculation()">
+                                <i class="fas fa-user-plus" aria-hidden="true"></i>
+                                Commencer l'immatriculation
+                            </button>
+                         
+                            <button type="button" class="pub-doc-gate-btn pub-doc-gate-btn--outline" (click)="goToLogin()">
+                                <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                                Se connecter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- documents grid -->
-<section class="documents-grid-area" id="documents">
+<section class="documents-grid-area" id="documents" *ngIf="isLoggedIn()">
     <div class="documents-grid-wrap">
         <div class="container">
             <div class="row">
@@ -140,7 +200,7 @@
 <!-- documents grid end -->
 
 <!-- help section -->
-<section class="help-section" id="help">
+<section class="help-section" id="help" *ngIf="isLoggedIn()">
     <div class="help-wrap">
         <div class="container">
             <div class="row align-items-center">

@@ -1669,3 +1669,78 @@
 .btn-add-actionnaire__label {
   line-height: 1.2;
 }
+
+/* Contribuable déjà immatriculé */
+.immat-existing-loading {
+  padding: 3rem 1rem;
+  color: #64748b;
+}
+
+.immat-existing-loading i {
+  font-size: 2rem;
+  color: #0b5ea8;
+  margin-bottom: 1rem;
+}
+
+.immat-existing-card {
+  text-align: center;
+  padding: 2.5rem 2rem;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #ffffff 0%, #f0f7ff 100%);
+  border: 1px solid rgba(11, 94, 168, 0.18);
+  box-shadow: 0 16px 40px rgba(11, 94, 168, 0.12);
+}
+
+.immat-existing-icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0b5ea8, #39b54a);
+  color: #fff;
+  font-size: 1.75rem;
+}
+
+.immat-existing-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1a365d;
+}
+
+.immat-existing-card p {
+  margin: 0 0 0.65rem;
+  color: #475569;
+  line-height: 1.55;
+  font-size: 1rem;
+}
+
+.immat-existing-hint {
+  font-size: 0.92rem !important;
+  color: #64748b !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.immat-existing-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #0b5ea8, #1a365d);
+  box-shadow: 0 8px 22px rgba(11, 94, 168, 0.28);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.immat-existing-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(11, 94, 168, 0.35);
+}

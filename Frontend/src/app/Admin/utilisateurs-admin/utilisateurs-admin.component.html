@@ -23,6 +23,10 @@
           </div>
           <div class="panel-actions">
             <span class="count">{{ filteredUsers.length }} utilisateur(s)</span>
+            <span class="count online-count">
+              <i class="fa-solid fa-circle online-dot" [class.online-dot--idle]="onlineUsersCount === 0"></i>
+              {{ onlineUsersCount }} connecté(s) maintenant
+            </span>
             <button class="add-user-btn" type="button" (click)="openAddUserModal()">
               <i class="fa-solid fa-user-plus"></i>
               <span>Ajouter un utilisateur</span>
@@ -128,6 +132,7 @@
                 <th>Email</th>
                 <th>Role</th>
                 <th>Statut</th>
+                <th>Connexion</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -149,6 +154,12 @@
                 <td>
                   <span class="badge status" [ngClass]="(user.status || '').toLowerCase()">
                     {{ user.status || 'N/A' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="presence-badge" [class.presence-badge--online]="isUserOnline(user)" [class.presence-badge--offline]="!isUserOnline(user)">
+                    <i class="fa-solid" [ngClass]="isUserOnline(user) ? 'fa-circle' : 'fa-circle-notch'"></i>
+                    {{ isUserOnline(user) ? 'En ligne' : 'Hors ligne' }}
                   </span>
                 </td>
                 <td class="action-cell">
@@ -298,6 +309,14 @@
                     <span class="badge status" [ngClass]="(selectedUser.status || '').toLowerCase()">
                       {{ selectedUser.status || 'N/A' }}
                     </span>
+                  </div>
+                  <div class="detail-item">
+                    <label>Connexion:</label>
+                    <span class="presence-badge" [class.presence-badge--online]="isUserOnline(selectedUser)" [class.presence-badge--offline]="!isUserOnline(selectedUser)">
+                      <i class="fa-solid" [ngClass]="isUserOnline(selectedUser) ? 'fa-circle' : 'fa-circle-notch'"></i>
+                      {{ isUserOnline(selectedUser) ? 'Connecté maintenant' : 'Non connecté' }}
+                    </span>
+                    <small class="presence-hint">Activité détectée dans les {{ onlineThresholdMinutes }} dernières minutes</small>
                   </div>
                   <div class="detail-item" *ngIf="selectedUser.role === 'AGENT'">
                     <label>Département:</label>

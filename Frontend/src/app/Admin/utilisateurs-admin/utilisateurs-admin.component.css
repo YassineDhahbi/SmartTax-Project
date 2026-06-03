@@ -1655,3 +1655,65 @@ th {
     max-width: none;
   }
 }
+
+.online-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.online-dot {
+  font-size: 0.5rem;
+  color: #22c55e;
+  animation: presence-pulse 1.6s ease-in-out infinite;
+}
+
+.online-dot--idle {
+  color: #64748b;
+  animation: none;
+}
+
+.presence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.presence-badge--online {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.presence-badge--online .fa-circle {
+  font-size: 0.45rem;
+  color: #22c55e;
+  animation: presence-pulse 1.6s ease-in-out infinite;
+}
+
+.presence-badge--offline {
+  background: rgba(148, 163, 184, 0.14);
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+.presence-hint {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+@keyframes presence-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}

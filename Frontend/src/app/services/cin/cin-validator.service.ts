@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 // Interface pour la réponse de l'API
 interface PredictionResponse {
@@ -16,7 +17,7 @@ interface PredictionResponse {
   providedIn: 'root'
 })
 export class CinValidatorService {
-  private apiUrl = 'http://localhost:8080/api/cin-validator/verify';
+  private apiUrl = `${environment.apiUrl}/cin-validator/verify`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

@@ -19,13 +19,13 @@
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h3>R�clamations</h3>
+            <h3>Réclamations</h3>
           </div>
           <div class="panel-actions">
             <span class="count" *ngIf="totalElements > 0">
-              {{ page * pageSize + 1 }}�{{ (page + 1) * pageSize > totalElements ? totalElements : (page + 1) * pageSize }} sur {{ totalElements }}
+              {{ page * pageSize + 1 }}à{{ (page + 1) * pageSize > totalElements ? totalElements : (page + 1) * pageSize }} sur {{ totalElements }}
             </span>
-            <span class="count" *ngIf="totalElements === 0 && !loading">0 r�sultat</span>
+            <span class="count" *ngIf="totalElements === 0 && !loading">0 résultat</span>
           </div>
         </div>
 
@@ -52,14 +52,14 @@
                   <option value="BROUILLON">Brouillon</option>
                   <option value="SOUMIS">Soumis</option>
                   <option value="EN_COURS">En cours</option>
-                  <option value="RESOLU">R�solu</option>
-                  <option value="REJETE">Rejet�</option>
+                  <option value="RESOLU">Résolu</option>
+                  <option value="REJETE">Rejeté</option>
                 </select>
 
                 <select class="filter-select" [value]="selectedEtatFilter" (change)="onEtatFilterChange($any($event.target).value)">
-                  <option value="ALL">Tous les �tats</option>
+                  <option value="ALL">Tous les états</option>
                   <option value="EN_COURS">En cours</option>
-                  <option value="TRAITE">Trait�</option>
+                  <option value="TRAITE">Traité</option>
                 </select>
 
                 <select class="filter-select" [value]="selectedUrgenceFilter" (change)="onUrgenceFilterChange($any($event.target).value)">
@@ -74,10 +74,10 @@
           </div>
         </div>
 
-        <p *ngIf="loading" class="state">Chargement des r�clamations...</p>
+        <p *ngIf="loading" class="state">Chargement des réclamations...</p>
         <p *ngIf="!loading && errorMessage" class="state error">{{ errorMessage }}</p>
         <p *ngIf="!loading && !errorMessage && reclamations.length === 0" class="state">
-          Aucune r�clamation trouv�e.
+          Aucune réclamation trouvée.
         </p>
 
         <div class="table-wrap" *ngIf="!loading && !errorMessage && reclamations.length > 0">
@@ -90,7 +90,7 @@
                 <th>Email</th>
                 <th>Urgence</th>
                 <th>Statut</th>
-                <th>�tat</th>
+                <th>état</th>
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
@@ -111,7 +111,7 @@
                     (change)="updateEtat(item, $any($event.target).value)"
                     [disabled]="etatUpdatingId === item.id">
                     <option value="EN_COURS">En cours</option>
-                    <option value="TRAITE">Trait�</option>
+                    <option value="TRAITE">Traité</option>
                   </select>
                 </td>
                 <td>{{ formatDate(item.dateSoumission || item.dateCreation) }}</td>
@@ -161,10 +161,10 @@
     </div>
     <div class="modal-body">
       <p>
-        Supprimer la r�clamation
+        Supprimer la réclamation
         <strong>{{ selectedReclamationToDelete.reference || ('#' + selectedReclamationToDelete.id) }}</strong> ?
       </p>
-      <small>Seuls les brouillons peuvent �tre supprim�s.</small>
+      <small>Seuls les brouillons peuvent étre supprimés.</small>
     </div>
     <div class="modal-footer">
       <button type="button" class="modal-btn modal-btn--secondary" (click)="closeDeleteModal()" [disabled]="isDeleting">
@@ -180,21 +180,21 @@
 <div class="modal-overlay" *ngIf="showDetailsModal && selectedReclamationForDetails" (click)="closeDetailsModal()">
   <div class="modal-card details-modal" (click)="$event.stopPropagation()">
     <div class="modal-header details-modal__header">
-      <h4>D�tails de la r�clamation</h4>
+      <h4>Détails de la réclamation</h4>
       <button type="button" class="modal-close" (click)="closeDetailsModal()">
         <i class="fa-solid fa-times"></i>
       </button>
     </div>
     <div class="modal-body">
       <div class="details-grid">
-        <div><strong>R�f�rence :</strong> {{ selectedReclamationForDetails.reference || '-' }}</div>
+        <div><strong>Référence :</strong> {{ selectedReclamationForDetails.reference || '-' }}</div>
         <div><strong>Sujet :</strong> {{ selectedReclamationForDetails.sujet || '-' }}</div>
-        <div><strong>Cat�gorie :</strong> {{ selectedReclamationForDetails.categorie || '-' }}</div>
+        <div><strong>Catégorie :</strong> {{ selectedReclamationForDetails.categorie || '-' }}</div>
         <div><strong>Contribuable :</strong> {{ selectedReclamationForDetails.nomUser || '-' }}</div>
         <div><strong>Email :</strong> {{ selectedReclamationForDetails.emailUser || '-' }}</div>
         <div><strong>Urgence :</strong> {{ selectedReclamationForDetails.urgenceDisplay || '-' }}</div>
         <div><strong>Statut :</strong> {{ selectedReclamationForDetails.statutDisplay || '-' }}</div>
-        <div><strong>�tat :</strong> {{ selectedReclamationForDetails.etatDisplay || '-' }}</div>
+        <div><strong>état :</strong> {{ selectedReclamationForDetails.etatDisplay || '-' }}</div>
         <div><strong>Date soumission :</strong> {{ formatDate(selectedReclamationForDetails.dateSoumission || selectedReclamationForDetails.dateCreation) }}</div>
       </div>
       <div class="message-block">
@@ -206,7 +206,7 @@
         <strong>Messagerie (agent / contribuable) :</strong>
         <p *ngIf="isLoadingMessages" class="messages-state">Chargement des messages...</p>
         <p *ngIf="!isLoadingMessages && reclamationMessages.length === 0" class="messages-state">
-          Aucun message pour cette r�clamation.
+          Aucun message pour cette réclamation.
         </p>
         <div class="messages-list" *ngIf="!isLoadingMessages && reclamationMessages.length > 0">
           <div class="message-row" *ngFor="let msg of reclamationMessages" [class.message-row--agent]="msg.auteur === 'agent'">

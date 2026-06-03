@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { UserService } from 'src/app/services/user/user.service';
+import { MediaUrlService } from 'src/app/services/media-url.service';
 import { Utilisateur } from 'src/app/models/utilisateur';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -24,7 +25,8 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   constructor(
     private userService: UserService,
     private router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private mediaUrl: MediaUrlService
   ) {
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.pattern(/^[a-zA-Z\s]*$/)]],
@@ -65,6 +67,13 @@ export class ProfileComponent implements OnInit, AfterViewInit {
       });
     }
     this.initializeToasts();
+  }
+
+  getPhotoUrl(): string {
+    if (!this.user?.photo) {
+      return '/assets/img/team/icondefaut.webp';
+    }
+    return this.mediaUrl.resolve(this.user.photo) || '/assets/img/team/icondefaut.webp';
   }
 
   loadUserDetails(): void {

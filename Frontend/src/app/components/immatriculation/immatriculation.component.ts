@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, FormArray, Validators, FormControl, ValidatorFn
 import { Router } from '@angular/router';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { ImmatriculationService } from '../../services/immatriculation.service';
+import { AuthService } from '../../services/auth/auth.service';
 import { ValidationService } from '../../services/validation.service';
 import { NotificationService } from '../../services/notification.service';
 import { CinValidatorService } from '../../services/cin/cin-validator.service';
@@ -47,6 +48,10 @@ import { firstValueFrom } from 'rxjs';
   ]
 })
 export class ImmatriculationComponent implements OnInit, AfterViewInit {
+  /** Contribuable connecté ayant déjà un dossier : masquer le formulaire. */
+  existingImmatriculationBlock = false;
+  checkingExistingImmatriculation = false;
+
   @ViewChild('ocrFileInput') ocrFileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('canvas') canvas!: ElementRef;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
@@ -347,12 +352,61 @@ export class ImmatriculationComponent implements OnInit, AfterViewInit {
     private cinValidator: CinValidatorService,
     private ocrService: OcrService,
     private faceVerificationService: FaceVerificationService,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.initForm();
     this.generateDossierNumber();
+    this.checkExistingImmatriculationForConnectedContribuable();
+  }
+
+  goToDossier(): void {
+    this.router.navigate(['/Dossier']);
+  }
+
+  private checkExistingImmatriculationForConnectedContribuable(): void {
+    if (!this.authService.isLoggedIn() || this.authService.getRole() !== 'CONTRIBUABLE') {
+      return;
+    }
+    const email = this.resolveConnectedUserEmail();
+    if (!email) {
+      return;
+    }
+    this.checkingExistingImmatriculation = true;
+    this.immatriculationService.checkEmailHasImmatriculation(email).subscribe({
+      next: (exists) => {
+        this.existingImmatriculationBlock = exists;
+        this.checkingExistingImmatriculation = false;
+      },
+      error: () => {
+        this.checkingExistingImmatriculation = false;
+      },
+    });
+  }
+
+  private resolveConnectedUserEmail(): string {
+    const direct =
+      localStorage.getItem('userEmail') ||
+      localStorage.getItem('email') ||
+      '';
+    if (direct.trim()) {
+      return direct.trim();
+    }
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const parsed = JSON.parse(userInfo);
+        const fromInfo = parsed?.email || parsed?.userEmail || '';
+        if (fromInfo && String(fromInfo).trim()) {
+          return String(fromInfo).trim();
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return '';
   }
 
   ngAfterViewInit(): void {

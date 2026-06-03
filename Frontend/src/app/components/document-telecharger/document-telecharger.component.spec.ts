@@ -1,10 +1,12 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 import { DocumentTelechargerComponent } from './document-telecharger.component';
 import { DownloadDocumentCatalogService } from '../../services/download-document-catalog.service';
+import { AuthService } from '../../services/auth/auth.service';
 
 describe('DocumentTelechargerComponent', () => {
   let component: DocumentTelechargerComponent;
@@ -12,7 +14,7 @@ describe('DocumentTelechargerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FormsModule, HttpClientTestingModule],
+      imports: [FormsModule, HttpClientTestingModule, RouterTestingModule],
       declarations: [DocumentTelechargerComponent],
       providers: [
         {
@@ -21,6 +23,10 @@ describe('DocumentTelechargerComponent', () => {
             fetchPublicList: () => of([]),
             formatSize: () => '-',
           },
+        },
+        {
+          provide: AuthService,
+          useValue: { isLoggedIn: () => false },
         },
       ],
     }).compileComponents();

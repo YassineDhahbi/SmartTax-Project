@@ -153,6 +153,42 @@ export class UserService {
     );
   }
 
+  getOnlineUserIds(): Observable<{ onlineUserIds: number[]; count: number; thresholdMinutes: number }> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return throwError(() => new Error('No token found'));
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<{ onlineUserIds: number[]; count: number; thresholdMinutes: number }>(
+      `${this.apiUrl}/online`,
+      { headers }
+    ).pipe(
+      catchError(error => {
+        console.error('Error fetching online users:', error);
+        return throwError(() => new Error('Failed to fetch online users'));
+      })
+    );
+  }
+
+  sendPresenceHeartbeat(): Observable<void> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return throwError(() => new Error('No token found'));
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<void>(`${this.apiUrl}/presence/heartbeat`, {}, { headers }).pipe(
+      catchError(() => throwError(() => new Error('Heartbeat failed')))
+    );
+  }
+
   getAllUtilisateurs(): Observable<Utilisateur[]> {
     const token = localStorage.getItem('token');
     if (!token) {

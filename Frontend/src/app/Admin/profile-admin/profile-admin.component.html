@@ -21,7 +21,7 @@
           {{ getInitials(currentUser?.firstName, currentUser?.lastName) }}
         </div>
         <img *ngIf="currentUser?.photo" 
-             [src]="currentUser?.photo" 
+             [src]="resolvePhoto(currentUser?.photo)" 
              [alt]="currentUser?.firstName"
              class="admin-photo">
         <div class="admin-info">
@@ -112,7 +112,7 @@
               <div class="profile-avatar" *ngIf="!currentUser?.photo && !imagePreview">
                 {{ getInitials(currentUser?.firstName, currentUser?.lastName) }}
               </div>
-              <img [src]="imagePreview || currentUser?.photo" 
+              <img [src]="imagePreview || resolvePhoto(currentUser?.photo)" 
                    [alt]="currentUser?.firstName" 
                    class="profile-photo"
                    *ngIf="currentUser?.photo || imagePreview">

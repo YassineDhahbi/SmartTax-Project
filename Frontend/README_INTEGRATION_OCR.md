@@ -36,7 +36,7 @@ frontend/src/app/
 
 ### 1. Démarrer le service OCR
 ```bash
-cd ocr-service
+cd ArabSoftBack/ocr-service
 python real_cin_reader.py  # Port 8004
 ```
 

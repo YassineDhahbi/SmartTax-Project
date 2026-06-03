@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap, timer, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
+import { UserService } from '../user/user.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,10 +11,16 @@ export class AuthService {
   private apiUrl = 'http://localhost:8080/api/auth';
   private readonly SESSION_DURATION = 4 * 60 * 60 * 1000; // 4 heures en millisecondes
   private sessionTimer: Subscription | null = null;
+  private presenceTimer: ReturnType<typeof setInterval> | null = null;
   private readonly SESSION_START_KEY = 'sessionStart';
   private readonly LAST_ACTIVITY_KEY = 'lastActivity';
+  private readonly PRESENCE_INTERVAL_MS = 45_000;
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private userService: UserService
+  ) {
     // Vérifier la session au démarrage du service
     this.checkSessionOnStartup();
     // Démarrer le suivi d'activité
@@ -59,6 +66,7 @@ export class AuthService {
   logout(): void {
     // Nettoyer le timer de session
     this.clearSessionTimer();
+    this.clearPresenceTimer();
     
     // Supprimer toutes les données de session
     localStorage.removeItem('token');
@@ -90,6 +98,37 @@ export class AuthService {
     return localStorage.getItem('role');
   }
 
+  getUserEmail(): string {
+    const direct =
+      localStorage.getItem('userEmail') ||
+      localStorage.getItem('email') ||
+      '';
+    if (direct.trim()) {
+      return direct.trim();
+    }
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const parsed = JSON.parse(userInfo);
+        const fromInfo = parsed?.email || parsed?.userEmail || '';
+        if (fromInfo && String(fromInfo).trim()) {
+          return String(fromInfo).trim();
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return '';
+  }
+
+  getUserMatricule(): string {
+    const direct =
+      localStorage.getItem('matricule') ||
+      localStorage.getItem('tin') ||
+      '';
+    return direct.trim();
+  }
+
   getAuthHeaders(): HttpHeaders {
     const token = this.getToken();
     return token ? new HttpHeaders({ 'Authorization': `Bearer ${token}` }) : new HttpHeaders();
@@ -103,6 +142,7 @@ export class AuthService {
     
     // Démarrer le timer de session
     this.startSessionTimer();
+    this.startPresenceHeartbeat();
   }
 
   private startSessionTimer(): void {
@@ -158,6 +198,7 @@ export class AuthService {
           const remainingTime = this.SESSION_DURATION - (now - sessionStartTime);
           console.log(`Session valide, ${Math.round(remainingTime / 1000 / 60)} minutes restantes`);
           this.startSessionTimer();
+          this.startPresenceHeartbeat();
         } else {
           console.log('Session expirée au démarrage - déconnexion');
           this.logout();
@@ -166,6 +207,27 @@ export class AuthService {
         // Pas de données de session, déconnexion
         this.logout();
       }
+    }
+  }
+
+  private startPresenceHeartbeat(): void {
+    this.clearPresenceTimer();
+    this.sendPresenceHeartbeat();
+    this.presenceTimer = setInterval(() => {
+      if (this.isLoggedIn()) {
+        this.sendPresenceHeartbeat();
+      }
+    }, this.PRESENCE_INTERVAL_MS);
+  }
+
+  private sendPresenceHeartbeat(): void {
+    this.userService.sendPresenceHeartbeat().subscribe({ error: () => {} });
+  }
+
+  private clearPresenceTimer(): void {
+    if (this.presenceTimer !== null) {
+      clearInterval(this.presenceTimer);
+      this.presenceTimer = null;
     }
   }
 

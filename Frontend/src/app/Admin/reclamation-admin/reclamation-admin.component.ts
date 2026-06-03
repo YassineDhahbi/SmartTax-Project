@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
-import { Subject, forkJoin } from 'rxjs';
-import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { Subject, forkJoin, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 interface ReclamationAdminItem {
@@ -71,10 +71,10 @@ export class ReclamationAdminComponent implements OnInit, OnDestroy {
   private readonly searchDebounce$ = new Subject<string>();
 
   stats = [
-    { title: 'Total r�clamations', value: '0', subtitle: 'Toutes les r�clamations', delta: '--', trend: 'neutral' },
+    { title: 'Total réclamations', value: '0', subtitle: 'Toutes les réclamations', delta: '--', trend: 'neutral' },
     { title: 'Soumises', value: '0', subtitle: 'En attente de prise en charge', delta: '--', trend: 'neutral' },
     { title: 'En cours', value: '0', subtitle: 'Traitement en cours', delta: '--', trend: 'up' },
-    { title: 'R�solues', value: '0', subtitle: 'Clotures', delta: '--', trend: 'up' }
+    { title: 'Résolues', value: '0', subtitle: 'Clôturées', delta: '--', trend: 'up' }
   ];
 
   constructor(private http: HttpClient, private route: ActivatedRoute) {}
@@ -172,9 +172,14 @@ export class ReclamationAdminComponent implements OnInit, OnDestroy {
   loadReclamations(): void {
     this.loading = true;
     this.errorMessage = '';
+    const headers = this.getAuthHeaders();
+    const listOpts = { headers, params: this.buildListParams() };
+
     forkJoin({
-      stats: this.http.get<any>(`${environment.apiUrl}/reclamation/statistics`),
-      list: this.http.get<any>(`${environment.apiUrl}/reclamation/all`, { params: this.buildListParams() }),
+      stats: this.http
+        .get<any>(`${environment.apiUrl}/reclamation/statistics`, { headers })
+        .pipe(catchError(() => of(null))),
+      list: this.http.get<any>(`${environment.apiUrl}/reclamation/all`, listOpts),
     }).subscribe({
       next: ({ stats, list }) => {
         this.reclamations = this.mapRows(list?.content);
@@ -184,18 +189,24 @@ export class ReclamationAdminComponent implements OnInit, OnDestroy {
         if (!Number.isNaN(n)) this.page = n;
 
         this.stats = [
-          { title: 'Total r�clamations', value: `${Number(stats?.total) || 0}`, subtitle: 'Toutes les r�clamations', delta: '--', trend: 'neutral' },
+          { title: 'Total réclamations', value: `${Number(stats?.total) || 0}`, subtitle: 'Toutes les réclamations', delta: '--', trend: 'neutral' },
           { title: 'Soumises', value: `${Number(stats?.soumis) || 0}`, subtitle: 'En attente de prise en charge', delta: '--', trend: 'neutral' },
           { title: 'En cours', value: `${Number(stats?.enCours) || 0}`, subtitle: 'Traitement en cours', delta: '--', trend: 'up' },
-          { title: 'R�solues', value: `${Number(stats?.resolus) || 0}`, subtitle: 'Clotures', delta: '--', trend: 'up' },
+          { title: 'Résolues', value: `${Number(stats?.resolus) || 0}`, subtitle: 'Clôturées', delta: '--', trend: 'up' },
         ];
 
         this.tryOpenReclamationFromNotification();
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
-        this.errorMessage = 'Impossible de charger les r�clamations.';
+        const status = err?.status;
+        if (status === 401 || status === 403) {
+          this.errorMessage =
+            'Accès refusé. Connectez-vous en tant qu’administrateur et rouvrez cette page.';
+        } else {
+          this.errorMessage = 'Impossible de charger les réclamations.';
+        }
       },
     });
   }
@@ -261,22 +272,27 @@ export class ReclamationAdminComponent implements OnInit, OnDestroy {
 
     this.etatUpdatingId = item.id;
     item.etatCode = target;
-    item.etatDisplay = target === 'TRAITE' ? 'Trait�' : 'En cours';
+    item.etatDisplay = target === 'TRAITE' ? 'Traité' : 'En cours';
 
     const params = new HttpParams().set('etat', target);
-    this.http.put<any>(`${environment.apiUrl}/reclamation/${item.id}/etat-traitement`, null, { params }).subscribe({
-      next: (dto) => {
-        const code = this.pickValue(dto?.etatReclamation);
-        item.etatCode = code === 'TRAITE' ? 'TRAITE' : 'EN_COURS';
-        item.etatDisplay = this.pickLabel(dto?.etatReclamation) || item.etatCode;
-        this.etatUpdatingId = null;
-      },
-      error: () => {
-        item.etatCode = previous;
-        item.etatDisplay = previous === 'TRAITE' ? 'Trait�' : 'En cours';
-        this.etatUpdatingId = null;
-      }
-    });
+    this.http
+      .put<any>(`${environment.apiUrl}/reclamation/${item.id}/etat-traitement`, null, {
+        params,
+        headers: this.getAuthHeaders(),
+      })
+      .subscribe({
+        next: (dto) => {
+          const code = this.pickValue(dto?.etatReclamation);
+          item.etatCode = code === 'TRAITE' ? 'TRAITE' : 'EN_COURS';
+          item.etatDisplay = this.pickLabel(dto?.etatReclamation) || item.etatCode;
+          this.etatUpdatingId = null;
+        },
+        error: () => {
+          item.etatCode = previous;
+          item.etatDisplay = previous === 'TRAITE' ? 'Traité' : 'En cours';
+          this.etatUpdatingId = null;
+        },
+      });
   }
 
   openDetailsModal(item: ReclamationAdminItem): void {
@@ -310,7 +326,7 @@ export class ReclamationAdminComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.isDeleting = false;
-        this.errorMessage = "Suppression impossible (seuls les brouillons peuvent �tre supprim�s).";
+        this.errorMessage = 'Suppression impossible (seuls les brouillons peuvent être supprimés).';
       },
     });
   }
@@ -390,18 +406,19 @@ export class ReclamationAdminComponent implements OnInit, OnDestroy {
       this.pendingReclamationIdToOpen = null;
       return;
     }
-    this.http.get<any>(`${environment.apiUrl}/reclamation/${targetId}`).subscribe({
-      next: (raw) => {
-        if (raw?.id != null) {
-          const row = this.mapRows([raw])[0];
-          this.openDetailsModal(row);
-        }
-        this.pendingReclamationIdToOpen = null;
-      },
-      error: () => {
-        this.pendingReclamationIdToOpen = null;
-      },
-    });
+    this.http
+      .get<any>(`${environment.apiUrl}/reclamation/${targetId}`, { headers: this.getAuthHeaders() })
+      .subscribe({
+        next: (raw) => {
+          if (raw?.id != null) {
+            const row = this.mapRows([raw])[0];
+            this.openDetailsModal(row);
+          }
+          this.pendingReclamationIdToOpen = null;
+        },
+        error: () => {
+          this.pendingReclamationIdToOpen = null;
+        },
+      });
   }
 }
-

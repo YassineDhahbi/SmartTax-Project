@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit, HostListener, ElementRef } from '@angular/core';
 import { PublicationService } from 'src/app/services/publication.service';
+import { MediaUrlService } from 'src/app/services/media-url.service';
 
 @Component({
   selector: 'app-home',
@@ -10,7 +11,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
   readonly fallbackPublicationImage = 'assets/img/actualite/Actualite.png';
   latestPublications: any[] = [];
 
-  constructor(private el: ElementRef, private publicationService: PublicationService) {}
+  constructor(
+    private el: ElementRef,
+    private publicationService: PublicationService,
+    private mediaUrl: MediaUrlService
+  ) {}
 
   ngOnInit(): void {
     this.loadLatestPublications();
@@ -52,19 +57,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if (!url) {
       return this.fallbackPublicationImage;
     }
-    if (url.startsWith('http')) {
-      return url;
-    }
-    if (url.startsWith('uploads/publications/')) {
-      return `http://localhost:8080/${url}`;
-    }
-    if (url.startsWith('/assets/')) {
-      return `http://localhost:8080${url}`;
-    }
-    if (url.startsWith('assets/')) {
-      return `http://localhost:8080/${url}`;
-    }
-    return url;
+    return this.mediaUrl.resolve(url) || this.fallbackPublicationImage;
   }
 
   getPublicationAuthor(publication: any): string {

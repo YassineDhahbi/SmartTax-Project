@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { PublicationService } from 'src/app/services/publication.service';
+import { MediaUrlService } from 'src/app/services/media-url.service';
 
 @Component({
   selector: 'app-detail-actualite',
@@ -53,7 +54,8 @@ export class DetailActualiteComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
-    private publicationService: PublicationService
+    private publicationService: PublicationService,
+    private mediaUrl: MediaUrlService
   ) {}
 
   get isUserLoggedIn(): boolean {
@@ -121,19 +123,7 @@ export class DetailActualiteComponent implements OnInit {
     if (!url) {
       return this.fallbackImage;
     }
-    if (url.startsWith('http')) {
-      return url;
-    }
-    if (url.startsWith('uploads/publications/')) {
-      return `http://localhost:8080/${url}`;
-    }
-    if (url.startsWith('/assets/')) {
-      return `http://localhost:8080${url}`;
-    }
-    if (url.startsWith('assets/')) {
-      return `http://localhost:8080/${url}`;
-    }
-    return url;
+    return this.mediaUrl.resolve(url) || this.fallbackImage;
   }
 
   onImageError(event: Event): void {

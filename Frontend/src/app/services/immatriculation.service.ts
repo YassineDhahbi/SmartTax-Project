@@ -141,6 +141,23 @@ export class ImmatriculationService {
     );
   }
 
+  /**
+   * Vérifie si un dossier d'immatriculation existe déjà pour cet email (API check-duplicates).
+   */
+  checkEmailHasImmatriculation(email: string): Observable<boolean> {
+    const trimmed = (email || '').trim();
+    if (!trimmed) {
+      return of(false);
+    }
+    const params = new HttpParams().set('email', trimmed);
+    return this.http
+      .post<{ emailExists?: boolean }>(`${this.apiUrl}/check-duplicates`, null, { params })
+      .pipe(
+        map((r) => !!r.emailExists),
+        catchError(() => of(false))
+      );
+  }
+
   // ==================== RECHERCHE ====================
 
   /**
@@ -150,6 +167,38 @@ export class ImmatriculationService {
     return this.http.get<Immatriculation[]>(`${this.apiUrl}/status/${status}`).pipe(
       catchError(this.handleError)
     );
+  }
+
+  /**
+   * Dossiers d'immatriculation du contribuable connecte (email exact, repli TIN).
+   */
+  getMyDossier(email?: string, tin?: string): Observable<Immatriculation[]> {
+    let params = new HttpParams();
+    const trimmedEmail = (email || '').trim();
+    const trimmedTin = (tin || '').trim();
+
+    if (trimmedEmail) {
+      params = params.set('email', trimmedEmail);
+    }
+    if (trimmedTin) {
+      params = params.set('tin', trimmedTin);
+    }
+
+    if (!trimmedEmail && !trimmedTin) {
+      return of([]);
+    }
+
+    return this.http.get<Immatriculation[]>(`${this.apiUrl}/my-dossier`, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Dossiers d'immatriculation du contribuable connecte (filtre par email).
+   * @deprecated Prefer getMyDossier
+   */
+  getImmatriculationsForUserEmail(email: string): Observable<Immatriculation[]> {
+    return this.getMyDossier(email);
   }
 
   /**

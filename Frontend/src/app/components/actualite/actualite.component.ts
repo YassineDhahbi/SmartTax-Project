@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { PublicationService } from 'src/app/services/publication.service';
+import { MediaUrlService } from 'src/app/services/media-url.service';
 
 @Component({
   selector: 'app-actualite',
@@ -19,7 +20,10 @@ export class ActualiteComponent implements OnInit {
   favoritePublicationIds: number[] = [];
   pinnedPublicationIds: number[] = [];
 
-  constructor(private publicationService: PublicationService) {}
+  constructor(
+    private publicationService: PublicationService,
+    private mediaUrl: MediaUrlService
+  ) {}
 
   ngOnInit(): void {
     this.loadFavorites();
@@ -108,25 +112,7 @@ export class ActualiteComponent implements OnInit {
     if (!url) {
       return this.fallbackImage;
     }
-
-    // Même logique que dashboard agent (publications-fiscales)
-    if (url.startsWith('http')) {
-      return url;
-    }
-
-    if (url.startsWith('uploads/publications/')) {
-      return `http://localhost:8080/${url}`;
-    }
-
-    if (url.startsWith('/assets/')) {
-      return `http://localhost:8080${url}`;
-    }
-
-    if (url.startsWith('assets/')) {
-      return `http://localhost:8080/${url}`;
-    }
-
-    return url;
+    return this.mediaUrl.resolve(url) || this.fallbackImage;
   }
 
   onImageError(event: Event): void {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Utilisateur } from 'src/app/models/utilisateur';
@@ -18,7 +18,7 @@ interface UserStatCard {
   templateUrl: './utilisateurs-admin.component.html',
   styleUrls: ['./utilisateurs-admin.component.css']
 })
-export class UtilisateursAdminComponent implements OnInit {
+export class UtilisateursAdminComponent implements OnInit, OnDestroy {
   users: Utilisateur[] = [];
   filteredUsers: Utilisateur[] = [];
   stats: UserStatCard[] = [];
@@ -29,6 +29,10 @@ export class UtilisateursAdminComponent implements OnInit {
   showAdvancedSearch = false;
   loading = true;
   errorMessage = '';
+  onlineUserIds = new Set<number>();
+  onlineUsersCount = 0;
+  onlineThresholdMinutes = 5;
+  private onlineRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
   // Propriétés de pagination
   currentPage = 1;
@@ -182,6 +186,34 @@ export class UtilisateursAdminComponent implements OnInit {
     });
     this.loadUsers();
     this.loadAllUsersForStats();
+    this.loadOnlineUsers();
+    this.onlineRefreshTimer = setInterval(() => this.loadOnlineUsers(), 30_000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.onlineRefreshTimer !== null) {
+      clearInterval(this.onlineRefreshTimer);
+      this.onlineRefreshTimer = null;
+    }
+  }
+
+  loadOnlineUsers(): void {
+    this.userService.getOnlineUserIds().subscribe({
+      next: (response) => {
+        const ids = Array.isArray(response?.onlineUserIds) ? response.onlineUserIds : [];
+        this.onlineUserIds = new Set(ids.map((id) => Number(id)));
+        this.onlineUsersCount = response?.count ?? this.onlineUserIds.size;
+        this.onlineThresholdMinutes = response?.thresholdMinutes ?? 5;
+      },
+      error: () => {
+        // Ne pas bloquer la page si la présence échoue
+      }
+    });
+  }
+
+  isUserOnline(user: Utilisateur): boolean {
+    const id = Number(user?.idUtilisateur);
+    return !Number.isNaN(id) && id > 0 && this.onlineUserIds.has(id);
   }
 
   loadUsers(): void {
