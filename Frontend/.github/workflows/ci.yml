@@ -1,5 +1,5 @@
-# SmartTax Frontend — CI + SonarCloud + GHCR
-# Repo dedie : racine = contenu du dossier Frontend/
+# SmartTax Frontend — CI + SonarCloud
+# Registry GHCR : voir registry.yml (permissions separees pour SonarCloud)
 
 name: CI
 
@@ -15,7 +15,6 @@ concurrency:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   frontend:
@@ -44,45 +43,3 @@ jobs:
         with:
           args: >
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
-
-  publish-image:
-    name: Publish image (GHCR)
-    runs-on: ubuntu-latest
-    needs: frontend
-    if: github.event_name == 'push'
-    env:
-      IMAGE_NAME: ghcr.io/${{ lower(github.repository) }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix=
-            type=ref,event=branch
-
-      - name: Build and push frontend image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
