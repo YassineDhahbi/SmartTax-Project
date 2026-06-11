@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   frontend:
-    name: Frontend (Angular + SonarCloud)
+    name: Frontend (Angular)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -36,18 +36,8 @@ jobs:
       - name: Build (configuration docker)
         run: npm run build -- --configuration docker
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402 # v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: Frontend
-          args: >
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
-            -Dsonar.sources=src/app
-            -Dsonar.sourceEncoding=UTF-8
-            -Dsonar.python.file.suffixes=-
-            -Dsonar.exclusions=**/*.spec.ts,**/.github/**,**/src/assets/**,**/*.py,**/*.php,**/*.yml,**/*.yaml
+      # SonarCloud : analyse via l integration GitHub App (check separe).
+      # Evite le double scan CI + App qui provoque "CE Task FAILED".
 
   publish-image:
     name: Publish image (GHCR)
