@@ -263,8 +263,8 @@
       <div *ngIf="previewLoading" class="pub-doc-modal__state">Chargement de l'aperçu…</div>
       <p *ngIf="previewError" class="pub-doc-modal__state pub-doc-modal__state--error">{{ previewError }}</p>
       <iframe
-        *ngIf="previewResourceUrl && !previewLoading && !previewError"
-        [src]="previewResourceUrl"
+        *ngIf="previewUrl && !previewLoading && !previewError"
+        [src]="previewUrl"
         class="pub-doc-modal__frame"
         title="Aperçu du document PDF"
       ></iframe>

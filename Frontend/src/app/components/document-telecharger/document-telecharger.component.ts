@@ -1,7 +1,7 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, HostListener, OnInit, SecurityContext } from '@angular/core';
 import { Router } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer } from '@angular/platform-browser';
 import { AuthService } from '../../services/auth/auth.service';
 import {
   AgentDownloadDocument,
@@ -31,7 +31,7 @@ export class DocumentTelechargerComponent implements OnInit {
   previewTitle = '';
   previewLoading = false;
   previewError = '';
-  previewResourceUrl: SafeResourceUrl | null = null;
+  previewUrl: string | null = null;
   private previewBlobUrl: string | null = null;
 
   constructor(
@@ -187,7 +187,7 @@ export class DocumentTelechargerComponent implements OnInit {
     }
     this.revokePreviewBlob();
     this.previewError = '';
-    this.previewResourceUrl = null;
+    this.previewUrl = null;
     this.previewTitle = doc.title || 'Document';
     this.previewModalOpen = true;
     this.previewLoading = true;
@@ -200,29 +200,30 @@ export class DocumentTelechargerComponent implements OnInit {
       return;
     }
 
-    const resolvedUrl = this.resolveFileUrl(url);
-    if (this.isApiStoredFileUrl(resolvedUrl)) {
-      this.http
-        .get(resolvedUrl, {
-          responseType: 'blob',
-          headers: this.authHeadersForFile(),
-        })
-        .subscribe({
-          next: (blob) => {
-            this.revokePreviewBlob();
-            this.previewBlobUrl = URL.createObjectURL(blob);
-            // Blob local issu de l API authentifiee (iframe Angular) — NOSONAR
-            this.previewResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-              this.previewBlobUrl
-            );
+    if (this.isApiStoredFileUrl(url)) {
+      this.http.get(url, { responseType: 'blob' }).subscribe({
+        next: (blob) => {
+          this.revokePreviewBlob();
+          this.previewBlobUrl = URL.createObjectURL(blob);
+          const safeUrl = this.sanitizer.sanitize(
+            SecurityContext.RESOURCE_URL,
+            this.previewBlobUrl
+          );
+          if (safeUrl) {
+            this.previewUrl = safeUrl;
             this.previewLoading = false;
-          },
-          error: () => {
-            this.previewLoading = false;
-            this.previewError =
-              "Impossible de charger l'aperçu. Vérifiez la connexion au serveur ou utilisez « Télécharger ».";
-          },
-        });
+            return;
+          }
+          window.open(this.previewBlobUrl, '_blank', 'noopener,noreferrer');
+          this.previewLoading = false;
+          this.closePreview();
+        },
+        error: () => {
+          this.previewLoading = false;
+          this.previewError =
+            "Impossible de charger l'aperçu. Vérifiez la connexion au serveur ou utilisez « Télécharger ».";
+        },
+      });
       return;
     }
 
@@ -236,7 +237,7 @@ export class DocumentTelechargerComponent implements OnInit {
       return;
     }
     this.revokePreviewBlob();
-    this.previewResourceUrl = null;
+    this.previewUrl = null;
     this.previewModalOpen = false;
     this.previewLoading = false;
     this.previewError = '';
@@ -262,27 +263,10 @@ export class DocumentTelechargerComponent implements OnInit {
     }
   }
 
-  private resolveFileUrl(url: string): string {
-    try {
-      return new URL(url, window.location.origin).href;
-    } catch {
-      return url;
-    }
-  }
-
-  private authHeadersForFile(): HttpHeaders {
-    const token = localStorage.getItem('token');
-    let headers = new HttpHeaders({ Accept: 'application/pdf,application/octet-stream,*/*' });
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
-    }
-    return headers;
-  }
-
   /** Fichiers hébergés par notre API (évite Content-Disposition: attachment dans l'iframe). */
   private isApiStoredFileUrl(url: string): boolean {
     try {
-      const u = new URL(url, window.location.origin);
+      const u = new URL(url);
       return /\/api\/download-documents\/\d+\/file$/.test(u.pathname);
     } catch {
       return false;
