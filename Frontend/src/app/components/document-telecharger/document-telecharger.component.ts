@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, SecurityContext } from '@angular/core';
 import { Router } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer } from '@angular/platform-browser';
 import { AuthService } from '../../services/auth/auth.service';
 import {
   AgentDownloadDocument,
@@ -31,7 +31,7 @@ export class DocumentTelechargerComponent implements OnInit {
   previewTitle = '';
   previewLoading = false;
   previewError = '';
-  previewSafeUrl: SafeResourceUrl | null = null;
+  previewUrl: string | null = null;
   private previewBlobUrl: string | null = null;
 
   constructor(
@@ -187,7 +187,7 @@ export class DocumentTelechargerComponent implements OnInit {
     }
     this.revokePreviewBlob();
     this.previewError = '';
-    this.previewSafeUrl = null;
+    this.previewUrl = null;
     this.previewTitle = doc.title || 'Document';
     this.previewModalOpen = true;
     this.previewLoading = true;
@@ -205,8 +205,18 @@ export class DocumentTelechargerComponent implements OnInit {
         next: (blob) => {
           this.revokePreviewBlob();
           this.previewBlobUrl = URL.createObjectURL(blob);
-          this.previewSafeUrl = this.trustedBlobUrl(this.previewBlobUrl);
+          const safeUrl = this.sanitizer.sanitize(
+            SecurityContext.RESOURCE_URL,
+            this.previewBlobUrl
+          );
+          if (safeUrl) {
+            this.previewUrl = safeUrl;
+            this.previewLoading = false;
+            return;
+          }
+          window.open(this.previewBlobUrl, '_blank', 'noopener,noreferrer');
           this.previewLoading = false;
+          this.closePreview();
         },
         error: () => {
           this.previewLoading = false;
@@ -227,7 +237,7 @@ export class DocumentTelechargerComponent implements OnInit {
       return;
     }
     this.revokePreviewBlob();
-    this.previewSafeUrl = null;
+    this.previewUrl = null;
     this.previewModalOpen = false;
     this.previewLoading = false;
     this.previewError = '';
@@ -261,14 +271,6 @@ export class DocumentTelechargerComponent implements OnInit {
     } catch {
       return false;
     }
-  }
-
-  /** Blob local issu de l API authentifiee (pas d URL externe). */
-  private trustedBlobUrl(blobUrl: string): SafeResourceUrl {
-    if (!blobUrl.startsWith('blob:')) {
-      throw new Error('Preview URL must be a local blob');
-    }
-    return this.sanitizer.bypassSecurityTrustResourceUrl(blobUrl);
   }
 
   private isLikelyPdf(doc: AgentDownloadDocument): boolean {
