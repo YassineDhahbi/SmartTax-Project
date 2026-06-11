@@ -83,5 +83,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # cache-to GHA provoque parfois "error writing layer blob: not_found"
+          # alors que l image est deja poussee sur ghcr.io — on evite cache-to.
           cache-from: type=gha
-          cache-to: type=gha,mode=max
