@@ -19,10 +19,11 @@ export class MediaUrlService {
 
     let path = raw;
     if (path.startsWith('http://') || path.startsWith('https://')) {
-      path = this.extractUploadPath(path) || path;
-      if (path.startsWith('http://') || path.startsWith('https://')) {
-        return path;
+      const extracted = this.extractUploadPath(path);
+      if (!extracted) {
+        return '';
       }
+      path = extracted;
     }
 
     path = path.startsWith('/') ? path : `/${path}`;

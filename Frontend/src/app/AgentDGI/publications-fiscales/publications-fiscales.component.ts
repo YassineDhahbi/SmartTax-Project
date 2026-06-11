@@ -1,4 +1,5 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectorRef, NgZone, SecurityContext } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, forkJoin, of } from 'rxjs';
 import { ImmatriculationService } from '../../services/immatriculation.service';
@@ -230,9 +231,15 @@ export class PublicationsFiscalesComponent implements OnInit, OnChanges {
       private trashService: TrashService,
       private emailService: EmailService,
       private publicationService: PublicationService,
-      private mediaUrl: MediaUrlService
+      private mediaUrl: MediaUrlService,
+      private sanitizer: DomSanitizer
     ) {
       Chart.register(...registerables);
+    }
+
+    getPublicationDetailsHtml(): string {
+      const content = this.selectedPublicationForDetails?.content ?? '';
+      return this.sanitizer.sanitize(SecurityContext.HTML, content) ?? '';
     }
   
     // Méthode pour formater l'adresse avec gouvernorat et ville

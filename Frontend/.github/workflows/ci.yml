@@ -43,3 +43,4 @@ jobs:
         with:
           args: >
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.exclusions=**/.github/**,**/node_modules/**,**/dist/**,**/*.spec.ts,**/src/assets/**,**/global-shim.ts
