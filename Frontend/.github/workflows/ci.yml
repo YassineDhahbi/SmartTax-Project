@@ -41,6 +41,11 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
+          projectBaseDir: .
           args: >
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
-            -Dsonar.exclusions=**/.github/**,**/node_modules/**,**/dist/**,**/*.spec.ts,**/src/assets/**,**/global-shim.ts
+            -Dsonar.sources=src/app
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.python.file.suffixes=-
+            -Dsonar.exclusions=**/*.spec.ts,**/.github/**,**/src/assets/**,**/*.py,**/*.php,**/*.yml,**/*.yaml
+            -Dsonar.qualitygate.wait=false

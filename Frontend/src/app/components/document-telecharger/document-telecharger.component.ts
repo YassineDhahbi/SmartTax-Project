@@ -205,7 +205,7 @@ export class DocumentTelechargerComponent implements OnInit {
         next: (blob) => {
           this.revokePreviewBlob();
           this.previewBlobUrl = URL.createObjectURL(blob);
-          this.previewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewBlobUrl);
+          this.previewSafeUrl = this.trustedBlobUrl(this.previewBlobUrl);
           this.previewLoading = false;
         },
         error: () => {
@@ -217,8 +217,9 @@ export class DocumentTelechargerComponent implements OnInit {
       return;
     }
 
-    this.previewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
     this.previewLoading = false;
+    this.previewError =
+      "Aperçu indisponible pour ce lien. Utilisez « Télécharger ».";
   }
 
   closePreview(): void {
@@ -260,6 +261,14 @@ export class DocumentTelechargerComponent implements OnInit {
     } catch {
       return false;
     }
+  }
+
+  /** Blob local issu de l API authentifiee (pas d URL externe). */
+  private trustedBlobUrl(blobUrl: string): SafeResourceUrl {
+    if (!blobUrl.startsWith('blob:')) {
+      throw new Error('Preview URL must be a local blob');
+    }
+    return this.sanitizer.bypassSecurityTrustResourceUrl(blobUrl);
   }
 
   private isLikelyPdf(doc: AgentDownloadDocument): boolean {
