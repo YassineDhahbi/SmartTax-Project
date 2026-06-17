@@ -65,9 +65,12 @@ services:
       - smarttax-net
 
   backend:
-    build:
-      context: ./ArabSoftBack
-      dockerfile: Dockerfile
+    image: ${BACKEND_IMAGE:-ghcr.io/yassinedhahbi/smarttax-backend:latest}
+    pull_policy: always
+    # Build local (dev) : commenter image/pull_policy et decommenter build
+    # build:
+    #   context: ./ArabSoftBack
+    #   dockerfile: Dockerfile
     container_name: smarttax-backend
     restart: unless-stopped
     env_file:
