@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Deploy frontend in monorepo smarttax
-        shell: pwsh
+        shell: powershell
         env:
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
           SMARTTAX_MONOREPO_PATH: ${{ secrets.SMARTTAX_MONOREPO_PATH }}
