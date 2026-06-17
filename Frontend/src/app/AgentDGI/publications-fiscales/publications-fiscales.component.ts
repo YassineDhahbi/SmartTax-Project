@@ -7,6 +7,7 @@ import { TrashService } from '../../services/trash.service';
 import { EmailService } from '../../services/email/email.service';
 import { PublicationService } from '../../services/publication.service';
 import { MediaUrlService } from '../../services/media-url.service';
+import { environment } from '../../../environments/environment';
 import { Immatriculation } from '../../models/immatriculation.model';
 import jsPDF from 'jspdf';
 import * as QRCode from 'qrcode';
@@ -3180,6 +3181,10 @@ export class PublicationsFiscalesComponent implements OnInit, OnChanges {
       return;
     }
 
+    if (!this.hasGroqApiKey()) {
+      return;
+    }
+
     const plainText = this.stripHtml(this.ckEditorContent).trim();
 
     this.isLoadingTags = true;
@@ -3197,10 +3202,7 @@ export class PublicationsFiscalesComponent implements OnInit, OnChanges {
     };
 
     this.http.post('https://api.groq.com/openai/v1/chat/completions', requestBody, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer '
-      }
+      headers: this.groqRequestHeaders()
     }).subscribe({
       next: (data: any) => {
         const rawTags = data.choices[0].message.content.trim();
@@ -3220,6 +3222,25 @@ export class PublicationsFiscalesComponent implements OnInit, OnChanges {
         this.isLoadingTags = false;
       }
     });
+  }
+
+  private hasGroqApiKey(): boolean {
+    const apiKey = environment.groqApiKey?.trim();
+    if (!apiKey) {
+      this.showNotification(
+        'Cle GROQ_API_KEY manquante. Ajoutez-la dans le fichier .env a la racine du projet, puis relancez npm start.',
+        'warning'
+      );
+      return false;
+    }
+    return true;
+  }
+
+  private groqRequestHeaders(): Record<string, string> {
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${environment.groqApiKey.trim()}`,
+    };
   }
 
   // Méthode pour nettoyer le HTML et obtenir le texte brut
@@ -3325,6 +3346,9 @@ export class PublicationsFiscalesComponent implements OnInit, OnChanges {
       alert('Veuillez entrer un contenu à corriger.');
       return;
     }
+    if (!this.hasGroqApiKey()) {
+      return;
+    }
 
     const plainText = this.stripHtml(this.ckEditorContent).trim();
 
@@ -3343,10 +3367,7 @@ export class PublicationsFiscalesComponent implements OnInit, OnChanges {
     };
 
     this.http.post('https://api.groq.com/openai/v1/chat/completions', requestBody, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer '
-      }
+      headers: this.groqRequestHeaders()
     }).subscribe({
       next: (data: any) => {
         const correctedText = data.choices[0].message.content.trim();

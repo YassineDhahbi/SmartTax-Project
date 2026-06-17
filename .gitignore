@@ -1,2 +1,4 @@
 .env
 *.log
+*.dump
+arabsoft_backup.dump

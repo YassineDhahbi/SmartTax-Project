@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "env:sync": "node scripts/sync-groq-env.js",
+    "prestart": "npm run env:sync",
+    "prebuild": "npm run env:sync",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",

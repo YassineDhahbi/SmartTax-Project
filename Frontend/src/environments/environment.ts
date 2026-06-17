@@ -2,14 +2,16 @@
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+import { environmentSecrets } from './environment.secrets';
+
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:8080/api',
   wsUrl: 'http://localhost:8080/ws',
-  // Add your environment variables here
   appName: 'SmartTax Project',
   version: '1.0.0',
-  enableDebug: true
+  enableDebug: true,
+  groqApiKey: environmentSecrets.groqApiKey,
 };
 
 /*

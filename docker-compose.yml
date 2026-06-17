@@ -24,7 +24,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-arabsoft_db}"]
+      # Base systeme "postgres" (toujours presente) — evite erreurs si POSTGRES_DB != nom reel du volume
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 10
