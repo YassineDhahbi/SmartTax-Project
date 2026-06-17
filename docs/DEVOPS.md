@@ -10,7 +10,8 @@
 | SonarCloud | Fait — [SONAR-ETAPES.md](./SONAR-ETAPES.md) |
 | **Registry GHCR (frontend)** | [REGISTRY-ETAPES.md](./REGISTRY-ETAPES.md) |
 | Registry GHCR (backend) | A faire |
-| CD (deploy auto) | Apres registry |
+| **CD frontend (Windows)** | [CD-ETAPES-FRONTEND.md](./CD-ETAPES-FRONTEND.md) |
+| CD backend (VM) | Apres CD frontend |
 | Kubernetes | Optionnel |
 
 ---

@@ -1,0 +1,68 @@
+# SmartTax — CD frontend (Windows + Docker Desktop, monorepo smarttax)
+
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main, master]
+
+concurrency:
+  group: cd-frontend-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy frontend (Windows)
+    runs-on: [self-hosted, Windows, smarttax]
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Deploy frontend in monorepo smarttax
+        shell: pwsh
+        env:
+          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+          SMARTTAX_MONOREPO_PATH: ${{ secrets.SMARTTAX_MONOREPO_PATH }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $monorepoPath = $env:SMARTTAX_MONOREPO_PATH
+          if (-not $monorepoPath) {
+            throw 'Secret SMARTTAX_MONOREPO_PATH manquant (ex: C:\Users\...\SmartTax-Project)'
+          }
+          if (-not (Test-Path (Join-Path $monorepoPath 'docker-compose.yml'))) {
+            throw "docker-compose.yml introuvable dans $monorepoPath"
+          }
+
+          $repo = '${{ github.repository }}'.ToLower()
+          $frontendImage = "ghcr.io/$repo`:latest"
+          Write-Host "Monorepo: $monorepoPath"
+          Write-Host "Frontend image: $frontendImage"
+
+          if (-not $env:GHCR_READ_TOKEN) {
+            throw 'Secret GHCR_READ_TOKEN manquant'
+          }
+
+          $env:GHCR_READ_TOKEN | docker login ghcr.io -u '${{ github.repository_owner }}' --password-stdin
+
+          $env:FRONTEND_IMAGE = $frontendImage
+          Set-Location $monorepoPath
+
+          docker stop smarttax-frontend 2>$null
+          docker rm smarttax-frontend 2>$null
+
+          docker compose pull frontend
+          docker compose --profile ui up -d frontend
+          docker compose ps frontend
+
+          try {
+            Invoke-WebRequest -Uri 'http://127.0.0.1:4200/' -UseBasicParsing -TimeoutSec 15 | Out-Null
+            Write-Host 'Frontend OK sur http://localhost:4200'
+          } catch {
+            Write-Warning 'Frontend non joignable sur :4200'
+          }

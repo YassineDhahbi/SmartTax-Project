@@ -89,9 +89,12 @@ services:
 
   frontend:
     profiles: ["ui"]
-    build:
-      context: ./Frontend
-      dockerfile: Dockerfile
+    image: ${FRONTEND_IMAGE:-ghcr.io/yassinedhahbi/smarttax-project:latest}
+    pull_policy: always
+    # Build local (dev) : commenter image/pull_policy et decommenter build
+    # build:
+    #   context: ./Frontend
+    #   dockerfile: Dockerfile
     container_name: smarttax-frontend
     restart: unless-stopped
     ports:

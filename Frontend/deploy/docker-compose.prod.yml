@@ -1,0 +1,65 @@
+# SmartTax — production (optionnel / VM)
+# Preferer le monorepo : docker-compose.yml a la racine SmartTax-Project
+
+name: smarttax-prod
+
+networks:
+  smarttax-net:
+    external: true
+    name: smarttax-net
+
+services:
+  postgres:
+    profiles: ["local-db"]
+    image: postgres:16-alpine
+    container_name: smarttax-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-arabsoft_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - smarttax-net
+
+  backend:
+    image: ${BACKEND_IMAGE:-ghcr.io/yassinedhahbi/smarttax-backend:latest}
+    container_name: smarttax-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-smarttax-kafka:29092}
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+    networks:
+      - smarttax-net
+
+  frontend:
+    profiles: ["ui"]
+    image: ${FRONTEND_IMAGE:-ghcr.io/yassinedhahbi/smarttax-project:latest}
+    container_name: smarttax-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - smarttax-net
+
+volumes:
+  postgres_data:
+  backend_uploads:
+  backend_logs:
