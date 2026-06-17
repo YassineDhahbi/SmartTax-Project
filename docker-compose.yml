@@ -77,7 +77,17 @@ services:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      KAFKA_BOOTSTRAP_SERVERS: smarttax-kafka:29092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-arabsoft_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-localhost}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-2525}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-noreply@smarttax.local}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-changeme}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:-disabled}
+      APP_KAFKA_NOTIFICATION_TOPIC: ${APP_KAFKA_NOTIFICATION_TOPIC:-smarttax.notifications}
+      SPRING_KAFKA_CONSUMER_GROUP_ID: ${SPRING_KAFKA_CONSUMER_GROUP_ID:-smarttax-notifications}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-smarttax-kafka:29092}
       AI_MODEL_PATH: /app/models/swin_cin_classifier.pt
     ports:
       - "8080:8080"
