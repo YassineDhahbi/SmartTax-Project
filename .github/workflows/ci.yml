@@ -34,6 +34,8 @@ jobs:
         run: npm ci
 
       - name: Build (configuration docker)
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: npm run build -- --configuration docker
 
       # SonarCloud : analyse via l integration GitHub App (check separe).
@@ -81,6 +83,8 @@ jobs:
           context: Frontend
           file: Frontend/Dockerfile
           push: true
+          build-args: |
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # cache-to GHA provoque parfois "error writing layer blob: not_found"

@@ -34,7 +34,8 @@ function loadEnvFile(filePath) {
 
 const frontEnv = loadEnvFile(path.join(__dirname, '../.env'));
 const rootEnv = loadEnvFile(path.join(__dirname, '../../.env'));
-const groqApiKey = frontEnv.GROQ_API_KEY || rootEnv.GROQ_API_KEY || '';
+const groqApiKey =
+  process.env.GROQ_API_KEY || frontEnv.GROQ_API_KEY || rootEnv.GROQ_API_KEY || '';
 
 const outPath = path.join(__dirname, '../src/environments/environment.secrets.ts');
 const content = `/** Genere par npm run env:sync — ne pas editer a la main */
@@ -46,6 +47,6 @@ export const environmentSecrets = {
 fs.writeFileSync(outPath, content, 'utf8');
 console.log(
   groqApiKey
-    ? '[env:sync] GROQ_API_KEY chargee depuis .env'
+    ? '[env:sync] GROQ_API_KEY chargee (env/.env)'
     : '[env:sync] GROQ_API_KEY absente (.env) — fonctions IA Groq desactivees'
 );
