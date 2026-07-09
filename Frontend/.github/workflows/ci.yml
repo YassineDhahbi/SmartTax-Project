@@ -92,8 +92,8 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          build-args: |
-            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+          secrets: |
+            groq_api_key=${{ secrets.GROQ_API_KEY }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha

@@ -4,9 +4,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-ARG GROQ_API_KEY=""
-ENV GROQ_API_KEY=$GROQ_API_KEY
-RUN npm run build -- --configuration docker
+# Inject GROQ_API_KEY only at build time via BuildKit secret (not persisted in image layers).
+RUN --mount=type=secret,id=groq_api_key \
+    export GROQ_API_KEY="$(cat /run/secrets/groq_api_key 2>/dev/null || true)" && \
+    npm run build -- --configuration docker
 
 # Serve with Nginx
 FROM nginx:1.27-alpine
